@@ -1,0 +1,1 @@
+for x = 0, 10 do for z = 0, 10 do minetest.swap_node({x=861+x, y=-50, z=-1546-z}, {name="bear:icespleef"}) end end
