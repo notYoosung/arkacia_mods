@@ -102,11 +102,11 @@ minetest.register_entity("scp:scp_173_entity", {
     initial_properties = {
         physical = true,
         visual = "mesh",
-        mesh = "3d_armor_entity.obj",
+        mesh = "3d_armor_stand.obj",
+        textures = { "default_wood.png", "mcl_stairs_stone_slab_top.png" },
         visual_size = { x = 1, y = 1 },
         collisionbox = { -0.1, -0.4, -0.1, 0.1, 1.3, 0.1 },
         pointable = false,
-        textures = { "blank.png" },
         timer = 0,
         static_save = false,
     },
@@ -185,3 +185,158 @@ minetest.register_abm({
         -- end
     end
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--MCmobs v0.2
+--maikerumine
+--made for MC like Survival game
+--License for code WTFPL and otherwise stated in readmes
+
+local S = minetest.get_translator("mobs_mc")
+
+--###################
+--################### SHULKER
+--###################
+
+local adjacents = {
+    vector.new(1, 0, 0),
+    vector.new(-1, 0, 0),
+    vector.new(0, 1, 0),
+    vector.new(0, -1, 0),
+    vector.new(0, 0, 1),
+    vector.new(0, 0, -1),
+}
+local function check_spot(pos)
+    pos = vector.offset(pos, 0, 0.5, 0)
+    local n = minetest.get_node(pos)
+    if n.name ~= "air" then return false end
+    for _, a in pairs(adjacents) do
+        local p = vector.add(pos, a)
+        local pn = minetest.get_node(p)
+        if minetest.get_item_group(pn.name, "solid") > 0 then return true end
+    end
+    return false
+end
+local pr = PseudoRandom(os.time() * (-334))
+
+local messy_textures = {
+    grey = "mobs_mc_shulker_gray.png",
+}
+
+local function set_shulker_color(self, color)
+    local tx = "mobs_mc_shulker_" .. color .. ".png"
+    if messy_textures[color] then tx = messy_textures[color] end
+    self.object:set_properties({
+        textures = { tx },
+    })
+    self._color = color
+end
+
+-- animation 45-80 is transition between passive and attack stance
+mcl_mobs.register_mob(":scp:scp_173", {
+    description = "SCP 173",
+    type = "monster",
+    spawn_class = "hostile",
+    persist_in_peaceful = true,
+    attack_type = "dogfight",
+    passive = false,
+    hp_min = 100,
+    hp_max = 100,
+    xp_min = 0,
+    xp_max = 0,
+    armor = 1000,
+    collisionbox = { -0.5, -0.5, -0.5, 0.5, 1.4, 0.5 },
+    visual = "mesh",
+    mesh = "3d_armor_stand.obj",
+    textures = { "default_wood.png", "mcl_stairs_stone_slab_top.png" },
+    pushable = false,
+    mob_pushable = false,
+    visual_size = { x = 3, y = 3 },
+    walk_chance = 100,
+    knock_back = false,
+    jump = false,
+    can_despawn = false,
+    --fall_speed = 0,
+    does_not_prevent_sleep = true,
+    drops = {
+    },
+    view_range = 32,
+    fear_height = 0,
+    walk_velocity = 100,
+    run_velocity = 100,
+    _mcl_fishing_hookable = true,
+    _mcl_fishing_reelable = false,
+    do_teleport = function(self, target)
+        if target ~= nil then
+            local target_pos = target:get_pos()
+            -- Find all solid nodes below air in a 10×10×10 cuboid centered on the target
+            local nodes = minetest.find_nodes_in_area_under_air(vector.subtract(target_pos, 5), vector.add(target_pos, 5),
+                { "group:solid", "group:cracky", "group:crumbly" })
+            local telepos
+            if nodes ~= nil then
+                if #nodes > 0 then
+                    -- Up to 64 attempts to teleport
+                    for _ = 1, math.min(64, #nodes) do
+                        local r = pr:next(1, #nodes)
+                        local nodepos = nodes[r]
+                        local tg = vector.offset(nodepos, 0, 0.5, 0)
+                        if check_spot(tg) then
+                            telepos = tg
+                        end
+                    end
+                    if telepos then
+                        self.object:set_pos(telepos)
+                    end
+                end
+            end
+        else
+            local pos = self.object:get_pos()
+            -- Up to 8 top-level attempts to teleport
+            for _ = 1, 8 do
+                local node_ok = false
+                -- We need to add (or subtract) different random numbers to each vector component, so it couldn't be done with a nice single vector.add() or .subtract():
+                local randomCube = vector.new(pos.x + 8 * (pr:next(0, 16) - 8), pos.y + 8 * (pr:next(0, 16) - 8),
+                    pos.z + 8 * (pr:next(0, 16) - 8))
+                local nodes = minetest.find_nodes_in_area_under_air(vector.subtract(randomCube, 4),
+                    vector.add(randomCube, 4), { "group:solid", "group:cracky", "group:crumbly" })
+                if nodes ~= nil then
+                    if #nodes > 0 then
+                        -- Up to 8 low-level (in total up to 8*8 = 64) attempts to teleport
+                        for _ = 1, math.min(8, #nodes) do
+                            local r = pr:next(1, #nodes)
+                            local nodepos = nodes[r]
+                            local tg = vector.offset(nodepos, 0, 0.5, 0)
+                            if check_spot(tg) then
+                                self.object:set_pos(tg)
+                                node_ok = true
+                                break
+                            end
+                        end
+                    end
+                end
+                if node_ok then
+                    break
+                end
+            end
+        end
+    end,
+})
+
+mcl_mobs.register_egg(":scp:scp_173", "SCP 173", "#946694", "#4d3852", 0)
