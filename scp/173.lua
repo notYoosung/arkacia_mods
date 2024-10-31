@@ -171,15 +171,17 @@ minetest.register_abm({
     interval = 1, -- Run every 10 seconds
     chance = 1,
     action = function(pos, node, active_object_count, active_object_count_wider)
-        local objs = minetest.get_objects_inside_radius(pos, 30)
-        for _, obj in ipairs(objs) do
-            if obj:is_player() then
-                if minetest.raycast(obj:get_pos(), pos, false, false) then
-                    minetest.chat_send_all("true")
-                else
-                    minetest.chat_send_all("false")
-                end
-            end
-        end
+        -- local objs = minetest.get_objects_inside_radius(pos, 30)
+        -- for _, obj in ipairs(objs) do
+        --     if obj:is_player() then
+        --         if not minetest.raycast(obj:get_pos(), pos, false, false) then
+        --             minetest.chat_send_all("true")
+        --         else
+        --             minetest.chat_send_all("false")
+        --         end
+        --     else
+                minetest.chat_send_all("nonplayer")
+        --     end
+        -- end
     end
 })
