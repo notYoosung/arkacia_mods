@@ -1,5 +1,5 @@
 local S = minetest.get_translator(minetest.get_current_modname())
-
+--[[
 -- Spawn a stand entity
 local function spawn_stand_entity(pos, node)
     local luaentity = minetest.add_entity(pos, "scp:scp_173_entity"):get_luaentity()
@@ -145,6 +145,7 @@ minetest.register_lbm({
 
 mcl_player.register_globalstep_slow(function(player)
 	local pos = player:get_pos()
+---@diagnostic disable-next-line: undefined-field
     local roundedlookdir = math.round(minetest.get_player_by_name("singleplayer"):get_look_horizontal()*180/math.pi/90)*90
 
 end)
@@ -248,93 +249,100 @@ local function set_shulker_color(self, color)
     })
     self._color = color
 end
-
--- animation 45-80 is transition between passive and attack stance
+--]]
 mcl_mobs.register_mob(":scp:scp_173", {
     description = "SCP 173",
-    type = "monster",
+    type = "",
     spawn_class = "hostile",
     persist_in_peaceful = true,
     attack_type = "dogfight",
+    damage = 100,
+    reach = 1,
     passive = false,
-    hp_min = 100,
-    hp_max = 100,
+    hp_min = 1,
+    hp_max = 1,
     xp_min = 0,
     xp_max = 0,
-    armor = 1000,
+    armor = { fleshy = 0 },
     collisionbox = { -0.5, -0.5, -0.5, 0.5, 1.4, 0.5 },
     visual = "mesh",
     mesh = "3d_armor_stand.obj",
     textures = { "default_wood.png", "mcl_stairs_stone_slab_top.png" },
     pushable = false,
     mob_pushable = false,
-    visual_size = { x = 3, y = 3 },
+    visual_size = { x = 10, y = 10 },
     walk_chance = 100,
     knock_back = false,
-    jump = false,
+    jump = true,
     can_despawn = false,
     --fall_speed = 0,
     does_not_prevent_sleep = true,
     drops = {
     },
-    view_range = 32,
+    view_range = 64,
     fear_height = 0,
-    walk_velocity = 100,
-    run_velocity = 100,
+    walk_velocity = 25,
+    run_velocity = 25,
     _mcl_fishing_hookable = true,
     _mcl_fishing_reelable = false,
-    do_teleport = function(self, target)
-        if target ~= nil then
-            local target_pos = target:get_pos()
-            -- Find all solid nodes below air in a 10×10×10 cuboid centered on the target
-            local nodes = minetest.find_nodes_in_area_under_air(vector.subtract(target_pos, 5), vector.add(target_pos, 5),
-                { "group:solid", "group:cracky", "group:crumbly" })
-            local telepos
-            if nodes ~= nil then
-                if #nodes > 0 then
-                    -- Up to 64 attempts to teleport
-                    for _ = 1, math.min(64, #nodes) do
-                        local r = pr:next(1, #nodes)
-                        local nodepos = nodes[r]
-                        local tg = vector.offset(nodepos, 0, 0.5, 0)
-                        if check_spot(tg) then
-                            telepos = tg
-                        end
-                    end
-                    if telepos then
-                        self.object:set_pos(telepos)
-                    end
-                end
+    _arrow_resistant = true,
+    lava_damage = 0,
+    fire_damage = 0,
+    light_damage = 0,
+    water_damage = 0,
+    _mcl_freeze_damage = 0,
+    fire_resistant = true,
+    stepheight = 2,
+    fall_damage = 0,
+    do_custom = function(self, dtime)
+        if self.state == "attack" then
+			if self.attack then
+				local target = self.attack
+				local pos = target:get_pos()
+				if pos ~= nil then
+				end
             end
-        else
-            local pos = self.object:get_pos()
-            -- Up to 8 top-level attempts to teleport
-            for _ = 1, 8 do
-                local node_ok = false
-                -- We need to add (or subtract) different random numbers to each vector component, so it couldn't be done with a nice single vector.add() or .subtract():
-                local randomCube = vector.new(pos.x + 8 * (pr:next(0, 16) - 8), pos.y + 8 * (pr:next(0, 16) - 8),
-                    pos.z + 8 * (pr:next(0, 16) - 8))
-                local nodes = minetest.find_nodes_in_area_under_air(vector.subtract(randomCube, 4),
-                    vector.add(randomCube, 4), { "group:solid", "group:cracky", "group:crumbly" })
-                if nodes ~= nil then
-                    if #nodes > 0 then
-                        -- Up to 8 low-level (in total up to 8*8 = 64) attempts to teleport
-                        for _ = 1, math.min(8, #nodes) do
-                            local r = pr:next(1, #nodes)
-                            local nodepos = nodes[r]
-                            local tg = vector.offset(nodepos, 0, 0.5, 0)
-                            if check_spot(tg) then
-                                self.object:set_pos(tg)
-                                node_ok = true
-                                break
-                            end
-                        end
-                    end
-                end
-                if node_ok then
+		end
+
+        local enderpos = self.object:get_pos()
+        local is_watched = false;
+        for obj in mcl_util.connected_players(enderpos, 64) do
+            local player_pos = obj:get_pos()
+            local look_dir_not_normalized = obj:get_look_dir()
+            local look_dir = vector.normalize(look_dir_not_normalized)
+            local player_eye_height = obj:get_properties().eye_height
+
+            if not player_eye_height then
+                minetest.log("error", "Enderman at location: " .. dump(enderpos) .. " has indexed a null player!")
+            else
+                local look_pos = vector.new(player_pos.x, player_pos.y + player_eye_height, player_pos.z)
+                local look_pos_base = look_pos
+                local ender_eye_pos = vector.new(enderpos.x, enderpos.y + 0.5, enderpos.z)
+                local eye_distance_from_player = vector.distance(ender_eye_pos, look_pos)
+                look_pos = vector.add(look_pos, vector.multiply(look_dir, eye_distance_from_player))
+
+                if minetest.line_of_sight(ender_eye_pos, look_pos_base) and vector.distance(look_pos, ender_eye_pos) <= 5 then
+                    is_watched = true
                     break
                 end
             end
+        end
+        if is_watched then
+            self.jump = false
+            self.walk_chance = 0
+            self.walk_velocity = 0
+            self.run_velocity = 0
+            self:set_velocity(0)
+            if self.object then
+                self.object:set_acceleration(vector.new(0, self.fall_speed, 0))
+            end
+            self.type = ""
+        else
+            self.jump = true
+            self.walk_chance = 100
+            self.walk_velocity = 25
+            self.run_velocity = 25
+            self.type = "monster"
         end
     end,
 })

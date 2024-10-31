@@ -1,0 +1,14 @@
+{
+    "Lua.diagnostics.globals": [
+        "minetest",
+        "vector",
+        "mcl_util",
+        "dump",
+        "mcl_mobs",
+        "PseudoRandom",
+        "mcl_player",
+        "mcl_armor",
+        "screwdriver",
+        "mcl_sounds"
+    ]
+}
