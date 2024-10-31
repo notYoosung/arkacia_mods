@@ -257,7 +257,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
     persist_in_peaceful = true,
     attack_type = "dogfight",
     damage = 100,
-    reach = 1,
+    reach = 3,
     passive = false,
     hp_min = 1,
     hp_max = 1,
@@ -275,7 +275,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
     knock_back = false,
     jump = true,
     can_despawn = false,
-    --fall_speed = 0,
+    fall_speed = -100,
     does_not_prevent_sleep = true,
     drops = {
     },
@@ -294,6 +294,8 @@ mcl_mobs.register_mob(":scp:scp_173", {
     fire_resistant = true,
     stepheight = 2,
     fall_damage = 0,
+    suffocation = false,
+    player_active_range = 64,
     do_custom = function(self, dtime)
         if self.state == "attack" then
 			if self.attack then
@@ -317,17 +319,18 @@ mcl_mobs.register_mob(":scp:scp_173", {
             else
                 local look_pos = vector.new(player_pos.x, player_pos.y + player_eye_height, player_pos.z)
                 local look_pos_base = look_pos
-                local ender_eye_pos = vector.new(enderpos.x, enderpos.y + 0.5, enderpos.z)
+                local ender_eye_pos = vector.new(enderpos.x, enderpos.y + 1, enderpos.z)
                 local eye_distance_from_player = vector.distance(ender_eye_pos, look_pos)
                 look_pos = vector.add(look_pos, vector.multiply(look_dir, eye_distance_from_player))
 
-                if minetest.line_of_sight(ender_eye_pos, look_pos_base) and vector.distance(look_pos, ender_eye_pos) <= 5 then
+                if minetest.line_of_sight(ender_eye_pos, look_pos_base) and vector.distance(look_pos, ender_eye_pos) <= 4 then
                     is_watched = true
                     break
                 end
             end
         end
         if is_watched then
+            self.reach = 0
             self.jump = false
             self.walk_chance = 0
             self.walk_velocity = 0
@@ -338,6 +341,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
             end
             self.type = ""
         else
+            self.reach = 3
             self.jump = true
             self.walk_chance = 100
             self.walk_velocity = 25
