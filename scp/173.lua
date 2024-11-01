@@ -73,7 +73,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
                 local eye_distance_from_player = vector.distance(ender_eye_pos, look_pos)
                 look_pos = vector.add(look_pos, vector.multiply(look_dir, eye_distance_from_player))
 
-                if minetest.line_of_sight(ender_eye_pos, look_pos_base) and vector.distance(look_pos, ender_eye_pos) <= 4 then
+                if minetest.line_of_sight(ender_eye_pos, look_pos_base) and vector.distance(look_pos, ender_eye_pos) <= 3 and not math.atan2() then
                     is_watched = true
                     break
                 end
@@ -101,4 +101,4 @@ mcl_mobs.register_mob(":scp:scp_173", {
     end,
 })
 
-mcl_mobs.register_egg(":scp:scp_173", "SCP 173", "#946694", "#4d3852", 0)
+mcl_mobs.register_egg(":scp:scp_173", "SCP 173", "#CEB88D", "#AF240D", 0)
