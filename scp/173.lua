@@ -14,8 +14,8 @@ mcl_mobs.register_mob(":scp:scp_173", {
     xp_min = 0,
     xp_max = 0,
     armor = { fleshy = 0 },
-    --collisionbox = { -0.5, -0.5, -0.5, 0.5, 1.4, 0.5 },
-    collisionbox = { -0.35, -0.01, -0.35, 0.35, 1.89, 0.35 },
+    collisionbox = { -0.5, -0.5, -0.5, 0.5, 1.4, 0.5 },
+    -- collisionbox = { -0.35, -0.01, -0.35, 0.35, 1.89, 0.35 },
     visual = "mesh",
     mesh = "3d_armor_stand.obj",
     textures = { "default_wood.png", "mcl_stairs_stone_slab_top.png" },
@@ -26,7 +26,6 @@ mcl_mobs.register_mob(":scp:scp_173", {
     knock_back = false,
     jump = true,
     can_despawn = false,
-    fall_speed = -100,
     does_not_prevent_sleep = true,
     drops = {
     },
@@ -61,23 +60,33 @@ mcl_mobs.register_mob(":scp:scp_173", {
         local is_watched = false;
         for obj in mcl_util.connected_players(enderpos, 64) do
             local player_pos = obj:get_pos()
-            local look_dir_not_normalized = obj:get_look_dir()
-            local look_dir = vector.normalize(look_dir_not_normalized)
+            --local look_dir_not_normalized = obj:get_look_dir()
+            --local look_dir = vector.normalize(look_dir_not_normalized)
             local player_eye_height = obj:get_properties().eye_height
 
             if not player_eye_height then
                 minetest.log("error", "Enderman at location: " .. dump(enderpos) .. " has indexed a null player!")
             else
-                local look_pos = vector.new(player_pos.x, player_pos.y + player_eye_height, player_pos.z)
-                local look_pos_base = look_pos
-                local ender_eye_pos = vector.new(enderpos.x, enderpos.y + 1, enderpos.z)
-                local eye_distance_from_player = vector.distance(ender_eye_pos, look_pos)
-                look_pos = vector.add(look_pos, vector.multiply(look_dir, eye_distance_from_player))
+                --local look_pos = vector.new(player_pos.x, player_pos.y + player_eye_height, player_pos.z)
+                --local look_pos_base = look_pos
+                --local ender_eye_pos = vector.new(enderpos.x, enderpos.y + 1, enderpos.z)
+                --local eye_distance_from_player = vector.distance(ender_eye_pos, look_pos)
+                --look_pos = vector.add(look_pos, vector.multiply(look_dir, eye_distance_from_player))
 
-                if minetest.line_of_sight(ender_eye_pos, look_pos_base) and vector.distance(look_pos, ender_eye_pos) <= 3 and math.abs(obj:get_look_horizontal() - math.atan2(enderpos.z - player_pos.z, enderpos.x - player_pos.x)) > math.pi / 2 then
+                -- if minetest.line_of_sight(ender_eye_pos, look_pos_base) and vector.distance(look_pos, ender_eye_pos) <= 3 then
+                local a = math.atan2(enderpos.z - player_pos.z, enderpos.x - player_pos.x) + math.pi / 2
+                local b = obj:get_look_horizontal() - math.pi * (1 / 2) + math.pi / 2
+                -- local ang = a - b
+                local b1 = math.fmod(b - math.pi / 2, math.pi * 2)
+                local b2 = math.fmod(b + math.pi / 2, math.pi * 2)
+                local lower = math.min(b1, b2)
+                local upper = math.max(b1, b2)
+                
+                if math.fmod(b - lower, math.pi * 2) <= math.fmod(upper - lower, math.pi * 2) then
                     is_watched = true
                     break
                 end
+                -- end
             end
         end
         if is_watched then
