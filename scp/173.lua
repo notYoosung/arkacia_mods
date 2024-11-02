@@ -14,7 +14,8 @@ mcl_mobs.register_mob(":scp:scp_173", {
     xp_min = 0,
     xp_max = 0,
     armor = { fleshy = 0 },
-    collisionbox = { -0.5, -0.5, -0.5, 0.5, 1.4, 0.5 },
+    --collisionbox = { -0.5, -0.5, -0.5, 0.5, 1.4, 0.5 },
+    collisionbox = { -0.35, -0.01, -0.35, 0.35, 1.89, 0.35 },
     visual = "mesh",
     mesh = "3d_armor_stand.obj",
     textures = { "default_wood.png", "mcl_stairs_stone_slab_top.png" },
@@ -73,7 +74,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
                 local eye_distance_from_player = vector.distance(ender_eye_pos, look_pos)
                 look_pos = vector.add(look_pos, vector.multiply(look_dir, eye_distance_from_player))
 
-                if minetest.line_of_sight(ender_eye_pos, look_pos_base) and vector.distance(look_pos, ender_eye_pos) <= 3 and not math.atan2() then
+                if minetest.line_of_sight(ender_eye_pos, look_pos_base) and vector.distance(look_pos, ender_eye_pos) <= 3 and math.abs(obj:get_look_horizontal() - math.atan2(enderpos.z - player_pos.z, enderpos.x - player_pos.x)) > math.pi / 2 then
                     is_watched = true
                     break
                 end
