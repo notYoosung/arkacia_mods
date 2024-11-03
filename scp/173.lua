@@ -70,7 +70,7 @@ mcl_mobs.register_mob("scp:scp_173", {
                     local horiz_dir = vector.normalize({x=enderpos.x-player_pos.x, y=0, z=enderpos.z-player_pos.z})--math.atan2(enderpos.z - player_pos.z, enderpos.x - player_pos.x) + math.pi / 2
                     local horiz_look = vector.new(math.cos(obj:get_look_horizontal()), 0, math.sin(obj:get_look_horizontal()))--obj:get_look_horizontal() - math.pi * (1 / 2) + math.pi / 2
                     local horiz_cross = vector.cross(horiz_dir, horiz_look).y
-                    if horiz_cross > 0.5 then
+                    if horiz_cross > 0.5 or ((enderpos.x - player_pos.x) * (enderpos.x - player_pos.x) + (enderpos.z - player_pos.z) * (enderpos.z - player_pos.z)) < 0.5 * 0.5 then
                         is_watched = true
                         break
                     end
