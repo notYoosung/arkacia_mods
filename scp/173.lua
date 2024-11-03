@@ -7,7 +7,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
     persist_in_peaceful = true,
     attack_type = "dogfight",
     damage = 100,
-    reach = 3,
+    reach = 2,
     passive = false,
     hp_min = 1,
     hp_max = 1,
@@ -58,6 +58,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
 
         local enderpos = self.object:get_pos()
         local is_watched = false;
+
         for obj in mcl_util.connected_players(enderpos, 64) do
             local player_pos = obj:get_pos()
             local player_eye_height = obj:get_properties().eye_height
@@ -65,34 +66,21 @@ mcl_mobs.register_mob(":scp:scp_173", {
             if not player_eye_height then
                 minetest.log("error", "Enderman at location: " .. dump(enderpos) .. " has indexed a null player!")
             else
-                --[[
-                local a = math.atan2(enderpos.z - player_pos.z, enderpos.x - player_pos.x) + math.pi / 2
-                local b = obj:get_look_horizontal() - math.pi * (1 / 2) + math.pi / 2
-                local b1 = math.fmod(b - math.pi * (1 / 4), math.pi * 2)
-                local b2 = math.fmod(b + math.pi * (1 / 4), math.pi * 2)
-                local lower = math.min(b1, b2)
-                local upper = math.max(b1, b2)
-                -- minetest.chat_send_all(text)
-                if  (math.fmod(a - lower, math.pi * 2) <= math.fmod(upper - lower, math.pi * 2)) then
-                    is_watched = true
-                    break
+                local look_pos_base = vector.new(player_pos.x, player_pos.y + player_eye_height, player_pos.z)
+                local ender_eye_pos = vector.new(enderpos.x, enderpos.y + 1, enderpos.z)
+                if minetest.line_of_sight(ender_eye_pos, look_pos_base) then
+                    local a = vector.normalize({x=enderpos.x-player_pos.x, y=0, z=enderpos.z-player_pos.z})--math.atan2(enderpos.z - player_pos.z, enderpos.x - player_pos.x) + math.pi / 2
+                    local b = vector.new(math.cos(obj:get_look_horizontal()), 0, math.sin(obj:get_look_horizontal()))--obj:get_look_horizontal() - math.pi * (1 / 2) + math.pi / 2
+                    local ang = vector.cross(a, b).y
+                    if ang > 0.5 then
+                        is_watched = true
+                        break
+                    end
                 end
-                --]]
-
-                -- local player_look_dir = obj:get_look_horizontal()
-                -- local player_173_dir = math.atan2(enderpos.z - player_pos.z, enderpos.x - player_pos.x)
-                -- local norm = vector.
-                local a = vector.normalize({x=enderpos.x-player_pos.x, y=0, z=enderpos.z-player_pos.z})--math.atan2(enderpos.z - player_pos.z, enderpos.x - player_pos.x) + math.pi / 2
-                local b = vector.new(math.cos(obj:get_look_horizontal()), 0, math.sin(obj:get_look_horizontal()))--obj:get_look_horizontal() - math.pi * (1 / 2) + math.pi / 2
-                local ang = vector.cross(a, b).y
-                if ang > 0.5 then
-                    is_watched = true
-                    break
-                end
-
             end
         end
         if is_watched then
+            self.damage = 0
             self.reach = 0
             self.jump = false
             self.walk_chance = 0
@@ -103,11 +91,12 @@ mcl_mobs.register_mob(":scp:scp_173", {
                 self.object:set_acceleration(vector.new(0, self.fall_speed, 0))
             end
         else
-            self.reach = 3
+            self.damage = 100
+            self.reach = 2
             self.jump = true
             self.walk_chance = 100
-            self.walk_velocity = 25
-            self.run_velocity = 25
+            self.walk_velocity = 10
+            self.run_velocity = 10
         end
     end,
 })
