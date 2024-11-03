@@ -48,6 +48,12 @@ mcl_mobs.register_mob("scp:scp_173", {
     suffocation = false,
     player_active_range = 64,
     makes_footstep_sound = true,
+    on_activate = function(self, staticdata, dtime)
+        self:set_properties({
+            collide_with_objects = true,
+            physical = true,
+        })
+    end,
     do_custom = function(self, dtime)
         local enderpos = self.object:get_pos()
         local is_watched = false
