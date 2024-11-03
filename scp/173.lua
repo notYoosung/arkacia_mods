@@ -2,7 +2,7 @@ local S = minetest.get_translator(minetest.get_current_modname())
 
 mcl_mobs.register_mob(":scp:scp_173", {
     description = "SCP 173",
-    type = "",
+    type = "monster",
     spawn_class = "hostile",
     persist_in_peaceful = true,
     attack_type = "dogfight",
@@ -60,33 +60,36 @@ mcl_mobs.register_mob(":scp:scp_173", {
         local is_watched = false;
         for obj in mcl_util.connected_players(enderpos, 64) do
             local player_pos = obj:get_pos()
-            --local look_dir_not_normalized = obj:get_look_dir()
-            --local look_dir = vector.normalize(look_dir_not_normalized)
             local player_eye_height = obj:get_properties().eye_height
 
             if not player_eye_height then
                 minetest.log("error", "Enderman at location: " .. dump(enderpos) .. " has indexed a null player!")
             else
-                --local look_pos = vector.new(player_pos.x, player_pos.y + player_eye_height, player_pos.z)
-                --local look_pos_base = look_pos
-                --local ender_eye_pos = vector.new(enderpos.x, enderpos.y + 1, enderpos.z)
-                --local eye_distance_from_player = vector.distance(ender_eye_pos, look_pos)
-                --look_pos = vector.add(look_pos, vector.multiply(look_dir, eye_distance_from_player))
-
-                -- if minetest.line_of_sight(ender_eye_pos, look_pos_base) and vector.distance(look_pos, ender_eye_pos) <= 3 then
+                --[[
                 local a = math.atan2(enderpos.z - player_pos.z, enderpos.x - player_pos.x) + math.pi / 2
                 local b = obj:get_look_horizontal() - math.pi * (1 / 2) + math.pi / 2
-                -- local ang = a - b
-                local b1 = math.fmod(b - math.pi / 2, math.pi * 2)
-                local b2 = math.fmod(b + math.pi / 2, math.pi * 2)
+                local b1 = math.fmod(b - math.pi * (1 / 4), math.pi * 2)
+                local b2 = math.fmod(b + math.pi * (1 / 4), math.pi * 2)
                 local lower = math.min(b1, b2)
                 local upper = math.max(b1, b2)
-                
-                if math.fmod(b - lower, math.pi * 2) <= math.fmod(upper - lower, math.pi * 2) then
+                -- minetest.chat_send_all(text)
+                if  (math.fmod(a - lower, math.pi * 2) <= math.fmod(upper - lower, math.pi * 2)) then
                     is_watched = true
                     break
                 end
-                -- end
+                --]]
+
+                -- local player_look_dir = obj:get_look_horizontal()
+                -- local player_173_dir = math.atan2(enderpos.z - player_pos.z, enderpos.x - player_pos.x)
+                -- local norm = vector.
+                local a = vector.normalize({x=enderpos.x-player_pos.x, y=0, z=enderpos.z-player_pos.z})--math.atan2(enderpos.z - player_pos.z, enderpos.x - player_pos.x) + math.pi / 2
+                local b = vector.new(math.cos(obj:get_look_horizontal()), 0, math.sin(obj:get_look_horizontal()))--obj:get_look_horizontal() - math.pi * (1 / 2) + math.pi / 2
+                local ang = vector.cross(a, b).y
+                if ang > 0.5 then
+                    is_watched = true
+                    break
+                end
+
             end
         end
         if is_watched then
@@ -99,14 +102,12 @@ mcl_mobs.register_mob(":scp:scp_173", {
             if self.object then
                 self.object:set_acceleration(vector.new(0, self.fall_speed, 0))
             end
-            self.type = ""
         else
             self.reach = 3
             self.jump = true
             self.walk_chance = 100
             self.walk_velocity = 25
             self.run_velocity = 25
-            self.type = "monster"
         end
     end,
 })
