@@ -1,6 +1,6 @@
 local S = minetest.get_translator(minetest.get_current_modname())
 
-mcl_mobs.register_mob("scp:scp_173", {
+mcl_mobs.register_mob(":scp:scp_173", {
     description = "SCP 173",
     type = "monster",
     spawn_class = "hostile",
@@ -16,7 +16,6 @@ mcl_mobs.register_mob("scp:scp_173", {
     pathfinding = 1,
     armor = { fleshy = 0 },
     collisionbox = { -0.5, -0.5, -0.5, 0.5, 1.4, 0.5 },
-    -- collisionbox = { -0.35, -0.01, -0.35, 0.35, 1.89, 0.35 },
     visual = "mesh",
     mesh = "3d_armor_stand.obj",
     textures = { "default_wood.png", "mcl_stairs_stone_slab_top.png" },
@@ -67,8 +66,8 @@ mcl_mobs.register_mob("scp:scp_173", {
                 local look_pos_base = vector.new(player_pos.x, player_pos.y + player_eye_height, player_pos.z)
                 local ender_eye_pos = vector.new(enderpos.x, enderpos.y + 1, enderpos.z)
                 if minetest.line_of_sight(ender_eye_pos, look_pos_base) then
-                    local horiz_dir = vector.normalize({x=enderpos.x-player_pos.x, y=0, z=enderpos.z-player_pos.z})--math.atan2(enderpos.z - player_pos.z, enderpos.x - player_pos.x) + math.pi / 2
-                    local horiz_look = vector.new(math.cos(obj:get_look_horizontal()), 0, math.sin(obj:get_look_horizontal()))--obj:get_look_horizontal() - math.pi * (1 / 2) + math.pi / 2
+                    local horiz_dir = vector.normalize({x=enderpos.x-player_pos.x, y=0, z=enderpos.z-player_pos.z})
+                    local horiz_look = vector.new(math.cos(obj:get_look_horizontal()), 0, math.sin(obj:get_look_horizontal()))
                     local horiz_cross = vector.cross(horiz_dir, horiz_look).y
                     if horiz_cross > 0.5 or ((enderpos.x - player_pos.x) * (enderpos.x - player_pos.x) + (enderpos.z - player_pos.z) * (enderpos.z - player_pos.z)) < 0.5 * 0.5 then
                         is_watched = true
@@ -99,4 +98,4 @@ mcl_mobs.register_mob("scp:scp_173", {
     end,
 })
 
-mcl_mobs.register_egg("scp:scp_173", "SCP 173", "#CEB88D", "#AF240D", 0)
+mcl_mobs.register_egg(":scp:scp_173", "SCP 173", "#CEB88D", "#AF240D", 0)
