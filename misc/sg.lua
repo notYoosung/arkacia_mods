@@ -1,0 +1,1 @@
+minetest.get_player_by_name("@n"):set_physics_override({     sneak_glitch = true,     sneak = true,     new_move = false }) 

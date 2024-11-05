@@ -3,7 +3,7 @@ local texture_accept = "mcl_droppers_dropper_front_horizontal.png"
 local texture_deny = "mcl_dispensers_dispenser_front_horizontal.png"
 
 local S = minetest.get_translator(minetest.get_current_modname())
-
+local rules_down = { { x = 0, y = -1, z = 0, spread = true } }
 local function register_scanner(clearance_level, texture_off, texture_on)
     mesecon.register_node(":bear:id_scanner_" .. clearance_level, {
         is_ground_content = false,
@@ -23,7 +23,7 @@ local function register_scanner(clearance_level, texture_off, texture_on)
         mesecons = {
             receptor = {
                 state = mesecon.state.off,
-                rules = mesecon.rules.mcl_alldirs_spread,
+                rules = rules_down,
             },
         },
         on_construct = function(pos)
@@ -41,7 +41,7 @@ local function register_scanner(clearance_level, texture_off, texture_on)
             local item_clearance = tonumber(itemstack:get_name():sub(14))
             if item_clearance ~= nil and item_clearance >= clearance_level then
                 minetest.set_node(pos, { name = "bear:id_scanner_" .. clearance_level .. "_on", param2 = node.param2 })
-                mesecon.receptor_on(pos, mesecon.rules.mcl_alldirs_spread)
+                mesecon.receptor_on(pos, rules_down)
             end
         end,
         drop = "bear:id_scanner_" .. clearance_level .. "_off",
@@ -56,7 +56,7 @@ local function register_scanner(clearance_level, texture_off, texture_on)
         mesecons = {
             receptor = {
                 state = mesecon.state.on,
-                rules = mesecon.rules.mcl_alldirs_spread,
+                rules = rules_down,
             }
         },
         on_construct = function(pos)
@@ -66,7 +66,7 @@ local function register_scanner(clearance_level, texture_off, texture_on)
         on_timer = function(pos)
             local node = minetest.get_node(pos)
             minetest.set_node(pos, { name = "bear:id_scanner_" .. clearance_level .. "_off", param2 = node.param2 })
-            mesecon.receptor_off(pos, mesecon.rules.mcl_alldirs_spread)
+            mesecon.receptor_off(pos, rules_down)
             return true
         end,
         drop = "bear:id_scanner_" .. clearance_level .. "_off",
