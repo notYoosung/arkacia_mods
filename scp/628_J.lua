@@ -1,0 +1,3 @@
+--https://api.minetest.net/representations-of-simple-things/#pointed_thing
+--https://forum.minetest.net/viewtopic.php?p=392271#p392271
+--https://forum.minetest.net/viewtopic.php?t=27161
