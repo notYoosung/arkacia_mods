@@ -9,6 +9,7 @@
         "mcl_player",
         "mcl_armor",
         "screwdriver",
-        "mcl_sounds"
+        "mcl_sounds",
+        "mesecon"
     ]
 }
