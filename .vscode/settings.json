@@ -11,5 +11,6 @@
         "screwdriver",
         "mcl_sounds",
         "mesecon"
-    ]
+    ],
+    "git.postCommitCommand": "sync"
 }
