@@ -1,3 +1,4 @@
+--(mcl_skins_base_1_mask.png^[colorize:#EEB592FF:alpha)^mcl_skins_base_1.png^mcl_skins_eye_1.png^(mcl_skins_bottom_1_mask.png^[colorize:#383532FF:alpha)^mcl_skins_bottom_1.png^mcl_skins_footwear_1.png^(mcl_skins_top_1_mask.png^[colorize:#346840FF:alpha)^mcl_skins_top_1.png^(mcl_skins_hair_1_mask.png^[colorize:#715D57FF:alpha)^mcl_skins_hair_1.png^mcl_skins_headwear_2.png
 local S = minetest.get_translator(minetest.get_current_modname())
 local light = minetest.LIGHT_MAX
 local function generate_action_on(color)
