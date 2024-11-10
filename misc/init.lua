@@ -14,7 +14,7 @@ function scandir(directory)
     return t
 end
 
-local ignorefiles = { "init.lua", }
+local ignorefiles = { "init.lua", "sg.lua" }
 
 for k, v in pairs(scandir(modpath)) do
     if not tostring(v):match("%.lua$") then
@@ -28,3 +28,6 @@ for k, v in pairs(scandir(modpath)) do
     dofile(modpath .. "/" .. tostring(v))
     ::continue::
 end
+
+
+minetest.registered_nodes["mcl_core:ice"].use_texture_alpha = "opaque"
