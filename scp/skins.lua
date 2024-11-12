@@ -57,6 +57,51 @@ for i, v in pairs(texture_list_slim) do
     indx = indx + 1
 end
 
+local function make_texture(base, colorspec)
+    local output = ""
+    if mcl_skins.masks[base] then
+        output = mcl_skins.masks[base] ..
+            "^[colorize:" .. minetest.colorspec_to_colorstring(colorspec) .. ":alpha"
+    end
+    if #output > 0 then output = output .. "^" end
+    output = output .. base
+    return output
+end
+function mcl_skins.get_skin_list()
+    local list = {}
+    for _, game_mode in pairs({ "_crea", "_surv" }) do
+        for _, base in pairs(mcl_skins.base) do
+            for _, base_color in pairs(mcl_skins.base_color) do
+                local id = base:gsub(".png$", "") .. minetest.colorspec_to_colorstring(base_color):gsub("#", "")
+                local female = {
+                    texture = make_texture(base, base_color),
+                    slim_arms = true,
+                    id = id .. "_female" .. game_mode,
+                    creative = game_mode == "_crea"
+                }
+                table.insert(list, female)
+
+                local male = {
+                    texture = make_texture(base, base_color),
+                    slim_arms = false,
+                    id = id .. "_male" .. game_mode,
+                    creative = game_mode == "_crea"
+                }
+                table.insert(list, male)
+            end
+        end
+        for _, skin in pairs(mcl_skins.simple_skins) do
+            table.insert(list, {
+                texture = skin.texture,
+                slim_arms = skin.slim_arms,
+                id = skin.texture:gsub("%.png", ""):gsub("[^a-z0-9_]", "") .. (skin.slim_arms and "_female" or "_male") .. game_mode,
+                creative = game_mode == "_crea"
+            })
+        end
+    end
+    return list
+end
+
 
 local node_def = {
     description = "",

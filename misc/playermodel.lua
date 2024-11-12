@@ -38,7 +38,7 @@ minetest.register_node(":scp:playermodel", {
 
 
 
-
+--[[
 local function spawn_stand_entity(pos, node)
     local luaentity = minetest.add_entity(pos, "mcl_armor_stand:armor_entity"):get_luaentity()
     if luaentity then
@@ -81,7 +81,7 @@ minetest.register_entity("mcl_armor_stand:armor_entity", {
         return minetest.serialize(self.data_to_save)
     end,
 })
-
+--]]
 --[[
 /lua minetest.chat_send_player("@n", mcl_player.players[minetest.get_player_by_name("@n")].model)
 /lua minetest.chat_send_player("@n", mcl_player.players[minetest.get_player_by_name("@n")].textures[1])

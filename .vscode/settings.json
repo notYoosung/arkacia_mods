@@ -10,7 +10,9 @@
         "mcl_armor",
         "screwdriver",
         "mcl_sounds",
-        "mesecon"
+        "mesecon",
+        "mcl_skins",
+        "ItemStack"
     ],
     "git.postCommitCommand": "sync"
 }
