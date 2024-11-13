@@ -14,5 +14,6 @@
         "mcl_skins",
         "ItemStack"
     ],
-    "git.postCommitCommand": "sync"
+    "git.postCommitCommand": "sync",
+    "luahelper.format.column_limit": 1000000000
 }

@@ -27,6 +27,7 @@ local function register_scanner(clearance_level, texture_off, texture_on)
             },
         },
         on_construct = function(pos)
+            minetest.get_meta(pos):set_string("infotext", "ID Scanner\nClearance Level: " .. clearance_level .. "\nRight click with an Level-" .. clearance_level .. " ID card or higher.")
             local timer = minetest.get_node_timer(pos)
             if not timer:is_started() then
                 timer:start(mcl_vars.redstone_tick * 15)
@@ -60,6 +61,7 @@ local function register_scanner(clearance_level, texture_off, texture_on)
             }
         },
         on_construct = function(pos)
+            minetest.get_meta(pos):set_string("infotext", "ID Scanner\nClearance Level: " .. clearance_level .. "\nID accepted!")
             local timer = minetest.get_node_timer(pos)
             timer:start(mcl_vars.redstone_tick * 15)
         end,

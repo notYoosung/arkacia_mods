@@ -176,7 +176,7 @@ function entity_modifier.disguise_tool_primary(_, player, pointed_object)
         else
             pointed_object.ref:set_properties(copied_model.properties)
             if luaentity.on_step then
-                pointed_object.ref:set_properties({ physical = true })
+                pointed_object.ref:set_properties({ physical = true, collide_with_objects = false })
             end
             pointed_object.ref:move_to(vector.add(pointed_object.ref:get_pos(), { x = 0, y = 1, z = 0 }))
         end

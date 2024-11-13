@@ -13,7 +13,6 @@ minetest.register_tool(":scp:scp_628_j", {
 
 
 
-minetest.register_entity(":scp:scp_628_j_portal_1", {})
 
 
 
@@ -44,7 +43,41 @@ minetest.register_craftitem(
    }
 )
 
-
+minetest.register_entity(":scp:scp_628_j_portal_1", {
+   initial_properties = {
+      physical = true,
+      visual = "mesh",
+      mesh = "3d_armor_entity.obj",
+      visual_size = { x = 1, y = 1 },
+      collisionbox = { -0.1, -0.4, -0.1, 0.1, 1.3, 0.1 },
+      pointable = false,
+      textures = { "blank.png" },
+      timer = 0,
+      static_save = true,
+   },
+   _mcl_fishing_hookable = true,
+   _mcl_fishing_reelable = true,
+   on_activate = function(self)
+      self.data_to_save = minetest.deserialize(staticdata) or {}
+      self.object:set_properties({ mass = 2, friction = 0.0, })
+      self.object:set_velocity(vector.multiply(vector.random_direction(), max_speed))
+      mcl_armor.update(self.object)
+   end,
+   on_step = function(self)
+      if minetest.get_node(self.node_pos).name ~= "mcl_armor_stand:armor_stand" then
+         self.object:remove()
+      end
+   end,
+   update_armor = function(self, info)
+      self.object:set_properties({ textures = { info.texture } })
+   end,
+   update_rotation = function(self, node)
+      self.object:set_yaw(minetest.dir_to_yaw(minetest.facedir_to_dir(node.param2)))
+   end,
+   get_staticdata = function(self)
+      return minetest.serialize(self.data_to_save)
+   end,
+})
 --[[
 /lua local function valid_object_iterator(objects)    local i = 0    local function next_valid_object()       i = i + 1       local obj = objects[i]       if obj == nil then          return       end       if obj:get_pos() then          return obj       end       return next_valid_object()    end    return next_valid_object end local function valid_object_iterator_in_radius(objects, center, radius)    local i = 0    local function next_valid_object()       i = i + 1       local obj = objects[i]       if obj == nil then          return       end       local p = obj:get_pos()       if p and vector.distance(p, center) <= radius then          return obj       end       return next_valid_object()    end    return next_valid_object end  function mcl_util.connected_players(center, radius)    local pls = minetest.get_connected_players()    if not center then return valid_object_iterator(pls) end    return valid_object_iterator_in_radius(pls, center, radius or 1) end local pos = vector.new(995.5,-12.5,-1516.5) local pos2 = vector.new(995.5,-12.5,-1523.5) for v in mcl_util.connected_players(pos, 2) do if v then minetest.after(0.05, function(player) player:set_pos(pos2) end, v) end end
 --]]

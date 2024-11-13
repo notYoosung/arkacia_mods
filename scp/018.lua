@@ -42,7 +42,7 @@ mcl_death_messages.messages.scp_018 = { plain = "@1 experienced fatal blunt trau
 mcl_damage.types.scp_018 = { bypasses_armor = false, bypasses_magic = false, bypasses_invulnerability = false, bypasses_totem = false }
 minetest.register_entity(":scp:scp_018",
     {
-        initial_properties = { physical = true, hp_max = 9999, armor = { immortal = 1, fleshy = 0 }, collide_with_objects = false, visual_size = { x = 0.25, y = 0.25 }, collisionbox = { -0.25, -0.25, -0.25, 0.25, 0.25, 0.25 }, stepheight = 1, visual = "wielditem", wield_item = "mcl_colorblocks:concrete_red", static_save = true, },
+        initial_properties = { physical = true, hp_max = 9999, armor = { immortal = 1, fleshy = 0 }, collide_with_objects = true, visual_size = { x = 0.25, y = 0.25 }, collisionbox = { -0.25, -0.25, -0.25, 0.25, 0.25, 0.25 }, stepheight = 1, visual = "wielditem", wield_item = "mcl_colorblocks:concrete_red", static_save = true, },
         get_staticdata = function(
             self)
             return minetest.serialize(self.data_to_save)

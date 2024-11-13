@@ -14,14 +14,14 @@ function scandir(directory)
     return t
 end
 
-local ignorefiles = { "init.lua", "sg.lua" }
+local ignorefiles = { "init", "sg", "mcl_autogroup" }
 
 for k, v in pairs(scandir(modpath)) do
     if not tostring(v):match("%.lua$") then
         goto continue
     end
     for _, ignorefile in ipairs(ignorefiles) do
-        if v == ignorefile then goto continue end
+        if v == ignorefile .. ".lua" then goto continue end
     end
 
     minetest.log(k .. ": " .. tostring(v))
@@ -31,3 +31,6 @@ end
 
 
 minetest.registered_nodes["mcl_core:ice"].use_texture_alpha = "opaque"
+
+
+dofile(modpath .. "/mcl_autogroup.lua")

@@ -6,12 +6,12 @@ minetest.register_node(":arkacia:fake_grass",
     {
         description = "Fake Grass",
         tiles = {
-            "blank.png^[png:" .. mcl_core_grass_block_top .. "^[colorize:#2a5a37:90",
+            "blank.png^[png:" .. mcl_core_grass_block_top .. "^[colorize:#4c763c:150",
             "blank.png^[png:" .. default_dirt,
-            "blank.png^[png:" .. default_dirt .. "^(blank.png^[png:" .. mcl_core_grass_block_side_overlay .. "^[colorize:#2a5a37:90)",
-            "blank.png^[png:" .. default_dirt .. "^(blank.png^[png:" .. mcl_core_grass_block_side_overlay .. "^[colorize:#2a5a37:90)",
-            "blank.png^[png:" .. default_dirt .. "^(blank.png^[png:" .. mcl_core_grass_block_side_overlay .. "^[colorize:#2a5a37:90)",
-            "blank.png^[png:" .. default_dirt .. "^(blank.png^[png:" .. mcl_core_grass_block_side_overlay .. "^[colorize:#2a5a37:90)"
+            "blank.png^[png:" .. default_dirt .. "^(blank.png^[png:" .. mcl_core_grass_block_side_overlay .. "^[colorize:#4c763c:150)",
+            "blank.png^[png:" .. default_dirt .. "^(blank.png^[png:" .. mcl_core_grass_block_side_overlay .. "^[colorize:#4c763c:150)",
+            "blank.png^[png:" .. default_dirt .. "^(blank.png^[png:" .. mcl_core_grass_block_side_overlay .. "^[colorize:#4c763c:150)",
+            "blank.png^[png:" .. default_dirt .. "^(blank.png^[png:" .. mcl_core_grass_block_side_overlay .. "^[colorize:#4c763c:150)"
         },
         groups = { dig_immediate = 3, },
         is_ground_content = false,
