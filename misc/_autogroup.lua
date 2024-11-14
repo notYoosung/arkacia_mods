@@ -94,7 +94,7 @@ local groups_mtg2mcl = {
 
 -- Get new groups and hardness
 local function convert_mtg_groups(nname)
-	local groups = table.copy(minetest.registered_nodes[nname].groups)
+	local groups = table.copy(minetest.registered_nodes[nname].groups or {})
 	local hardness = minetest.registered_nodes[nname]._mcl_hardness
 
 	if not hardness then -- if _mcl_hardness is defined the node is clearly intended for mcl specifically, don't mess with the groups in that case
@@ -131,7 +131,7 @@ local function get_hardness_values_for_groups()
 		values[g] = {}
 	end
 
-	for _, ndef in pairs(minetest.registered_nodes) do for g, _ in pairs(mcl_autogroup.registered_diggroups) do if ndef.groups[g] then maps[g][ndef._mcl_hardness or 0] = true end end end
+	for _, ndef in pairs(minetest.registered_nodes) do for g, _ in pairs(mcl_autogroup.registered_diggroups) do if ndef.groups and ndef.groups[g] then maps[g][ndef._mcl_hardness or 0] = true end end end
 
 	for g, map in pairs(maps) do for k, _ in pairs(map) do table.insert(values[g], k) end end
 
@@ -319,7 +319,7 @@ local function overwrite()
 	local hardness_lookup = get_hardness_lookup_for_groups(hardness_values)
 
 	for nname, ndef in pairs(minetest.registered_nodes) do
-		local newgroups = table.copy(ndef.groups)
+		local newgroups = table.copy(ndef.groups or {})
 
 		if (nname ~= "ignore" and ndef.diggable) then
 			-- Automatically assign the "solid" group for solid nodes

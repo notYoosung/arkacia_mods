@@ -105,18 +105,12 @@ end
 
 local node_def = {
     description = "",
-    use_texture_alpha = minetest.features.use_texture_alpha_string_modes and "opaque" or false,
+    use_texture_alpha = minetest.features.use_texture_alpha_string_modes and "clip" or false,
     visual_scale = 1,
     wield_scale = { x = 1, y = 1, z = 1 },
     paramtype = "light",
     drawtype = "mesh",
     node_placement_prediction = "",
-    on_construct = function(pos)
-        local name = minetest.get_node(pos).name
-        local message = "[mcl_meshhand] Trying to construct " .. name .. " at " .. minetest.pos_to_string(pos)
-        minetest.log("error", message)
-        minetest.remove_node(pos)
-    end,
     drop = "",
     on_drop = function(_, _, _) return ItemStack() end,
     groups = {
@@ -172,3 +166,9 @@ for _, skin in pairs(list) do
     end
     minetest.register_node(":mcl_meshhand:" .. skin.id, node_def)
 end
+
+
+minetest.register_on_joinplayer(function(player, last_login)
+    minetest.log(tostring(mcl_skins.player_skins[player].simple_skins_id))
+    minetest.log(tostring(mcl_skins.player_skins[player].simple_skins_id):gsub("[^a-z0-9_]", ""))
+end)
