@@ -9,7 +9,7 @@ minetest.register_node(":scp:scp_006_flowing",
         "(default_water_flowing_animated.png" .. texture_modif .. ")^[verticalframe:64:0",
         drawtype = "flowingliquid",
         tiles = { "(default_water_flowing_animated.png" .. texture_modif .. ")^[verticalframe:64:0" },
-        special_tiles = { { image = "default_water_flowing_animated.png^[coloe" .. texture_modif .. "", backface_culling = false, animation = { type = "vertical_frames", aspect_w = 16, aspect_h = 16, length = 4.0 } }, { image = "default_water_flowing_animated.png" .. texture_modif .. "", backface_culling = false, animation = { type = "vertical_frames", aspect_w = 16, aspect_h = 16, length = 4.0 } }, },
+        special_tiles = { { image = "default_water_flowing_animated.png" .. texture_modif .. "", backface_culling = false, animation = { type = "vertical_frames", aspect_w = 16, aspect_h = 16, length = 4.0 } }, { image = "default_water_flowing_animated.png" .. texture_modif .. "", backface_culling = false, animation = { type = "vertical_frames", aspect_w = 16, aspect_h = 16, length = 4.0 } }, },
         sounds =
             mcl_sounds.node_sound_water_defaults(),
         is_ground_content = false,
@@ -34,6 +34,7 @@ minetest.register_node(":scp:scp_006_flowing",
         groups = { water = 3, liquid = 3, puts_out_fire = 1, not_in_creative_inventory = 0, melt_around = 1, dig_by_piston = 1, scp_scp_006 = 1 },
         _mcl_blast_resistance = 100,
         _mcl_hardness = -1,
+        light_source = 14,
     })
 minetest.register_node(":scp:scp_006_source",
     {
@@ -66,6 +67,7 @@ minetest.register_node(":scp:scp_006_source",
         groups = { water = 3, liquid = 3, puts_out_fire = 1, not_in_creative_inventory = 0, dig_by_piston = 1, scp_scp_006 = 1 },
         _mcl_blast_resistance = 100,
         _mcl_hardness = -1,
+        light_source = 14,
     })
 minetest.register_alias("scp:scp_006", "scp:scp_006_source")
 

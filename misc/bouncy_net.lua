@@ -23,8 +23,9 @@ mcl_stairs.register_stair_and_slab("bouncy_net", {
 	overrides = { _mcl_stonecutter_recipes = {"arkacia:bouncy_slab"}, groups = {dig_immediate = 3, bouncy = 80, fall_damage_add_percent = -100, }, use_texture_alpha = "clip"},
 })
 local function combine_groups(itemname)
-    minetest.override_item(itemname, {groups = {dig_immediate = 3, bouncy = 80, fall_damage_add_percent = -100, }})
+    minetest.override_item(itemname, {use_texture_alpha = "clip", groups = {dig_immediate = 3, bouncy = 80, fall_damage_add_percent = -100, }})
 end
 combine_groups("mcl_stairs:slab_bouncy_net")
 combine_groups("mcl_stairs:stair_bouncy_net")
+combine_groups("mcl_stairs:slab_bouncy_net_double")
 minetest.register_alias("arkacia:bouncy_slab", "mcl_stairs:slab_bouncy_net")

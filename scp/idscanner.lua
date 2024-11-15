@@ -87,7 +87,7 @@ local function register_id(clearance_level, texture_id)
     minetest.register_tool(":bear:id_card_" .. clearance_level,
         { description = minetest.colorize("#ff0", "ID Card") ..
         minetest.colorize("#FF1", "\nClearance Level: " .. tostring(clearance_level)), inventory_image =
-        "mcl_maps_map_texture_" .. tostring(texture_id) .. ".tga" })
+        "mcl_maps_map_texture_" .. tostring(texture_id) .. ".tga^[makealpha:8,10,15" })
 end
 
 
