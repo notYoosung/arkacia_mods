@@ -17,7 +17,7 @@ minetest.register_on_mods_loaded(function()
         return t
     end
 
-    local ignorefiles = { "init", }
+    local ignorefiles = { "init", "sg", "_autogroup" }
 
     for k, v in pairs(scandir(modpath)) do
         if not tostring(v):match("%.lua$") then
@@ -35,6 +35,8 @@ minetest.register_on_mods_loaded(function()
 
     
     
+    dofile(modpath .. "/_autogroup.lua")
     
 end)
 
+minetest.registered_nodes["mcl_core:ice"].use_texture_alpha = "opaque"
