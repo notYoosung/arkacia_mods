@@ -1,5 +1,5 @@
 local modname = minetest.get_current_modname()
-local modpath = minetest.get_modpath(modname) .. "/skins"
+local modpath = minetest.get_modpath(modname)
 require 'io'
 
 local texture_list_slim = {
@@ -56,6 +56,9 @@ local texture_list_default = {
     ["skinTemplate"] = "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",
 }
 local file_func = [[
+local function is_base64(str)
+    return str:find("/") ~= nil and true or false
+end
 function mcl_meshhand.update_player(player)
 	local hand
 	if mcl_skins_enabled then
@@ -212,19 +215,6 @@ minetest.register_on_joinplayer(function(player, last_login)
     minetest.log(tostring(mcl_skins.player_skins[player].simple_skins_id):gsub("[^a-z0-9_]", ""))
 end)
 
-local function scandir(directory)
-	local i, t, popen = 0, {}, io.popen
-	local pfile = popen('ls -a "' .. directory .. '"')
-	for filename in pfile:lines() do
-		i = i + 1
-		t[i] = filename
-	end
-	pfile:close()
-	return t
-end
-
-local ignorefiles = {""}
-
 local n_skins = 2
 
 local n_files_slim = 1;
@@ -294,3 +284,42 @@ if n_cache_default > 0 then
 	file_cache = {}
     n_skins = n_skins + n_cache_default
 end
+
+
+
+
+
+
+
+
+
+
+local skinspath = modpath .. "/skins"
+
+require 'io'
+
+local function scandir(directory)
+	local i, t, popen = 0, {}, io.popen
+	local pfile = popen('ls -a "' .. directory .. '"')
+	for filename in pfile:lines() do
+		i = i + 1
+		t[i] = filename
+	end
+	pfile:close()
+	return t
+end
+
+local ignorefiles = {}
+
+local dir = scandir(skinspath)
+
+minetest.register_on_mods_loaded(function()    
+    for k, v in pairs(dir) do
+        if not tostring(v):match("%.lua$") then goto continue end
+        for _, ignorefile in ipairs(ignorefiles) do if v == ignorefile .. ".lua" then goto continue end end
+        
+        minetest.log("error", k .. ": " .. tostring(v))
+        dofile(skinspath .. "/" .. tostring(v))
+        ::continue::
+    end
+end)

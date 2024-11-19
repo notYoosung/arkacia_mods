@@ -1,0 +1,1 @@
+minetest.chat_send_all("text")

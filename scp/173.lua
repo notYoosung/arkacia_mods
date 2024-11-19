@@ -7,7 +7,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
     persist_in_peaceful = true,
     attack_type = "dogfight",
     damage = 100,
-    reach = 2,
+    reach = 5,
     passive = false,
     hp_min = 1,
     hp_max = 1,
@@ -18,7 +18,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
     collisionbox = { -0.5, -0.5, -0.5, 0.5, 1.4, 0.5 },
     visual = "mesh",
     mesh = "3d_armor_stand.obj",
-    textures = { "default_wood.png", "mcl_stairs_stone_slab_top.png" },
+    textures = { "default_wood.png", "blank.png" },
     pushable = false,
     mob_pushable = false,
     visual_size = { x = 10, y = 10 },
@@ -48,7 +48,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
     player_active_range = 64,
     makes_footstep_sound = true,
     on_activate = function(self, staticdata, dtime)
-        self:set_properties({
+        self.object:set_properties({
             collide_with_objects = true,
             physical = true,
         })

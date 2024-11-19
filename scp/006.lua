@@ -76,7 +76,7 @@ minetest.register_alias("scp:scp_006", "scp:scp_006_source")
 
 mcl_util._scp_scp_006_activated = mcl_util._scp_scp_006_activated or false
 local duration = 10
-if not scp_006_activated then
+if not mcl_util.scp_006_activated then
     minetest.log("error", "mcl_util._scp_scp_006_activated")
     mcl_player.register_globalstep_slow(function(player)
         if minetest.get_item_group(mcl_player.players[player].nodes.head, "scp_scp_006") == 1 or minetest.get_item_group(mcl_player.players[player].nodes.feet, "scp_scp_006") == 1 then
