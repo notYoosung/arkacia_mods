@@ -83,14 +83,18 @@ end
 
 for i, v in pairs(texture_list_default) do
 	mcl_skins.register_simple_skin({
+        index = n_skins,
 		texture = "blank.png^[png:" .. v,
 	})
+    n_skins = n_skins + 1
 end
 for i, v in pairs(texture_list_slim) do
     mcl_skins.register_simple_skin({
+        index = n_skins,
         texture = "blank.png^[png:" .. v,
         slim_arms = true
     })
+    n_skins = n_skins + 1
 end
 
 local function make_texture(base, colorspec)
@@ -221,6 +225,7 @@ end
 
 local ignorefiles = {""}
 
+local n_skins = 2
 
 local n_files_slim = 1;
 local n_cache_slim = 0;
@@ -253,17 +258,19 @@ for k, v in pairs(texture_list_slim) do
     file_cache[k] = v;
     n_cache_slim = n_cache_slim + 1
     if n_cache_slim == 10 then
-        local filestr = table_to_str("local texture_list_default = {}\nlocal texture_list_slim = {\n", file_cache) .. file_func
+        local filestr = table_to_str("local n_skins = " .. n_skins .. " local texture_list_default = {}\nlocal texture_list_slim = {\n", file_cache) .. file_func
         write_file_slim(filestr)
         file_cache = {}
         n_files_slim = n_files_slim + 1
         n_cache_slim = 0
+        n_skins = n_skins + 10
     end
 end
 if n_cache_slim > 0 then
-    local filestr = table_to_str("local texture_list_default = {}\nlocal texture_list_slim = {\n", file_cache) .. file_func
+    local filestr = table_to_str("local n_skins = " .. n_skins .. " local texture_list_default = {}\nlocal texture_list_slim = {\n", file_cache) .. file_func
 	write_file_slim(filestr)
 	file_cache = {}
+    n_skins = n_skins + n_cache_slim
 end
 
 
@@ -273,15 +280,17 @@ for k, v in pairs(texture_list_default) do
     file_cache[k] = v;
     n_cache_default = n_cache_default + 1
     if n_cache_default == 10 then
-        local filestr = table_to_str("local texture_list_slim = {}\nlocal texture_list_default = {\n", file_cache) .. file_func
+        local filestr = table_to_str("local n_skins = " .. n_skins .. " local texture_list_slim = {}\nlocal texture_list_default = {\n", file_cache) .. file_func
         write_file_default(filestr)
         file_cache = {}
         n_files_default = n_files_default + 1
         n_cache_default = 0
+        n_skins = n_skins + 10
     end
 end
 if n_cache_default > 0 then
-	local filestr = table_to_str("local texture_list_slim = {}\nlocal texture_list_default = {\n", file_cache) .. file_func
+	local filestr = table_to_str("local n_skins = " .. n_skins .. " local texture_list_slim = {}\nlocal texture_list_default = {\n", file_cache) .. file_func
     write_file_default(filestr)
 	file_cache = {}
+    n_skins = n_skins + n_cache_default
 end
