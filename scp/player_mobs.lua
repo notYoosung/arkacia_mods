@@ -49,4 +49,3 @@ mcl_mobs.register_mob(":scp:player_mob_mtf_epsilon_11", {
 mcl_mobs.register_egg(":scp:player_mob_mtf_epsilon_11", minetest.colorize("#FF5555", "MTF Epsilon-11 | \"NINE TAILED FOX\""), "#333333", "#6F130B", 0)
 minetest.register_alias("scp:playermodel_entity", "scp:player_mob_mtf_epsilon_11")
 
-"iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAAAAXNSR0IArs4c6QAAAP1JREFUaEPtmNENwyAMRMlCLMFETMJELMFCrRKpFa0azvIVNaiX3/iweZxNlC3g54ZDhhEbqZ8qtxQnAOQRWCCTKfxyS3FygJ/vobRAJlP45Zbi5AA/XzlgiRZgLU4axDwj3uu0tC+sbV9kBQBnNdIQVgCADoiCIACLtEDfy1+dBSYHlFJCjDGklI5Caq2htRZyznDIGAI8Fu4hePTPslYF8NjADmI+AMMpMiHUBpjEZx8p7NRFelQzAoLWR/qX/J+C2QRILwCAADpBBBjp5YCegOkWQJ69+PuhIwTgAl+Csw0kB4wIqwXUAr//IaIZMJmAhqCG4ICAboF/vwXudsxBIQk02kcAAAAOZVhJZk1NACoAAAAIAAAAAAAAANJTkwAAAABJRU5ErkJggg=="

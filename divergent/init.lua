@@ -6,7 +6,7 @@ require 'io'
 minetest.register_on_mods_loaded(function() 
 
 
-    function scandir(directory)
+    local function scandir(directory)
         local i, t, popen = 0, {}, io.popen
         local pfile = popen('ls -a "' .. directory .. '"')
         for filename in pfile:lines() do
@@ -17,7 +17,7 @@ minetest.register_on_mods_loaded(function()
         return t
     end
 
-    local ignorefiles = { "init", "sg", "_autogroup" }
+    local ignorefiles = { "init", }
 
     for k, v in pairs(scandir(modpath)) do
         if not tostring(v):match("%.lua$") then
@@ -33,10 +33,7 @@ minetest.register_on_mods_loaded(function()
     end
 
 
-    
-    
-    dofile(modpath .. "/_autogroup.lua")
-    
+        
 end)
 
 minetest.registered_nodes["mcl_core:ice"].use_texture_alpha = "opaque"

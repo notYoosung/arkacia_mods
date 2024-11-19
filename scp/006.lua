@@ -79,7 +79,7 @@ local duration = 10
 if not scp_006_activated then
     minetest.log("error", "mcl_util._scp_scp_006_activated")
     mcl_player.register_globalstep_slow(function(player)
-        if minetest.get_node_group(mcl_player.players[player].nodes.head, "scp_scp_006") == 1 or minetest.get_node_group(mcl_player.players[player].nodes.feet, "scp_scp_006") == 1 then
+        if minetest.get_item_group(mcl_player.players[player].nodes.head, "scp_scp_006") == 1 or minetest.get_item_group(mcl_player.players[player].nodes.feet, "scp_scp_006") == 1 then
             mcl_potions.regeneration_func(player, 3, duration)
             mcl_potions.swiftness_func(player, 3, duration)
             mcl_potions.strength_func(player, 2, duration)

@@ -3,8 +3,8 @@ local modpath = minetest.get_modpath(modname)
 
 require 'io'
 
-
-function scandir(directory)
+dofile(modpath .. "/skins.lua")
+local function scandir(directory)
     local i, t, popen = 0, {}, io.popen
     local pfile = popen('ls -a "' .. directory .. '"')
     for filename in pfile:lines() do
@@ -15,14 +15,14 @@ function scandir(directory)
     return t
 end
 
-local ignorefiles = { "init.lua", "map.lua", "scptpclassd.lua" }
+local ignorefiles = { "init", "map", "scptpclassd", "skins" }
 
 for k, v in pairs(scandir(modpath)) do
     if not tostring(v):match("%.lua$") then
         goto continue
     end
     for _, ignorefile in ipairs(ignorefiles) do
-        if v == ignorefile then goto continue end
+        if v == ignorefile .. ".lua" then goto continue end
     end
 
     minetest.log(k .. ": " .. tostring(v))
