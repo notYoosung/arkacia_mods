@@ -19,6 +19,9 @@ function mcl_util.connected_players(center, radius)
 	return valid_object_iterator(rpls)
 end
 
+mcl_death_messages.messages.scp_173 = { plain = "@1's neck was snapped by SCP-173." }
+mcl_damage.types.scp_173 = { bypasses_armor = true, bypasses_magic = false, bypasses_invulnerability = false, bypasses_totem = false }
+
 mcl_mobs.register_mob(":scp:scp_173", {
     description = "SCP 173",
     type = "monster",
@@ -72,6 +75,11 @@ mcl_mobs.register_mob(":scp:scp_173", {
             physical = true,
         })
     end,
+	custom_attack = function(self)
+		if self.state == "attack" and self.reach > vector.distance(self.object:get_pos(), self.attack:get_pos()) then
+			mcl_util.deal_damage(self.attack, self.damage, {type = "scp_173"})
+		end
+	end,
     do_custom = function(self, dtime)
         local enderpos = self.object:get_pos()
         local is_watched = false

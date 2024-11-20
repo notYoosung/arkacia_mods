@@ -13,14 +13,12 @@ local wood_groups = {
 minetest.register_node(":scp:railroad_metal_yellow", {
 	description = "Yellow Railroad Metal",
 	tiles = {yc_top, yc_top, yc_side, yc_side, yc_side, yc_side},
-	groups = {
-		dig_immediate = 3
-	},
 	is_ground_content = false,
 	sounds = mcl_sounds.node_sound_metal_defaults(),
 	paramtype2 = "facedir",
 	groups = table.merge(wood_groups, {
-		tree = 1, building_block = 1, supports_mushrooms=1
+		tree = 1, building_block = 1, supports_mushrooms=1,
+		dig_immediate = 3,
 	}),
 	on_place = mcl_util.rotate_axis,
 	on_rotate = screwdriver.rotate_3way,

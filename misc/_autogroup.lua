@@ -67,7 +67,8 @@ as possible.  Minetest loads mods in reverse alphabetical order.
 
 This also means that it is very important that no mod adds _mcl_autogroup as a
 dependency.
---]] assert(minetest.get_modpath("mcl_autogroup"), "This mod requires the mod mcl_autogroup to function")
+--]]
+ assert(minetest.get_modpath("mcl_autogroup"), "This mod requires the mod mcl_autogroup to function")
 
 local groups_mtg2mcl = {
 	["choppy"] = {
@@ -321,7 +322,7 @@ local function overwrite()
 	for nname, ndef in pairs(minetest.registered_nodes) do
 		local newgroups = table.copy(ndef.groups or {})
 
-		if (nname ~= "ignore" and ndef.diggable) then
+		if (nname ~= "ignore" and ndef.diggable and nname ~= "air") then
 			-- Automatically assign the "solid" group for solid nodes
 			if (ndef.walkable == nil or ndef.walkable == true) and (ndef.collision_box == nil or ndef.collision_box.type == "regular") and (ndef.node_box == nil or ndef.node_box.type == "regular") and (ndef.groups.not_solid == 0 or ndef.groups.not_solid == nil) then newgroups.solid = 1 end
 			-- Automatically assign the "opaque" group for opaque nodes

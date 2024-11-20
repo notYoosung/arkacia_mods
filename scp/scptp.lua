@@ -3,6 +3,8 @@ local places = {
     {name = "divground", title = "the City of Divergent on the ground", pos = vector.new(11072,-103,-8896)},
     {name = "div", title = "the City of Divergent in the sky", pos = vector.new(10997,10049,-8877)},
     {name = "divergent", title = "the City of Divergent in the sky", pos = vector.new(10997,10049,-8877)},
+    {name = "au", title = "Among Us Skeld", pos = vector.new(455,-26551.5,1096)},
+    {name = "ogau", title = "The original Among Us Skeld build", pos = vector.new(477,-26565.5,54)},
 }
 for _, place in ipairs(places) do
     minetest.register_chatcommand(place.name, {

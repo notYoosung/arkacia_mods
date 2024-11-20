@@ -26,6 +26,8 @@ minetest.register_on_mods_loaded(function()
 		dofile(modpath .. "/" .. tostring(v))
 		::continue::
 	end
-
+    -- minetest.after(3, function ()
+    --     dofile(modpath .. "/_autogroup.lua")
+    -- end)
 end)
 
