@@ -1,4 +1,23 @@
 local S = minetest.get_translator(minetest.get_current_modname())
+local function valid_object_iterator(objects)
+	local i = 0
+	local function next_valid_object()
+		i = i + 1
+		local obj = objects[i]
+		if obj == nil then return end
+		if obj:get_pos() then return obj end
+		return next_valid_object()
+	end
+	return next_valid_object
+end
+
+function mcl_util.connected_players(center, radius)
+	local pls = minetest.get_connected_players()
+	if not center then return valid_object_iterator(pls) end
+	local rpls = {}
+	for _, pl in pairs(pls) do if pl:get_pos() and vector.distance(center, pl:get_pos()) <= radius then table.insert(rpls, pl) end end
+	return valid_object_iterator(rpls)
+end
 
 mcl_mobs.register_mob(":scp:scp_173", {
     description = "SCP 173",
@@ -7,7 +26,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
     persist_in_peaceful = true,
     attack_type = "dogfight",
     damage = 100,
-    reach = 5,
+    reach = 3,
     passive = false,
     hp_min = 1,
     hp_max = 1,
@@ -64,7 +83,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
                 minetest.log("error", "Enderman at location: " .. dump(enderpos) .. " has indexed a null player!")
             else
                 local look_pos_base = vector.new(player_pos.x, player_pos.y + player_eye_height, player_pos.z)
-                local ender_eye_pos = vector.new(enderpos.x, enderpos.y + 1, enderpos.z)
+                local ender_eye_pos = vector.new(enderpos.x, enderpos.y + 1.5, enderpos.z)
                 if minetest.line_of_sight(ender_eye_pos, look_pos_base) then
                     local horiz_dir = vector.normalize({x=enderpos.x-player_pos.x, y=0, z=enderpos.z-player_pos.z})
                     local horiz_look = vector.new(math.cos(obj:get_look_horizontal()), 0, math.sin(obj:get_look_horizontal()))
