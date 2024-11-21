@@ -1,5 +1,5 @@
 local S = minetest.get_translator(minetest.get_current_modname())
-local WATER_VISC = 0.5
+local WATER_VISC = 1
 local air_def = {
     _doc_items_create_entry = false,
     is_ground_content = false,
