@@ -312,13 +312,12 @@ end
 local ignorefiles = {}
 
 local dir = scandir(skinspath)
-
 minetest.register_on_mods_loaded(function()    
     for k, v in pairs(dir) do
         if not tostring(v):match("%.lua$") then goto continue end
         for _, ignorefile in ipairs(ignorefiles) do if v == ignorefile .. ".lua" then goto continue end end
         
-        minetest.log("error", k .. ": " .. tostring(v))
+        minetest.log(k .. ": " .. tostring(v))
         dofile(skinspath .. "/" .. tostring(v))
         ::continue::
     end
