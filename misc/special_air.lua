@@ -65,8 +65,8 @@ if not mcl_util._aether_activated then
     minetest.log("mcl_util._aether_activated")
     mcl_player.register_globalstep_slow(function(player)
         if minetest.get_item_group(mcl_player.players[player].nodes.head, "_arkacia_enchanted_air") == 1 or minetest.get_item_group(mcl_player.players[player].nodes.feet, "_arkacia_enchanted_air") == 1 then
-            mcl_potions.swiftness_func(player, 1, duration)
-            mcl_potions.leaping_func(player, 1, duration)
+            mcl_potions.swiftness_func(player, 3, duration)
+            mcl_potions.leaping_func(player, 3, duration)
         end
     end)
     mcl_util._aether_activated = true
