@@ -51,7 +51,7 @@ local water_air = table.merge(air_def, {
     light_source = 3,
 })
 water_air.groups = table.merge(water_air.groups, {
-    water = 3, liquid = 3,
+    water = 3, liquid = 3, _arkacia_enchanted_air = 1,
 })
 minetest.register_node(":arkacia:water_air", water_air)
 
