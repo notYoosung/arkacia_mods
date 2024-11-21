@@ -48,7 +48,7 @@ local water_air = table.merge(air_def, {
     liquid_viscosity = WATER_VISC,
     liquid_range = 0,
     waving = 0,
-    light_source = 3,
+    light_source = 6,
 })
 water_air.groups = table.merge(water_air.groups, {
     water = 3, liquid = 3, _arkacia_enchanted_air = 1,

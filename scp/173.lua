@@ -64,7 +64,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
     water_damage = 0,
     _mcl_freeze_damage = 0,
     fire_resistant = true,
-    stepheight = 2,
+    stepheight = 1.5,
     fall_damage = 0,
     suffocation = false,
     player_active_range = 64,
