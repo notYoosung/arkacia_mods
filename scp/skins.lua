@@ -215,6 +215,24 @@ minetest.register_on_joinplayer(function(player, last_login)
     minetest.log(tostring(mcl_skins.player_skins[player].simple_skins_id):gsub("[^a-z0-9_]", ""))
 end)
 
+
+-- https://stackoverflow.com/a/70096863
+local function pairsByKeys(t, f)
+    local a = {}
+    for n in pairs(t) do table.insert(a, n) end
+    table.sort(a, f)
+    local i = 0
+    local iter = function()
+        i = i + 1
+        if a[i] == nil then
+            return nil
+        else
+            return a[i], t[a[i]]
+        end
+    end
+    return iter
+end
+
 local n_skins = 2
 
 local n_files_slim = 1;
@@ -244,7 +262,7 @@ local function write_file_default(filestr)
 end
 
 local file_cache = {}
-for k, v in pairs(texture_list_slim) do
+for k, v in pairsByKeys(texture_list_slim) do
     file_cache[k] = v;
     n_cache_slim = n_cache_slim + 1
     if n_cache_slim == 10 then
@@ -266,7 +284,7 @@ end
 
 
 local file_cache = {}
-for k, v in pairs(texture_list_default) do
+for k, v in pairsByKeys(texture_list_default) do
     file_cache[k] = v;
     n_cache_default = n_cache_default + 1
     if n_cache_default == 10 then
