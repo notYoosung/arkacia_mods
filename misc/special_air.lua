@@ -17,29 +17,24 @@ local air_def = {
     _mcl_hardness = -1,
 }
 
-
+-- Glow Air
 local glow_air = table.copy(air_def)
 glow_air.groups = table.merge(glow_air.groups or {}, {
-
+    description = "Enchanted Air",
 })
-minetest.register_node(":arkacia:glow_air", glow_air)
+minetest.register_node(":arkacia:enchanted_air", glow_air)
 
 
-local powered_glow_air = table.copy(air_def)
-powered_glow_air.groups = table.merge(powered_glow_air.groups or {}, {
-
+-- E Glow Air
+local enchanted_glow_air = table.copy(air_def)
+enchanted_glow_air.groups = table.merge(enchanted_glow_air.groups or {}, {
+    description = "Glowing Enchanted Air",
 })
-minetest.register_node(":arkacia:powered_glow_air", powered_glow_air)
-
-
-local glow_air = table.copy(air_def)
-glow_air.groups = table.merge(glow_air.groups or {}, {
-
-})
-minetest.register_node(":arkacia:glow_air", glow_air)
+minetest.register_node(":arkacia:enchanted_air_glow", enchanted_glow_air)
 
 
 local water_air = table.merge(air_def, {
+    description = "Water Air",
     liquidtype = "source",
     liquid_alternative_flowing = ":scp:scp_006_flowing",
     liquid_alternative_source = ":scp:scp_006_source",
@@ -53,22 +48,15 @@ water_air.groups = table.merge(water_air.groups or {}, {
 })
 minetest.register_node(":arkacia:water_air", water_air)
 
-local function register_air()
-    minetest.register_node(":arkacia:air_light",
-        {
-            description = "Aether",
-        })
-    end
-minetest.register_alias("scp:scp_006", "scp:scp_006_source")
 
 
 
 
 mcl_util._aether_activated = mcl_util._aether_activated or false
 local duration = 10
-if not mcl_util.scp_006_activated then
+if not mcl_util._aether_activated then
     mcl_player.register_globalstep_slow(function(player)
-        if mcl_player.players[player].nodes.head == "arkacia:powered_glow_air" or mcl_player.players[player].nodes.feet == "arkacia:powered_glow_air" then
+        if mcl_player.players[player].nodes.head == "arkacia:enchanted_glow_air" or mcl_player.players[player].nodes.feet == "arkacia:enchanted_glow_air" then
             mcl_potions.swiftness_func(player, 3, duration)
             mcl_potions.leaping_func(player, 2, duration)
         end
