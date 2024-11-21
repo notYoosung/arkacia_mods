@@ -243,7 +243,7 @@ local n_cache_default = 0;
 
 local function table_to_str(prepend, t)
     local s = {prepend}
-    for k, v in pairs(t) do
+    for k, v in pairsByKeys(t) do
         s[#s + 1] = "    [\"" .. k .. "\"] = \"" .. v .. "\",\n"
     end
     s[#s + 1] = "}\n"
