@@ -20,7 +20,7 @@ function mcl_util.connected_players(center, radius)
 end
 
 mcl_death_messages.messages.scp_173 = { plain = "@1's neck was snapped by SCP-173." }
-mcl_damage.types.scp_173 = { bypasses_armor = true, bypasses_magic = false, bypasses_invulnerability = false, bypasses_totem = false }
+mcl_damage.types.scp_173 = { bypasses_armor = true, bypasses_magic = true, bypasses_invulnerability = true, bypasses_totem = false }
 
 mcl_mobs.register_mob(":scp:scp_173", {
     description = "SCP 173",

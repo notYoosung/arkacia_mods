@@ -1,7 +1,7 @@
 mcl_util._mcl_bubble_column_activated = mcl_util._mcl_bubble_column_activated or false
 if not mcl_util._mcl_bubble_column_activated then
     mcl_bubble_column = {}
-    minetest.register_abm {
+    minetest.register_abm( {
         label = "bubbleColumnUpStop",
         nodenames = { "group:water" },
         interval = 0.05,
@@ -36,9 +36,9 @@ if not mcl_util._mcl_bubble_column_activated then
                 end
             end
         end,
-    }
+    })
 
-    minetest.register_abm {
+    minetest.register_abm ({
         label = "startBubbleColumn",
         nodenames = { "mcl_nether:soul_sand" },
         interval = 0.05,
@@ -51,9 +51,9 @@ if not mcl_util._mcl_bubble_column_activated then
                 upmeta:set_int("bubbly", 1)
             end
         end,
-    }
+    })
 
-    minetest.register_abm {
+    minetest.register_abm ({
         label = "startWhirlpool",
         nodenames = { "mcl_nether:magma" },
         interval = 0.05,
@@ -66,7 +66,7 @@ if not mcl_util._mcl_bubble_column_activated then
                 upmeta:set_int("whirly", 1)
             end
         end,
-    }
+    })
 
 
     mcl_bubble_column.on_enter_bubble_column = function(self)
@@ -89,7 +89,7 @@ if not mcl_util._mcl_bubble_column_activated then
         self:add_velocity({ x = 0, y = math.max(-0.9, (-math.abs(velocity.y)) - 0.03), z = 0 })
     end
 
-    minetest.register_abm {
+    minetest.register_abm ({
         label = "entGo",
         nodenames = { "group:water" },
         interval = 0.05,
@@ -116,18 +116,15 @@ if not mcl_util._mcl_bubble_column_activated then
                 end
             end
         end,
-    }
+    })
 
     minetest.register_globalstep(function()
         for _, player in ipairs(minetest.get_connected_players()) do
             local ppos = player:get_pos()
             local eyepos = { x = ppos.x, y = ppos.y + player:get_properties().eye_height, z = ppos.z }
-            local node = minetest.get_node(ppos)
-            local eyenode = minetest.get_node(eyepos)
             local meta = minetest.get_meta(ppos)
             local eyemeta = minetest.get_meta(eyepos)
 
-            local eyemeta = minetest.get_meta(ppos)
             if meta:get_int("bubbly") == 1 or eyemeta:get_int("bubbly") == 1 then
                 local up = minetest.get_node(vector.add(eyepos, { x = 0, y = 1, z = 0 }))
                 if up.name == "air" then
@@ -145,38 +142,6 @@ if not mcl_util._mcl_bubble_column_activated then
             end
         end
     end)
-
-    minetest.register_abm {
-        label = "removeOldFlowingColumns",
-        nodenames = { "mcl_bubble_column:water_flowing_up", "mcl_bubble_column:water_flowing_down" },
-        interval = 2,
-        chance = 1,
-        action = function(pos)
-            minetest.set_node(pos, { name = "air" })
-        end,
-    }
-    minetest.register_abm {
-        label = "replaceBubbleColumns",
-        nodenames = { "mcl_bubble_column:water_source_up" },
-        interval = 2,
-        chance = 1,
-        action = function(pos)
-            minetest.set_node(pos, { name = "mcl_core:water_source" })
-            local meta = minetest.get_meta(pos)
-            meta:set_int("bubbly", 1)
-        end,
-    }
-    minetest.register_abm {
-        label = "replaceWhirlpools",
-        nodenames = { "mcl_bubble_column:water_source_down" },
-        interval = 2,
-        chance = 1,
-        action = function(pos)
-            minetest.set_node(pos, { name = "mcl_core:water_source" })
-            local meta = minetest.get_meta(pos)
-            meta:set_int("whirly", 1)
-        end,
-    }
 
     mcl_util._mcl_bubble_column_activated = true
 end

@@ -112,6 +112,9 @@ local node_def = {
         not_in_creative_inventory = 1,
         dig_speed_class = 1,
     },
+    _mcl_diggroups = {
+        handy = { speed = 1, level = 1, uses = 0 },
+    },
     tool_capabilities = {
         full_punch_interval = 0.25,
         max_drop_level = 0,
