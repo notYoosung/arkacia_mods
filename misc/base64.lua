@@ -32,16 +32,8 @@ local function table_to_str(prepend, t)
     return table.concat(s)
 end
 
-
-
-
-
-
-
-
 local imgspath = modpath .. "/base64imgs"
 local strspath = modpath .. "/base64strs"
-
 
 local function scandir(directory)
     local i, t, popen = 0, {}, io.popen
@@ -59,22 +51,30 @@ local function write_base64_str(name, filestr)
     file:write(filestr)
     file:close()
 end
+local function convert_dir(subdir)
+    local dir = scandir(imgspath .. "/" .. subdir)
 
+    for k, v in pairsByKeys(dir) do
+        if not tostring(v):match("%.png$") then goto continue end
+        
+        local handle = assert(io.popen("base64 -i \"" .. imgspath .. "/" .. subdir .. "/" .. v .. "\""))
+        local result = handle:read("*a"):trim()
+        handle:close()
 
+        file = file .. "\n        " .. v:gsub("%.png$", "") .. " = \"" .. result .. "\","
+
+        ::continue::
+    end
+end
 local dir = scandir(imgspath)
-
 for k, v in pairsByKeys(dir) do
-    if not tostring(v):match("%.png$") then goto continue end
-    
-    local handle = assert(io.popen("base64 -i \"" .. imgspath .. "/" .. v .. "\""))
-    local result = handle:read("*a"):trim()
-    handle:close()
+    if tostring(v):match("^%.") then goto continue end
 
-    minetest.log("base64: " .. result)
-    file = file .. "\n    " .. v:gsub("%.png$", "") .. " = \"" .. result .. "\","
+    file = file .. "\n    " .. v .. " = {"
+    convert_dir(v)
+    file = file .. "\n    },"
     ::continue::
+
 end
 file = file .. "\n}"
 write_base64_str("images", file)
--- minetest.register_on_mods_loaded(function()
--- end)
