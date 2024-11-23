@@ -3,7 +3,14 @@ local modpath = minetest.get_modpath(modname)
 require 'io'
 
 
-local file = [[local imgs = {]]
+local prepend = [[local imgs = {]]
+local append = [[}
+]]
+
+local strs = {
+
+}
+
 
 
 -- https://stackoverflow.com/a/70096863
@@ -51,6 +58,8 @@ local function write_base64_str(name, filestr)
     file:write(filestr)
     file:close()
 end
+
+
 local function convert_dir(subdir)
     local dir = scandir(imgspath .. "/" .. subdir)
 
@@ -61,7 +70,7 @@ local function convert_dir(subdir)
         local result = handle:read("*a"):trim()
         handle:close()
 
-        file = file .. "\n        " .. v:gsub("%.png$", "") .. " = \"" .. result .. "\","
+        file = strs[#strs] .. "\n        " .. v:gsub("%.png$", "") .. " = \"" .. result .. "\","
 
         ::continue::
     end
@@ -69,12 +78,13 @@ end
 local dir = scandir(imgspath)
 for k, v in pairsByKeys(dir) do
     if tostring(v):match("^%.") then goto continue end
-
-    file = file .. "\n    " .. v .. " = {"
+    strs[#strs + 1] = prepend
+    
+    strs[#strs] = strs[#strs] .. "\n    " .. v .. " = {"
     convert_dir(v)
-    file = file .. "\n    },"
+    strs[#strs] = strs[#strs] .. "\n    },"
+    
     ::continue::
-
 end
-file = file .. "\n}"
-write_base64_str("images", file)
+strs[#strs] = strs[#strs] .. "\n}"
+write_base64_str("images", strs[#strs])
