@@ -120,7 +120,7 @@ local function write_base64_str(name, filestr)
     file:write(filestr)
     file:close()
     -- minetest.register_on_mods_loaded(function()
-        dofile(modpath .. "/base64strs/" .. name .. ".lua")
+        -- dofile(modpath .. "/base64strs/" .. name .. ".lua")
     -- end)
 end
 

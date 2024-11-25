@@ -60,8 +60,10 @@ minetest.register_node(":scp:niners",
         sounds = { dug = { name = "slimenodes_dug", gain = 0.6 }, place = { name = "slimenodes_place", gain = 0.6 }, footstep = { name = "slimenodes_step", gain = 0.3 }, },
         _mcl_blast_resistance = 0,
         _mcl_hardness = 0,
-        after_place_node = function(
-            pos, placer, itemstack, pointed_thing)
+        after_place_node = function(pos, placer, itemstack, pointed_thing)
+            core.get_node_timer(pos):start(niners_timer())
+        end,
+        on_activate = function(self, staticdata, dtime_s)
             core.get_node_timer(pos):start(niners_timer())
         end,
         on_timer = function(
@@ -106,6 +108,22 @@ minetest.register_node(":scp:mvy",
         end,
     })
 mesecon.register_mvps_stopper("scp:mvy")
+
+
+minetest.register_lbm({
+    name = "scp:niners_move",
+    nodenames = {
+        "scp:niners",
+        "scp:mvy",
+    },
+    run_at_every_load = true,
+    action = function(pos)
+        niners_rotate(pos)
+        niners_walk(pos)
+        core.get_node_timer(pos):start(0.25)
+    end,
+})
+
 local function table_contains(table, element)
     for _, value in pairs(table) do if value == element then return true end end
     return false
