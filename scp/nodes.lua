@@ -14,7 +14,7 @@ minetest.register_node(":scp:scp_yellow_concrete",
             yc_side,
             yc_side,
         },
-        groups = { dig_immediate = 3, },
+        groups = { dig_immediate = 3, opaque = 1, solid = 1, },
         is_ground_content = false,
         sounds = mcl_sounds.node_sound_stone_defaults(),
     })
@@ -28,7 +28,7 @@ minetest.register_node(":scp:scp_silver_concrete",
         tiles = {
             sc,
         },
-        groups = { dig_immediate = 3, },
+        groups = { dig_immediate = 3, opaque = 1, solid = 1, },
         is_ground_content = false,
         sounds = mcl_sounds.node_sound_stone_defaults(),
     })

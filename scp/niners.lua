@@ -109,20 +109,23 @@ minetest.register_node(":scp:mvy",
     })
 mesecon.register_mvps_stopper("scp:mvy")
 
-
-minetest.register_lbm({
-    name = "scp:niners_move",
-    nodenames = {
-        "scp:niners",
-        "scp:mvy",
-    },
-    run_at_every_load = true,
-    action = function(pos)
-        niners_rotate(pos)
-        niners_walk(pos)
-        core.get_node_timer(pos):start(0.25)
-    end,
-})
+mcl_util._scp_niners_activated = mcl_util._scp_niners_activated or false
+if not mcl_util._scp_niners_activated then
+    mcl_util._scp_niners_activated = true
+    minetest.register_lbm({
+        name = ":scp:niners_move",
+        nodenames = {
+            "scp:niners",
+            "scp:mvy",
+        },
+        run_at_every_load = true,
+        action = function(pos)
+            niners_rotate(pos)
+            niners_walk(pos)
+            core.get_node_timer(pos):start(0.25)
+        end,
+    })
+end
 
 local function table_contains(table, element)
     for _, value in pairs(table) do if value == element then return true end end

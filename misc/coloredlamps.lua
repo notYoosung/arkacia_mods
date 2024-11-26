@@ -13,7 +13,7 @@ end
 local ls_off_name = "mesecons_lightstone:lightstone_off"
 local ls_off_def = {
     tiles = { "jeija_lightstone_gray_off.png" },
-    groups = { handy = 1, dig_immediate = 3, pickaxey = 1, oddly_breakable_by_hand = 1, mesecon_effector_off = 1, mesecon = 2 },
+    groups = { handy = 1, dig_immediate = 3, pickaxey = 1, oddly_breakable_by_hand = 1, mesecon_effector_off = 1, mesecon = 2, opaque = 1, solid = 1, },
     is_ground_content = false,
     description =
         S("Redstone Lamp"),
@@ -29,7 +29,7 @@ local ls_off_def = {
 local ls_on_name = "mesecons_lightstone:lightstone_on"
 local ls_on_def = {
     tiles = { "jeija_lightstone_gray_on.png" },
-    groups = { handy = 1, dig_immediate = 3, pickaxey = 1, oddly_breakable_by_hand = 1, not_in_creative_inventory = 1, mesecon = 2, opaque = 1 },
+    groups = { handy = 1, dig_immediate = 3, pickaxey = 1, oddly_breakable_by_hand = 1, not_in_creative_inventory = 1, mesecon = 2, opaque = 1, solid = 1, },
     drop =
     "node mesecons_lightstone:lightstone_off",
     is_ground_content = false,
