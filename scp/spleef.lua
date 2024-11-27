@@ -6,7 +6,7 @@ local spleeficefunc = function(player)
     local pos = player:get_pos()
     local npos = vector.add(pos, mcl_player.node_offsets.stand)
     local node = minetest.get_node(npos)
-    if minetest.get_node(npos).name == "bear:spleefice" then
+    if node.name == "bear:spleefice" then
         minetest.swap_node(npos, { name = "air" })
         minetest.sound_play({ name = "default_ice_dig", gain = 0.5 }, { pos = npos })
     end
