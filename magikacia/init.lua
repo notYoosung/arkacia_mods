@@ -31,7 +31,7 @@ minetest.register_on_mods_loaded(function()
     -- end)
 	]]
 
-	local files = {"main", "textures", "textures2", "gauntlet"}
+	local files = {"main", "textures", "textures2", "textures3", "gauntlet" }
 	for _, v in ipairs(files) do
 		dofile(modpath .. "/" .. v .. ".lua")
 	end

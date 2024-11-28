@@ -68,4 +68,5 @@ minetest.add_particle({
 
     bounce = { min = ..., max = ..., bias = 0 },
     -- v5.6.0 and later: Optional bounce range, consult the following section
-})]]
+})
+]]
