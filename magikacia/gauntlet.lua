@@ -109,7 +109,6 @@ end
 
 
 
-local magikacia = {}
 
 local function get_formspec(name, width, height)
     local gauntlet_inv_formspec = table.concat({
@@ -463,6 +462,11 @@ function magikacia.on_use(itemstack, placer, pointed_thing)
         use_at_place = true
         
     end
+    if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_protection") then
+        minetest.run_server_chatcommand("area_pos1", "")
+        use_success = true
+        use_at_place = true
+    end
 
     if use_at_place then
         spawn_vortex(use_pos_above)
@@ -482,20 +486,51 @@ end
 local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtable)
     if not placer then return nil end
     local meta = placer:get_meta()
-    local use_pos = nil
+    local use_pos_above = nil
+    if pointed_thing.type == "node" then
+        use_pos_above = pointed_thing.above
+    elseif pointed_thing.type == "object" then
+        use_pos_above = pointed_thing.ref:get_pos()
+    end
     if pointed_thing.type == "node" then
         use_pos = pointed_thing.above
     elseif pointed_thing.type == "object" then
         use_pos = pointed_thing.ref:get_pos()
     end
+    local use_pos_under = nil
+    if pointed_thing.type == "node" then
+        use_pos_under = pointed_thing.under
+    elseif pointed_thing.type == "object" then
+        use_pos_under = vector.offset(pointed_thing.ref:get_pos(), 0, -1, 0)
+    end
     local use_success = false
     local use_at_place = false
     local use_at_self = false
+
     if placer:is_player() then
         local placer_name = placer:get_player_name()
         if controls.players[placer_name].sneak[1] then
             return open_bag(itemstack, placer, bagtable.width, bagtable.height, bagtable.sound_open) 
         end
+    end
+
+
+    if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_protection") then
+        minetest.run_server_chatcommand("area_pos2", "")
+        use_success = true
+        use_at_place = true
+    end
+
+
+    if use_at_place then
+        spawn_vortex(use_pos_above)
+    end
+    if use_at_self then
+        spawn_vortex(placer:get_pos())
+    end
+
+    if use_success then
+        minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 64 }, true)
     end
 
     return nil
@@ -506,7 +541,6 @@ function magikacia.register_bag(name, bagtable)
         description = bagtable.description,
         inventory_image = bagtable.inventory_image,
         groups = { bag = 1 },
-
         on_secondary_use = function(itemstack, user, pointed_thing)
             return gauntlet_use_secondary(itemstack, user, pointed_thing, bagtable)
         end,
@@ -518,7 +552,8 @@ function magikacia.register_bag(name, bagtable)
         end,
         on_drop = function(itemstack, dropper, pos)
             return magikacia.on_drop_bag(itemstack, dropper, pos)
-        end
+        end,
+        range = bagtable.range,
     })
 
     minetest.register_on_player_receive_fields(function(player, formname, fields)
@@ -537,39 +572,43 @@ function magikacia.register_bag(name, bagtable)
 end
 
 magikacia.register_bag("magikacia:gauntlet_iron", {
-    description = "Tiny Pouch",
-    inventory_image = magikacia.textures.gauntlet_iron,
+    description = "Iron Magikacia Gauntlet",
+    inventory_image = magikacia.textures.gauntlet_iron_inv,
     width = 1,
     height = 1,
     sound_open = "magikacia_open_bag",
-    sound_close = "magikacia_close_bag"
+    sound_close = "magikacia_close_bag",
+    range = 8,
 })
 
 magikacia.register_bag("magikacia:gauntlet_gold", {
-    description = "Small Pouch",
-    inventory_image = magikacia.textures.gauntlet_gold,
+    description = "Gold Magikacia Gauntlet",
+    inventory_image = magikacia.textures.gauntlet_gold_inv,
     width = 2,
     height = 2,
     sound_open = "magikacia_open_bag",
-    sound_close = "magikacia_close_bag"
+    sound_close = "magikacia_close_bag",
+    range = 16,
 })
 
 magikacia.register_bag("magikacia:gauntlet_diamond", {
-    description = "Medium Pouch",
-    inventory_image = magikacia.textures.gauntlet_diamond,
+    description = "Diamond Magikacia Gauntlet",
+    inventory_image = magikacia.textures.gauntlet_diamond_inv,
     width = 3,
     height = 3,
     sound_open = "magikacia_open_bag",
-    sound_close = "magikacia_close_bag"
+    sound_close = "magikacia_close_bag",
+    range = 32,
 })
 
 magikacia.register_bag("magikacia:gauntlet_netherite", {
-    description = "Large Pouch",
-    inventory_image = magikacia.textures.gauntlet_netherite,
+    description = "Netherite Magikacia Gauntlet",
+    inventory_image = magikacia.textures.gauntlet_netherite_inv,
     width = 4,
     height = 4,
     sound_open = "magikacia_open_bag",
-    sound_close = "magikacia_close_bag"
+    sound_close = "magikacia_close_bag",
+    range = 64,
 })
 
 

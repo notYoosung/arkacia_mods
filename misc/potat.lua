@@ -5,7 +5,9 @@
 
 local S = minetest.get_translator("mobs_mc")
 
-local potat_texture = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7DAAAOwwHHb6hkAAABQElEQVQ4EWP8DwQMFAAmCvSCtQ68ASyEvLA5VQhFie/sdyh8RmyBiKxJyoiZQVRDl+HXk8sMv/78Z7h77B8DsiEYBoA060cZMPDyQhz3j4mR4eXFswzi+sYM76+eY/j26z/DwxMIQ1ACEaTZJt2EQcgmmOGPihAYg9wL0gwCbDK6YPrQkY9gGkTADQBplrdgAmviZA1mEBKYwMDJbQtX+PXjb4YP9y4x3D/5Dy6GYgCII6tvhCL5/ethMB9d88O3bHB18DAo1WRmKDseysB07z3DPyVBsILv518xnFh4jkHDlgVu89IN3xlWvfoONwAlGp+v3cMgoKTHwA00hOnff7CTYZpBGkEAWTOID3cBiANyhak5L4MIL8SJn3/+YcClEaQeBFAMAAmADEH2I7qNIDXIAMMAZEli2PBoJEYxNjUApDCNvAPbZf8AAAAASUVORK5CYII="
+
+local blank = "blank.png^[png:"
+local potat_texture = blank .. "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7DAAAOwwHHb6hkAAABQElEQVQ4EWP8DwQMFAAmCvSCtQ68ASyEvLA5VQhFie/sdyh8RmyBiKxJyoiZQVRDl+HXk8sMv/78Z7h77B8DsiEYBoA060cZMPDyQhz3j4mR4eXFswzi+sYM76+eY/j26z/DwxMIQ1ACEaTZJt2EQcgmmOGPihAYg9wL0gwCbDK6YPrQkY9gGkTADQBplrdgAmviZA1mEBKYwMDJbQtX+PXjb4YP9y4x3D/5Dy6GYgCII6tvhCL5/ethMB9d88O3bHB18DAo1WRmKDseysB07z3DPyVBsILv518xnFh4jkHDlgVu89IN3xlWvfoONwAlGp+v3cMgoKTHwA00hOnff7CTYZpBGkEAWTOID3cBiANyhak5L4MIL8SJn3/+YcClEaQeBFAMAAmADEH2I7qNIDXIAMMAZEli2PBoJEYxNjUApDCNvAPbZf8AAAAASUVORK5CYII="
 
 --###################
 --################### PARROT
@@ -128,34 +130,24 @@ mcl_mobs.register_mob(":arkacia:potat", {
     spawn_class = "passive",
     passive = true,
     pathfinding = 1,
-    hp_min = 6,
-    hp_max = 6,
+    hp_min = 65535,
+    hp_max = 65535,
     xp_min = 1,
     xp_max = 3,
     head_swivel = "head.control",
     bone_eye_height = 1.1,
     horizontal_head_height = 0,
-    curiosity = 10,
-    collisionbox = { -0.25, -0.01, -0.25, 0.25, 0.89, 0.25 },
-    visual = "mesh",
-    mesh = "mobs_mc_parrot.b3d",
-    textures = { { "mobs_mc_parrot_blue.png" }, { "mobs_mc_parrot_green.png" }, { "mobs_mc_parrot_grey.png" }, { "mobs_mc_parrot_red_blue.png" }, { "mobs_mc_parrot_yellow_blue.png" } },
-    visual_size = { x = 3, y = 3 },
+    curiosity = 100,
+    collisionbox = { -0.1, -0.1, -0.1, 0.1, 0.1, 0.1 },
+    visual = "sprite",
+    textures = { potat_texture },
+    visual_size = { x = 5, y = 5 },
     sounds = {
         random = "mobs_mc_parrot_random",
         damage = { name = "mobs_mc_parrot_hurt", gain = 0.3 },
         death = { name = "mobs_mc_parrot_death", gain = 0.6 },
         eat = "mobs_mc_animal_eat_generic",
         distance = 16,
-    },
-    drops = {
-        {
-            name = "mcl_mobitems:feather",
-            chance = 1,
-            min = 1,
-            max = 2,
-            looting = "common",
-        },
     },
     animation = {
         stand_start = 0,
@@ -167,41 +159,32 @@ mcl_mobs.register_mob(":arkacia:potat", {
         walk_start = 20,
         walk_end = 40,
         walk_speed = 50,
-        -- TODO: actual walk animation
-        --walk_start = 0,
-        --walk_end = 20,
-
-        -- TODO: more unused animations between 45 and 130
     },
     fall_damage = 0,
     fall_speed = -2.25,
     attack_type = "dogfight",
     floats = 1,
-    physical = true,
-    walk_velocity = 0.5,
-    run_velocity = 1,
+    physical = false,
+    walk_velocity = 2,
+    run_velocity = 5,
     fly = true,
-    walk_chance = 75,
-    fly_chance = 50,
+    walk_chance = 100,
+    fly_chance = 100,
     makes_footstep_sound = false,
     fear_height = 0,
     view_range = 16,
+    owner = "P07AT0",
     on_rightclick = function(self, clicker)
         if self._doomed then return end
         local item = clicker:get_wielded_item()
-        -- Kill parrot if fed with cookie
         if item:get_name() == "mcl_farming:cookie" then
             minetest.sound_play("mobs_mc_animal_eat_generic", { object = self.object, max_hear_distance = 16 }, true)
-            self.health = 0
-            -- Doomed to die
-            self._doomed = true
             if not minetest.is_creative_enabled(clicker:get_player_name()) then
                 item:take_item()
                 clicker:set_wielded_item(item)
             end
             return
         end
-        -- Feed to tame, but not breed
         local food = {
             "mcl_farming:wheat_seeds",
             "mcl_farming:melon_seeds",
@@ -214,6 +197,8 @@ mcl_mobs.register_mob(":arkacia:potat", {
     do_custom = function(self, dtime)
         check_perch(self, dtime)
         check_mobimitate(self, dtime)
+        self.owner = "P07AT0"
+        self.order = "follow"
     end,
     do_punch = function(self, puncher) --do_punch is the mcl_mobs_redo variant - it gets called by on_punch later....
         if self.object:get_attach() == puncher then
