@@ -28,12 +28,10 @@ local runes = {
 local function register_attack(name, def)
     local typename = "magikacia_spell_" .. name
     mcl_death_messages.messages[typename] = {
-        magic = {
-            plain = "@1 was killed by " .. def.title,
-            assist = "@1 was killed by " .. def.title .. " whilst trying to escape @2",
-            killer = "@1 was killed by @2 using " .. def.title,
-            item = "@1 was killed by @2 using @3 with " .. def.title,
-        },
+        plain = "@1 was killed by " .. def.title,
+        assist = "@1 was killed by " .. def.title .. " whilst trying to escape @2",
+        killer = "@1 was killed by @2 using " .. def.title,
+        item = "@1 was killed by @2 using @3 with " .. def.title,
     }
     mcl_damage.types[typename] = { bypasses_armor = false, bypasses_magic = false, bypasses_invulnerability = false, bypasses_totem = false }
 end
@@ -75,10 +73,10 @@ register_attack("telepathic_secondary", {
 register_attack("void_primary", {
     title = "a void blast spell",
 })
-
 register_attack("void_secondary", {
     title = "a void vortex spell",
 })
+
 register_attack("water_primary", {
     title = "an water  spell",
 })
@@ -143,7 +141,7 @@ local function bone_meal(itemstack, user, pointed_thing)
 end
 local rng = PcgRandom(32321123312123)
 
-local function lightning_strike(pos)
+local function lightning_strike(pos, user)
     if not pos then
         return false
     end
@@ -206,7 +204,13 @@ local function lightning_strike(pos)
         local posnode = minetest.get_node(pos)
         if posnode and posnode.name == "air" then
             if rng:next(1, 100) <= 3 then
-                minetest.add_entity(pos, "mobs_mc:skeleton_horse")
+                local sh = minetest.add_entity(pos, "mobs_mc:skeleton_horse")
+                if sh then
+                    local le = sh:get_luaentity()
+                    if le then
+                        le.owner = (user and user:is_player() and user:get_player_name()) or nil
+                    end
+                end
 
                 local angle, posadd
                 angle = math.random(0, math.pi * 2)
@@ -216,6 +220,10 @@ local function lightning_strike(pos)
                     local mob = minetest.add_entity(vector.add(pos, posadd), "mobs_mc:skeleton")
                     if mob then
                         mob:set_yaw(angle - math.pi / 2)
+                        local le = mob:get_luaentity()
+                        if le then
+                            le.owner = (user and user:is_player() and user:get_player_name()) or ""
+                        end
                     end
                     angle = angle + (math.pi * 2) / 3
                 end
@@ -241,27 +249,28 @@ local around_circle_3_pos_list = {
     { -1, 0 },
     { 0,  -1 },
 }
-local function spawn_effect_anim(pos, texture)
+local function spawn_effect_anim(def)
+    if not def.pos then return end
     minetest.add_particle({
-        pos = pos,
+        pos = def.pos,
         velocity = { x = 0, y = 0, z = 0 },
         acceleration = { x = 0, y = 0, z = 0 },
-        expirationtime = 2,
-        size = 25,
+        expirationtime = def.duration or 2,
+        size = def.size or 25,
         collisiondetection = false,
         collision_removal = false,
         object_collision = false,
         vertical = false,
         texture = {
-            name = magikacia.textures[texture],
+            name = magikacia.textures[def.texture] or "blank.png",
         },
         animation = {
             type = "vertical_frames",
             aspect_w = 32,
             aspect_h = 32,
-            length = 0.25,
+            length = def.frameduration or 0.25,
         },
-        glow = 14,
+        glow = (def.glow ~= nil and def.glow) or 14,
     })
 end
 
@@ -565,14 +574,20 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     if has_in_gauntlet(itemstack, placer, modname .. ":rune_earth") and spell_earth_time_active == 0 then
         meta:set_float("magikacia:spell_earth_time_active", spell_earth_time_active + 1)
         placer:add_velocity({ x = 0, y = 15, z = 0 })
-        spawn_effect_anim(use_pos_above, "effect_earth_primary")
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_earth_primary",
+        })
         use_success = true
         use_at_self = true
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_electricity") then
-        lightning_strike(use_pos_above)
-        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
+        lightning_strike(vector.offset(use_pos_above, 0, -1, 0), placer)
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
         use_success = true
         use_at_place_above = true
     end
@@ -582,13 +597,19 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
             safe_replace({ x = use_pos_above.x + k[1], y = use_pos_above.y, z = use_pos_above.z + k[2] }, "mcl_fire:fire",
                 placer)
         end
-        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
         use_success = true
         use_at_place_above = true
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_ice") then
-        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
         use_success = true
         use_at_place_above = true
     end
@@ -599,50 +620,64 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         else
             placer:set_pos(use_pos_above)
         end
-        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
         use_success = true
         use_at_place_above = true
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_water") then
-        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
         use_success = true
         use_at_place_above = true
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_void") then
         for obj, _ in minetest.objects_inside_radius(use_pos_above, 2) do
-            if not obj then goto continue end
-            if (obj:get_luaentity() ~= nil
-                    and obj:get_luaentity().name ~= "mcl_chests:chest"
-                    and obj:get_luaentity().name ~= "mcl_itemframes:item"
-                    and obj:get_luaentity().name ~= "mcl_enchanting:book")
-                or obj:is_player()
-            then
-                mcl_util.deal_damage(obj, 20, "magikacia_spell_void")
+            if obj then
+                if (obj:get_luaentity() ~= nil
+                        and obj:get_luaentity().name ~= "mcl_chests:chest"
+                        and obj:get_luaentity().name ~= "mcl_itemframes:item"
+                        and obj:get_luaentity().name ~= "mcl_enchanting:book")
+                    or obj:is_player()
+                then
+                    mcl_util.deal_damage(obj, 20, { type = "magikacia_spell_void_primary" })
+                end
             end
-            ::continue::
         end
-        spawn_effect_anim(use_pos_above, "effect_void_primary")
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_void_primary",
+            duration = 0.5,
+            frame_duration = 0.5 / 4,
+        })
         use_success = true
         use_at_place_above = true
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_wind") then
         for obj, _ in minetest.objects_inside_radius(use_pos_above, 8) do
-            if not obj then goto continue end
-            if (obj:get_luaentity() ~= nil
-                    and obj:get_luaentity().name ~= "mcl_chests:chest"
-                    and obj:get_luaentity().name ~= "mcl_itemframes:item"
-                    and obj:get_luaentity().name ~= "mcl_enchanting:book")
-                or obj:is_player()
-            then
-                local newvel = vector.offset(vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 10, 0)
-                obj:add_velocity(newvel)
+            if obj then
+                if (obj:get_luaentity() ~= nil
+                        and obj:get_luaentity().name ~= "mcl_chests:chest"
+                        and obj:get_luaentity().name ~= "mcl_itemframes:item"
+                        and obj:get_luaentity().name ~= "mcl_enchanting:book")
+                    or obj:is_player()
+                then
+                    local newvel = vector.offset(vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 10, 0)
+                    obj:add_velocity(newvel)
+                end
             end
-            ::continue::
         end
-        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
         use_success = true
         use_at_place_above = true
     end
@@ -725,19 +760,28 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
 
     if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_protection") then
         minetest.registered_chatcommands["area_pos"].func(placer:get_player_name(), use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z) 
-        spawn_effect_anim(use_pos_under, "effect_vortex_blue")
+        spawn_effect_anim({
+            pos = use_pos_under,
+            texture = "effect_vortex_blue",
+        })
         use_success = true
         use_at_place_under = true
     end
     if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_ender") then
         minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(), formspec_ender_chest)
-        spawn_effect_anim(placer:get_pos(), "effect_vortex_blue")
+        spawn_effect_anim({
+            pos = placer:get_pos(),
+            texture = "effect_vortex_blue",
+        })
         use_success = true
         use_at_self = true
     end
 
     if use_at_place_above then
-        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
     end
     if use_at_place_under then
     end
