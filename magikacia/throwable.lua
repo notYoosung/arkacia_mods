@@ -21,7 +21,7 @@ local function check_object_hit(self, pos, dmg)
     return false
 end
 local how_to_throw = S("Use the punch key to throw.")
-local function register_ball(name, damage, texture)
+local function register_projectile(name, damage, texture)
     local function snowball_particles(pos, vel)
         local vel = vector.normalize(vector.multiply(vel, -1))
         minetest.add_particlespawner({
@@ -79,26 +79,26 @@ local function register_ball(name, damage, texture)
         end
         self._lastpos = { x = pos.x, y = pos.y, z = pos.z }
     end
-    minetest.register_entity(":bear:throwable_" .. name .. "_entity", ENTITY)
-    minetest.register_craftitem(":bear:throwable_" .. name,
+    minetest.register_entity(":magikacia:throwable_" .. name .. "_entity", ENTITY)
+    minetest.register_craftitem(":magikacia:throwable_" .. name,
         {
             description = name .. minetest.colorize("#FF0", "\nDamage: " .. tostring(damage)),
             _tt_help = S("Throwable"),
             _doc_items_longdesc =
                 S(name ..
-                "s can be thrown or launched from a dispenser for fun. Hitting something with a it does damage."),
+                    "s can be thrown or launched from a dispenser for fun. Hitting something with a it does damage."),
             _doc_items_usagehelp =
                 how_to_throw,
             inventory_image = texture,
             stack_max = 65535,
             groups = { weapon_ranged = 1 },
             on_use = mcl_throwing
-                .get_player_throw_function("bear:throwable_" .. name .. "_entity"),
+                .get_player_throw_function("magikacia:throwable_" .. name .. "_entity"),
             _on_dispense = mcl_throwing
                 .dispense_function,
         })
-    mcl_throwing.register_throwable_object("bear:throwable_" .. name, "bear:throwable_" .. name .. "_entity", 22)
+    mcl_throwing.register_throwable_object("magikacia:throwable_" .. name, "magikacia:throwable_" .. name .. "_entity", 22)
 end
-register_ball("snowball", 1, "mcl_throwing_snowball.png")
-register_ball("brick", 2, "default_clay_brick.png")
-register_ball("fireball", 3, "mcl_fire_fire_charge.png")
+register_projectile("snowball", 1, "mcl_throwing_snowball.png")
+register_projectile("brick", 2, "default_clay_brick.png")
+register_projectile("fireball", 3, "mcl_fire_fire_charge.png")
