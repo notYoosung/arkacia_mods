@@ -134,12 +134,13 @@ minetest.register_craftitem(":" .. modname .. ":writable_book", {
 
 
 local runes = {
-    "fire",
-    "lightning",
-    "ender",
     "earth",
-    "nature",
-    "protection",
+    "electricity",
+    "fire",
+    "ice",
+    "telepathic",
+    "void",
+    "water",
     "wind",
 }
 for _, v in ipairs(runes) do

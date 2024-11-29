@@ -63,7 +63,7 @@ if not mcl_util._arkacia_mlg_totem_init then
 						end
 					end
 
-					-- Effects
+					 
 					minetest.sound_play({name = "mcl_totems_totem", gain = 1}, {pos=ppos, max_hear_distance = 16}, true)
 
 					for i = 1, 4 do
@@ -91,7 +91,7 @@ if not mcl_util._arkacia_mlg_totem_init then
 						end
 					end
 
-					-- Big totem overlay
+					 
 					if not hud_totem[obj] then
 						hud_totem[obj] = obj:hud_add({
 							[hud_elem_type_field] = "image",
@@ -109,7 +109,7 @@ if not mcl_util._arkacia_mlg_totem_init then
 						end)
 					end
 
-					-- Set HP to exactly 1
+					 
 					return hp - 1
 				end
 			end

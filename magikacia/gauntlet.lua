@@ -13,6 +13,15 @@ local gauntlet_types = {
     "netherite",
 }
 
+mcl_util._magikacia_gauntlet_init = mcl_util._magikacia_gauntlet_init or false
+
+
+local function register_attack(name, def)
+    local typename = "magikacia_spell_" .. name
+    mcl_death_messages.messages[typename] = { plain = "@1 was snuffed out by SCP-035." }
+    mcl_damage.types[typename] = { bypasses_armor = false, bypasses_magic = true, bypasses_invulnerability = true, bypasses_totem = false }
+end
+register_attack()
 
 function mcl_bone_meal.add_bone_meal_particle(pos, def)
     if not def then
@@ -81,20 +90,19 @@ local around_circle_3_pos_list = {
     { -1, 0 },
     { 0,  -1 },
 }
-local function spawn_vortex(pos)
+local function spawn_effect_anim(pos, texture)
     minetest.add_particle({
         pos = pos,
         velocity = { x = 0, y = 0, z = 0 },
         acceleration = { x = 0, y = 0, z = 0 },
         expirationtime = 2,
-        size = 20,
+        size = 25,
         collisiondetection = false,
         collision_removal = false,
         object_collision = false,
         vertical = false,
         texture = {
-            name = magikacia.textures.vortex_blue,
-            align_style = "world",
+            name = magikacia.textures[texture],
         },
         animation = {
             type = "vertical_frames",
@@ -161,13 +169,6 @@ local function has_in_gauntlet(itemstack, player, itemname)
     
     if not player or not itemstack then return nil end
     
-    
-    
-    
-    
-    
-    
-    
     local meta = itemstack:get_meta()
     local invmetastring = meta:get_string("magikacia_inv_content")
     if invmetastring ~= "" then
@@ -175,7 +176,6 @@ local function has_in_gauntlet(itemstack, player, itemname)
         local t = assert(minetest.deserialize(invmetastring).main)
         
         for i, v in pairs(t) do
-            minetest.log(i .. ": " .. tostring(v.name))
             if v.name == itemname then return true end
         end
     end
@@ -390,7 +390,7 @@ function magikacia.bag_inv_remove_item(bagstack, itemstack)
     return false
 end
 
-function magikacia.on_use(itemstack, placer, pointed_thing)
+function gauntlet_use_primary(itemstack, placer, pointed_thing)
     if not placer then return nil end
     local meta = placer:get_meta()
     local use_pos_above = nil
@@ -406,43 +406,77 @@ function magikacia.on_use(itemstack, placer, pointed_thing)
         use_pos_under = vector.offset(pointed_thing.ref:get_pos(), 0, -1, 0)
     end
     local use_success = false
-    local use_at_place = false
+    local use_at_place_above = false
+    local use_at_place_under = false
     local use_at_self = false
+
+    local spell_earth_time_active = meta:get_float("magikacia:spell_earth_time_active")
+    if has_in_gauntlet(itemstack, placer, modname .. ":rune_earth") and spell_earth_time_active == 0 then
+        meta:set_float("magikacia:spell_earth_time_active", spell_earth_time_active + 1)
+        placer:add_velocity({ x = 0, y = 15, z = 0 })
+        spawn_effect_anim(use_pos_above, "effect_earth_primary")
+        use_success = true
+        use_at_self = true
+    end
+
+    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_electricity") then
+        mcl_lightning.strike(use_pos_above)
+        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
+        use_success = true
+        use_at_place_above = true
+    end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_fire") then
         for _, k in ipairs(around_circle_3_pos_list) do
             safe_replace({ x = use_pos_above.x + k[1], y = use_pos_above.y, z = use_pos_above.z + k[2] }, "mcl_fire:fire",
                 placer)
         end
+        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
         use_success = true
-        use_at_place = true
+        use_at_place_above = true
     end
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_lightning") then
-        mcl_lightning.strike(use_pos_above)
+
+    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_ice") then
+        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
         use_success = true
-        use_at_place = true
+        use_at_place_above = true
     end
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_ender") then
+
+    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_telepathic") then
         if pointed_thing.type == "node" then
             placer:set_pos({ x = use_pos_above.x, y = use_pos_above.y - 0.5, z = use_pos_above.z })
         else
             placer:set_pos(use_pos_above)
         end
+        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
         use_success = true
-        use_at_place = true
+        use_at_place_above = true
     end
-    local spell_earth_time_active = meta:get_float("magikacia:spell_earth_time_active")
-    if has_in_gauntlet(itemstack, placer, modname .. ":rune_earth") and spell_earth_time_active == 0 then
-        meta:set_float("magikacia:spell_earth_time_active", spell_earth_time_active + 1)
-        placer:add_velocity({ x = 0, y = 15, z = 0 })
+
+    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_water") then
+        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
         use_success = true
-        use_at_self = true
+        use_at_place_above = true
     end
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_nature") then
-        bone_meal(itemstack, placer, pointed_thing)
+
+    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_void") then
+        for obj, _ in minetest.objects_inside_radius(use_pos_above, 2) do
+            if not obj then goto continue end
+            if (obj:get_luaentity() ~= nil
+                    and obj:get_luaentity().name ~= "mcl_chests:chest"
+                    and obj:get_luaentity().name ~= "mcl_itemframes:item"
+                    and obj:get_luaentity().name ~= "mcl_enchanting:book")
+                or obj:is_player()
+            then
+                mcl_util.deal_damage(obj, 20, "magikacia_spell_void")
+            end
+            ::continue::
+        end
+        spawn_effect_anim(use_pos_above, "effect_void_primary")
         use_success = true
-        use_at_place = true
+        use_at_place_above = true
     end
+
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_wind") then
         for obj, _ in minetest.objects_inside_radius(use_pos_above, 8) do
             if not obj then goto continue end
@@ -452,27 +486,33 @@ function magikacia.on_use(itemstack, placer, pointed_thing)
                     and obj:get_luaentity().name ~= "mcl_enchanting:book")
                 or obj:is_player()
             then
-                local newvel = vector.offset(
-                    vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 10, 0)
+                local newvel = vector.offset(vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 10, 0)
                 obj:add_velocity(newvel)
             end
             ::continue::
         end
+        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
         use_success = true
-        use_at_place = true
-        
-    end
-    if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_protection") then
-        minetest.run_server_chatcommand("area_pos1", "")
-        use_success = true
-        use_at_place = true
+        use_at_place_above = true
     end
 
-    if use_at_place then
-        spawn_vortex(use_pos_above)
+    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_nature") then
+        bone_meal(itemstack, placer, pointed_thing)
+        use_success = true
+        use_at_place_above = true
+    end
+
+    if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_protection") then
+        minetest.registered_chatcommands["area_pos1"].func(placer:get_player_name(), use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z) 
+        use_success = true
+        use_at_place_under = true
+    end
+
+    if use_at_place_above then
+    end
+    if use_at_place_under then
     end
     if use_at_self then
-        spawn_vortex(placer:get_pos())
     end
 
     if use_success then
@@ -482,6 +522,23 @@ function magikacia.on_use(itemstack, placer, pointed_thing)
     return magikacia.on_use_bag(itemstack, placer, pointed_thing)
 end
 
+local formspec_ender_chest = table.concat({
+    "formspec_version[4]",
+    "size[11.75,10.425]",
+
+    "label[0.375,0.375;" .. F(C(mcl_formspec.label_color, S("Ender Chest"))) .. "]",
+    mcl_formspec.get_itemslot_bg_v4(0.375, 0.75, 9, 3),
+    "list[current_player;enderchest;0.375,0.75;9,3;]",
+    "label[0.375,4.7;" .. F(C(mcl_formspec.label_color, S("Inventory"))) .. "]",
+    mcl_formspec.get_itemslot_bg_v4(0.375, 5.1, 9, 3),
+    "list[current_player;main;0.375,5.1;9,3;9]",
+
+    mcl_formspec.get_itemslot_bg_v4(0.375, 9.05, 9, 1),
+    "list[current_player;main;0.375,9.05;9,1;]",
+
+    "listring[current_player;enderchest]",
+    "listring[current_player;main]",
+})
 
 local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtable)
     if not placer then return nil end
@@ -504,7 +561,8 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         use_pos_under = vector.offset(pointed_thing.ref:get_pos(), 0, -1, 0)
     end
     local use_success = false
-    local use_at_place = false
+    local use_at_place_above = false
+    local use_at_place_under = false
     local use_at_self = false
 
     if placer:is_player() then
@@ -514,19 +572,25 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         end
     end
 
-
     if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_protection") then
-        minetest.run_server_chatcommand("area_pos2", "")
+        minetest.registered_chatcommands["area_pos2"].func(placer:get_player_name(), use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z) 
+        spawn_effect_anim(use_pos_under, "effect_vortex_blue")
         use_success = true
-        use_at_place = true
+        use_at_place_under = true
+    end
+    if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_ender") then
+        minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(), formspec_ender_chest)
+        spawn_effect_anim(placer:get_pos(), "effect_vortex_blue")
+        use_success = true
+        use_at_self = true
     end
 
-
-    if use_at_place then
-        spawn_vortex(use_pos_above)
+    if use_at_place_above then
+        spawn_effect_anim(use_pos_above, "effect_vortex_blue")
+    end
+    if use_at_place_under then
     end
     if use_at_self then
-        spawn_vortex(placer:get_pos())
     end
 
     if use_success then
@@ -548,27 +612,30 @@ function magikacia.register_bag(name, bagtable)
             return gauntlet_use_secondary(itemstack, placer, pointed_thing, bagtable)
         end,
         on_use = function(itemstack, user, pointed_thing)
-            return magikacia.on_use(itemstack, user, pointed_thing)  
+            return gauntlet_use_primary(itemstack, user, pointed_thing)
         end,
         on_drop = function(itemstack, dropper, pos)
             return magikacia.on_drop_bag(itemstack, dropper, pos)
         end,
         range = bagtable.range,
     })
-
-    minetest.register_on_player_receive_fields(function(player, formname, fields)
-        local nisformn = string.find(formname, name .. "_C_")
-        if nisformn == 1 then
-            if fields.quit then
-                player, fields, name, formname, sound = magikacia.on_close_bag(player, fields, name, formname,
-                    bagtable.sound_close)
-                if bagtable.sound_close then
-                    minetest.sound_play(sound, { gain = 0.8, object = player, max_hear_distance = 5 })
+    local s = "_magikacia_gauntlet_init_" .. name:gsub("[^a-zA-Z0-9]", "") .. "_C_"
+    if not mcl_util[s] then
+        mcl_util[s] = true
+        minetest.register_on_player_receive_fields(function(player, formname, fields)
+            local nisformn = string.find(formname, name .. "_C_")
+            if nisformn == 1 then
+                if fields.quit then
+                    player, fields, name, formname, sound = magikacia.on_close_bag(player, fields, name, formname,
+                        bagtable.sound_close)
+                    if bagtable.sound_close then
+                        minetest.sound_play(sound, { gain = 0.8, object = player, max_hear_distance = 5 })
+                    end
                 end
             end
-        end
-        return
-    end)
+            return
+        end)
+    end
 end
 
 magikacia.register_bag("magikacia:gauntlet_iron", {
@@ -615,7 +682,7 @@ magikacia.register_bag("magikacia:gauntlet_netherite", {
 
 minetest.register_tool(":magikacia:gauntlet_transporting_bag", {
     description = "Bag Transporting Bag",
-    inventory_image = "magikacia_bag_transporting_bag.png",
+    inventory_image = magikacia.textures.gauntlet_transporting_bag_inv,
     groups = { bag = 1, bag_bag = 1 },
 
     on_secondary_use = function(itemstack, user)
@@ -632,14 +699,20 @@ minetest.register_tool(":magikacia:gauntlet_transporting_bag", {
     end
 })
 
-minetest.register_on_player_receive_fields(function(player, formname, fields)
-    local nisformn = string.find(formname, "magikacia:bag_transporting_bag_C_")
-    if nisformn == 1 then
-        if fields.quit then
-            player, fields, name, formname, sound = magikacia.on_close_bag(player, fields, name, formname,
-                "magikacia_close_bag")
-            minetest.sound_play(sound, { gain = 0.8, object = player, max_hear_distance = 5 })
+if not mcl_util._magikacia_gauntlet_init then
+    minetest.register_on_player_receive_fields(function(player, formname, fields)
+        local nisformn = string.find(formname, "magikacia:bag_transporting_bag_C_")
+        if nisformn == 1 then
+            if fields.quit then
+                player, fields, name, formname, sound = magikacia.on_close_bag(player, fields, name, formname,
+                    "magikacia_close_bag")
+                minetest.sound_play(sound, { gain = 0.8, object = player, max_hear_distance = 5 })
+            end
         end
-    end
-    return
-end)
+        return
+    end)
+end
+
+if not mcl_util._magikacia_gauntlet_init then
+    mcl_util._magikacia_gauntlet_init = true
+end

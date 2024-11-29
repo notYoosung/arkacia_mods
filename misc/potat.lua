@@ -1,7 +1,7 @@
---MCmobs v0.4
---maikerumine
---made for MC like Survival game
---License for code WTFPL and otherwise stated in readmes
+ 
+ 
+ 
+ 
 
 local S = minetest.get_translator("mobs_mc")
 
@@ -9,9 +9,9 @@ local S = minetest.get_translator("mobs_mc")
 local blank = "blank.png^[png:"
 local potat_texture = blank .. "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7DAAAOwwHHb6hkAAABQElEQVQ4EWP8DwQMFAAmCvSCtQ68ASyEvLA5VQhFie/sdyh8RmyBiKxJyoiZQVRDl+HXk8sMv/78Z7h77B8DsiEYBoA060cZMPDyQhz3j4mR4eXFswzi+sYM76+eY/j26z/DwxMIQ1ACEaTZJt2EQcgmmOGPihAYg9wL0gwCbDK6YPrQkY9gGkTADQBplrdgAmviZA1mEBKYwMDJbQtX+PXjb4YP9y4x3D/5Dy6GYgCII6tvhCL5/ethMB9d88O3bHB18DAo1WRmKDseysB07z3DPyVBsILv518xnFh4jkHDlgVu89IN3xlWvfoONwAlGp+v3cMgoKTHwA00hOnff7CTYZpBGkEAWTOID3cBiANyhak5L4MIL8SJn3/+YcClEaQeBFAMAAmADEH2I7qNIDXIAMMAZEli2PBoJEYxNjUApDCNvAPbZf8AAAAASUVORK5CYII="
 
---###################
---################### PARROT
---###################
+ 
+ 
+ 
 local shoulders = {
     left = vector.new(-3.75, 10.5, 0),
     right = vector.new(3.75, 10.5, 0)
@@ -61,7 +61,7 @@ local function check_mobimitate(self, dtime)
     end
 end
 
---find a free shoulder or return nil
+ 
 local function get_shoulder(player)
     local sh = "left"
     for _, o in pairs(player:get_children()) do
@@ -200,12 +200,12 @@ mcl_mobs.register_mob(":arkacia:potat", {
         self.owner = "P07AT0"
         self.order = "follow"
     end,
-    do_punch = function(self, puncher) --do_punch is the mcl_mobs_redo variant - it gets called by on_punch later....
+    do_punch = function(self, puncher)  
         if self.object:get_attach() == puncher then
-            return false           --return false explicitly here. mcl_mobs checks for that
+            return false            
         end
     end,
 })
 
--- spawn eggs
+ 
 mcl_mobs.register_egg(":arkacia:potat", S("Potat"), "#0da70a", "#ff0000", 0)

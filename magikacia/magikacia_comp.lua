@@ -15,13 +15,13 @@ local gauntlet_types = {
 }
 
 
-local max_text_length = 4500 
+local max_text_length = 4500  
 local max_title_length = 64
 
 
+ 
 
-
-
+ 
 
 
 local header = ""
@@ -30,7 +30,7 @@ if minetest.get_modpath("mcl_init") then
         "style_type[button;border=false;bgimg=mcl_books_button9.png;bgimg_pressed=mcl_books_button9_pressed.png;bgimg_middle=2,2]"
 end
 
-
+ 
 minetest.register_craftitem(":" .. modname .. ":book", {
     description = S("Book"),
     inventory_image = "default_book.png",
@@ -61,8 +61,8 @@ end
 local function write(itemstack, user, pointed_thing)
     local rc = mcl_util.call_on_rightclick(itemstack, user, pointed_thing)
     if rc then return rc end
-    
-    
+     
+     
     local text = itemstack:get_meta():get_string("text")
     local formspec = table.concat({
         "formspec_version[4]",
@@ -72,9 +72,9 @@ local function write(itemstack, user, pointed_thing)
         "background[7.5,-0.5;9,10;z_magic_page_right.png]",
         "background[7.5,-0.5;9,10;z_magic_page_button_yes.png]",
         "background[7.5,-0.5;9,10;z_magic_page_button_no.png]",
-        
-        
-        
+         
+         
+         
         "button_exit[08.45,1.5;3.178,1.7;yes;" .. minetest.formspec_escape(" ") .. "]",
         "button_exit[12.054,1.8;3.178,1.7;no;" .. minetest.formspec_escape(" ") .. "]",
     })
@@ -94,7 +94,7 @@ local function read(itemstack, user, pointed_thing)
     minetest.show_formspec(user:get_player_name(), modname .. ":written_book", formspec)
 end
 
-
+ 
 minetest.register_craftitem(":" .. modname .. ":writable_book", {
     description = S("Book and Quill"),
     _tt_help = S("Write down some notes"),
@@ -111,14 +111,14 @@ minetest.register_craftitem(":" .. modname .. ":writable_book", {
 })
 
 
+ 
+ 
+ 
+ 
+ 
 
 
-
-
-
-
-
-
+ 
 
 
 
@@ -134,12 +134,12 @@ minetest.register_craftitem(":" .. modname .. ":writable_book", {
 
 
 local runes = {
-    "fire",
-    "lightning",
-    "ender",
     "earth",
-    "nature",
-    "protection",
+    "electricity",
+    "fire",
+    "ice",
+    "telepathic",
+    "water",
     "wind",
 }
 for _, v in ipairs(runes) do
@@ -169,13 +169,13 @@ local wield_scale = minetest.settings:get("wield3d_scale")
 
 update_time = update_time and tonumber(update_time) or 1
 verify_time = verify_time and tonumber(verify_time) or 10
-wield_scale = wield_scale and tonumber(wield_scale) or 0.25 
+wield_scale = wield_scale and tonumber(wield_scale) or 0.25  
 
 local location = {
-    "Arm_Right",                    
-    { x = 0, y = 2 / 16, z = 0 },   
-    { x = 0, y = 0,      z = 0 },   
-    { x = 5, y = 5,      z = 0.5 }, 
+    "Arm_Right",                     
+    { x = 0, y = 2 / 16, z = 0 },    
+    { x = 0, y = 0,      z = 0 },    
+    { x = 5, y = 5,      z = 0.5 },  
 }
 
 
@@ -202,30 +202,30 @@ local magic_circle_entity = {
     pointable = false,
     collide_with_objects = false,
     collisionbox = { -0.125, -0.125, -0.125, 0.125, 0.125, 0.125 },
-    
+     
     visual = "cube",
     mesh = "flat_plane.obj",
     textures = {
-        
-        
+         
+         
         "temp_magic_circle.png",
         "blank.png",
         "blank.png",
         "blank.png",
         "blank.png",
         "blank.png",
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
     },
     wielder = nil,
     timer = 0,
@@ -233,9 +233,9 @@ local magic_circle_entity = {
     visual_size = { x = 10, y = 0, z = 10 },
     glow = 14,
     automatic_rotate = 0.25,
-    
-    
-    
+     
+     
+     
 }
 
 
@@ -247,11 +247,11 @@ function magic_circle_entity:on_activate(staticdata)
     self.object:remove()
 end
 
-
+ 
 
 
 function magic_circle_entity:on_step(dtime)
-    
+     
     self.timer = self.timer + (dtime * 25)
     if self.timer > 360 then self.timer = self.timer - 360 end
     local player = minetest.get_player_by_name(self.wielder)
@@ -260,34 +260,34 @@ function magic_circle_entity:on_step(dtime)
         return
     end
     local wield = player_wielding[self.wielder]
-    
-    
+     
+     
     if self.object and wield then
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
     end
-    
+     
 end
 
 minetest.register_entity(":" .. modname .. ":magic_magic_circle", magic_circle_entity)
 
-
+ 
 local function add_magic_circle_entity(player)
     if not player or not player:is_player() then return end
     local name = player:get_player_name()
@@ -297,49 +297,49 @@ local function add_magic_circle_entity(player)
         local object = minetest.add_entity(pos, modname .. ":magic_magic_circle", name)
         if object then
             object:set_attach(player, "", location[2], location[3], true)
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
             player_wielding[name] = {
                 item = "",
                 location = location
             }
-            
+             
         end
     end
 end
 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
 
 
 
-
-
-
-
-
-
-
-
-
-
+ 
 local function craft_copy_book(itemstack, player, old_craft_grid, craft_inv)
     if itemstack:get_name() ~= modname .. ":written_book" then
         return
@@ -360,18 +360,18 @@ local function craft_copy_book(itemstack, player, old_craft_grid, craft_inv)
     local ometa = original:get_meta()
     local generation = ometa:get_int("generation")
 
-    
+     
     if generation >= 2 then
         return ItemStack("")
     end
 
-    
+     
     local imeta = itemstack:get_meta()
     imeta:from_table(ometa:to_table())
     imeta:set_string("title", cap_text_length(ometa:get_string("title"), max_title_length))
     imeta:set_string("text", cap_text_length(ometa:get_string("text"), max_text_length))
 
-    
+     
     generation = generation + 1
     if generation < 1 then
         generation = 1
@@ -383,7 +383,7 @@ local function craft_copy_book(itemstack, player, old_craft_grid, craft_inv)
     return itemstack, original, index
 end
 
-
+ 
 minetest.register_craftitem(":" .. modname .. ":written_book", {
     description = S("Written Book"),
     _doc_items_longdesc = S(
@@ -456,7 +456,7 @@ if not mcl_util._magikacia_init_fields then
                 meta:set_string("text", text)
                 meta:set_string("description", make_description(title, name, 0))
 
-                
+                 
                 meta:set_int("generation", 0)
 
                 player:set_wielded_item(newbook)
@@ -472,7 +472,7 @@ if not mcl_util._magikacia_init_fields then
     end)
 
     minetest.register_craft_predict(craft_copy_book)
-    
+     
     for i = 1, 8 do
         local rc = {}
         table.insert(rc, modname .. ":written_book")
@@ -525,7 +525,7 @@ if not mcl_util._magikacia_init_fields then
                         minsize = 1,
                         maxsize = 3,
                         collisiondetection = true,
-                        
+                         
                         vertical = false,
                         node = nodeunder,
                     })
