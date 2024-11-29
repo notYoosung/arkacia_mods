@@ -24,7 +24,7 @@ end
 
 local runes = {
     "earth",
-    "electricity",
+    "electric",
     "fire",
     "ice",
     "telepathic",
@@ -43,38 +43,38 @@ local function register_attack(name, def)
     mcl_damage.types[typename] = { bypasses_armor = false, bypasses_magic = false, bypasses_invulnerability = false, bypasses_totem = false }
 end
 register_attack("earth_primary", {
-    title = "an earth  spell",
+    title = "an earth drill spell",
 })
 register_attack("earth_secondary", {
-    title = "an earth  spell",
+    title = "an earth smash spell",
 })
 
-register_attack("electricity_primary", {
-    title = "an electricity  spell",
+register_attack("electric_primary", {
+    title = "an electric bolt spell",
 })
-register_attack("electricity_secondary", {
-    title = "an electricity  spell",
+register_attack("electric_secondary", {
+    title = "an electric ___ spell",
 })
 
 register_attack("fire_primary", {
-    title = "a fire  spell",
+    title = "a fire summoning spell",
 })
 register_attack("_secondary", {
-    title = "a fire  spell",
+    title = "a fireball spell",
 })
 
 register_attack("ice_primary", {
-    title = "an ice  spell",
+    title = "an ice ___ spell",
 })
 register_attack("ice_secondary", {
-    title = "an ice  spell",
+    title = "an ice ball spell",
 })
 
 register_attack("telepathic_primary", {
-    title = "an telepathic  spell",
+    title = "an telepathic ___ spell",
 })
 register_attack("telepathic_secondary", {
-    title = "an telepathic  spell",
+    title = "an telepathic ___ spell",
 })
 
 register_attack("void_primary", {
@@ -85,17 +85,17 @@ register_attack("void_secondary", {
 })
 
 register_attack("water_primary", {
-    title = "an water  spell",
+    title = "an water ___ spell",
 })
 register_attack("water_secondary", {
-    title = "an water  spell",
+    title = "an water ___ spell",
 })
 
 register_attack("wind_primary", {
-    title = "an wind  spell",
+    title = "an wind burst spell",
 })
 register_attack("wind_secondary", {
-    title = "an wind  spell",
+    title = "an wind ___ spell",
 })
 
 
@@ -195,10 +195,10 @@ local function lightning_strike(pos, user)
         local lua = obj:get_luaentity()
         if lua then
             if not lua._on_lightning_strike or (lua._on_lightning_strike and lua._on_lightning_strike(lua, pos, pos, objects) ~= true) then
-                deal_spell_damage(obj, 5, "electricity_primary", user)
+                deal_spell_damage(obj, 5, "electric_primary", user)
             end
         else
-            deal_spell_damage(obj, 5, "electricity_primary", user)
+            deal_spell_damage(obj, 5, "electric_primary", user)
         end
     end
 
@@ -253,7 +253,7 @@ end
 
 
 
-local around_circle_3_pos_list = {
+local around_plus_pos_list = {
     { 0,  0 },
     { 1,  0 },
     { 0,  1 },
@@ -289,12 +289,12 @@ end
 
 local mod_target = minetest.get_modpath("mcl_target")
 local function check_object_hit(self, pos, dmg)
-    for object in minetest.objects_inside_radius(pos, 1.5) do
+    for object in minetest.objects_inside_radius(pos, 3) do
         local entity = object:get_luaentity()
         if entity and entity.name ~= self.object:get_luaentity().name then
             if object:is_player() and self._thrower == object:get_player_name() then
                 self.object:remove()
-                return true
+                return true, nil
             elseif (entity.is_mob == true or entity._hittable_by_projectile or object:is_player()) and (self._thrower ~= object) then
                 local pl = self._thrower and self._thrower.is_player or
                     type(self._thrower) == "string" and minetest.get_player_by_name(self._thrower)
@@ -305,7 +305,7 @@ local function check_object_hit(self, pos, dmg)
             end
         end
     end
-    return false
+    return false, nil
 end
 local how_to_throw = S("Use the punch key to throw.")
 local function register_projectile(def)
@@ -323,8 +323,8 @@ local function register_projectile(def)
             maxacc = { x = 0, y = -9.81, z = 0 },
             minexptime = 1,
             maxexptime = 3,
-            minsize = 0.7,
-            maxsize = 0.7,
+            minsize = 1.5,
+            maxsize = 1.5,
             collisiondetection = true,
             collision_removal = true,
             object_collision = false,
@@ -352,6 +352,11 @@ local function register_projectile(def)
                 snowball_particles(self._lastpos, vel)
                 self.object:remove()
                 if mod_target and node.name == "mcl_target:target_off" then mcl_target.hit(vector.round(pos), 0.4) end
+                if def.do_custom_hit then
+                    def.do_custom_hit(
+                        minetest.get_player_by_name(tostring(self._thrower)) or self._thrower or self.object,
+                        nil, pos)
+                end
                 return
             end
         end
@@ -361,8 +366,7 @@ local function register_projectile(def)
                 def.do_custom_hit(minetest.get_player_by_name(tostring(self._thrower)) or self._thrower or self.object,
                     obj_hit)
             end
-            minetest.sound_play("mcl_throwing_snowball_impact_soft", { pos = pos, max_hear_distance = 16, gain = 0.7 },
-                true)
+            minetest.sound_play("mcl_throwing_snowball_impact_soft", { pos = pos, max_hear_distance = 16, gain = 0.7 }, true)
             snowball_particles(pos, vel)
             self.object:remove()
             return
@@ -399,13 +403,18 @@ register_projectile({
     name = "attack_fire_secondary",
     damage = 10,
     texture = "mcl_fire_fire_charge.png",
-    do_custom_hit = function(thrower, object)
+    do_custom_hit = function(thrower, object, pos)
         if object then
             mcl_burning.set_on_fire(object, 5)
-            local pos = object:get_pos()
-            local node = minetest.get_node(pos)
-            if node and node.name == "air" then
-                safe_replace(pos, "mcl_fire:fire", thrower)
+            if not pos then
+                pos = object:get_pos()
+            end
+        end
+        if pos then
+            for _, k in ipairs(around_plus_pos_list) do
+                safe_replace({ x = pos.x + k[1], y = pos.y, z = pos.z + k[2] },
+                    "mcl_fire:fire",
+                    thrower)
             end
         end
     end
@@ -480,7 +489,23 @@ end
 
 
 
+local formspec_ender_chest = table.concat({
+    "formspec_version[4]",
+    "size[11.75,10.425]",
 
+    "label[0.375,0.375;" .. F(C(mcl_formspec.label_color, S("Ender Chest"))) .. "]",
+    mcl_formspec.get_itemslot_bg_v4(0.375, 0.75, 9, 3),
+    "list[current_player;enderchest;0.375,0.75;9,3;]",
+    "label[0.375,4.7;" .. F(C(mcl_formspec.label_color, S("Inventory"))) .. "]",
+    mcl_formspec.get_itemslot_bg_v4(0.375, 5.1, 9, 3),
+    "list[current_player;main;0.375,5.1;9,3;9]",
+
+    mcl_formspec.get_itemslot_bg_v4(0.375, 9.05, 9, 1),
+    "list[current_player;main;0.375,9.05;9,1;]",
+
+    "listring[current_player;enderchest]",
+    "listring[current_player;main]",
+})
 
 
 function magikacia.on_change_bag_inv(bagstack, baginv)
@@ -734,7 +759,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_self = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_electricity") then
+    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_electric") then
         lightning_strike(vector.offset(use_pos_above, 0, -1, 0), placer)
         spawn_effect_anim({
             pos = use_pos_above,
@@ -745,7 +770,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_fire") then
-        for _, k in ipairs(around_circle_3_pos_list) do
+        for _, k in ipairs(around_plus_pos_list) do
             safe_replace({ x = use_pos_above.x + k[1], y = use_pos_above.y, z = use_pos_above.z + k[2] }, "mcl_fire:fire",
                 placer)
         end
@@ -861,24 +886,6 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     return magikacia.on_use_bag(itemstack, placer, pointed_thing)
 end
 
-local formspec_ender_chest = table.concat({
-    "formspec_version[4]",
-    "size[11.75,10.425]",
-
-    "label[0.375,0.375;" .. F(C(mcl_formspec.label_color, S("Ender Chest"))) .. "]",
-    mcl_formspec.get_itemslot_bg_v4(0.375, 0.75, 9, 3),
-    "list[current_player;enderchest;0.375,0.75;9,3;]",
-    "label[0.375,4.7;" .. F(C(mcl_formspec.label_color, S("Inventory"))) .. "]",
-    mcl_formspec.get_itemslot_bg_v4(0.375, 5.1, 9, 3),
-    "list[current_player;main;0.375,5.1;9,3;9]",
-
-    mcl_formspec.get_itemslot_bg_v4(0.375, 9.05, 9, 1),
-    "list[current_player;main;0.375,9.05;9,1;]",
-
-    "listring[current_player;enderchest]",
-    "listring[current_player;main]",
-})
-
 local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtable)
     if not placer then return nil end
     local use_pos_self = placer:get_pos()
@@ -925,28 +932,32 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         use_at_self = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_electricity") then
+    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_electric") then
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_fire") then
+    if has_in_gauntlet(itemstack, placer, modname .. ":rune_fire") then
         mcl_potions.fire_resistance_func(placer, nil, 10)
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_fire_secondary_entity")(ItemStack("magikacia:throwable_attack_fire_secondary", 64), placer, pointed_thing)
-        spawn_effect_anim({
-            pos = use_pos_above,
-            texture = "effect_fire_primary",
-        })
+        if use_pos_above then
+            spawn_effect_anim({
+                pos = use_pos_above,
+                texture = "effect_fire_primary",
+            })
+            use_at_place_above = true
+        end
         use_success = true
-        use_at_place_above = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_ice") then
+    if has_in_gauntlet(itemstack, placer, modname .. ":rune_ice") then
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_ice_secondary_entity")(ItemStack("magikacia:throwable_attack_ice_secondary", 64), placer, pointed_thing)
-        spawn_effect_anim({
-            pos = use_pos_above,
-            texture = "effect_vortex_blue",
-        })
+        if use_pos_above then
+            spawn_effect_anim({
+                pos = use_pos_above,
+                texture = "effect_vortex_blue",
+            })
+            use_at_place_above = true
+        end
         use_success = true
-        use_at_place_above = true
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_telepathic") then
@@ -964,6 +975,37 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_void") then
+        local function suck(time, victim)
+            return minetest.after(0.1, function(t, obj)
+                if obj and t - 0.1 > 0 then
+                    obj:set_pos(vector.offset(obj:get_pos(), 0, -0.1, 0))
+                    return suck(t - 0.1, obj)
+                else
+                    deal_spell_damage(obj, 20, "void_secondary", placer)
+                end
+            end, time, victim)
+        end
+        for obj, _ in minetest.objects_inside_radius(use_pos_above, 3) do
+            if obj then
+                if (obj:get_luaentity() ~= nil
+                        and obj:get_luaentity().name ~= "mcl_chests:chest"
+                        and obj:get_luaentity().name ~= "mcl_itemframes:item"
+                        and obj:get_luaentity().name ~= "mcl_enchanting:book")
+                    or (obj:is_player() and true)--obj:get_player_name() ~= placer:get_player_name())
+                then
+                    suck(5, obj)
+                end
+            end
+        end
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_void_secondary",
+            duration_total = 5,
+            duration_anim = 0.5,
+            size = 40,
+        })
+        use_success = true
+        use_at_place_above = true
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_wind") then
