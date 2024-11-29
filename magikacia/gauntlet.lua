@@ -15,13 +15,83 @@ local gauntlet_types = {
 
 mcl_util._magikacia_gauntlet_init = mcl_util._magikacia_gauntlet_init or false
 
-
+local runes = {
+    "earth",
+    "electricity",
+    "fire",
+    "ice",
+    "telepathic",
+    "void",
+    "water",
+    "wind",
+}
 local function register_attack(name, def)
     local typename = "magikacia_spell_" .. name
-    mcl_death_messages.messages[typename] = { plain = "@1 was snuffed out by SCP-035." }
-    mcl_damage.types[typename] = { bypasses_armor = false, bypasses_magic = true, bypasses_invulnerability = true, bypasses_totem = false }
+    mcl_death_messages.messages[typename] = {
+        magic = {
+            plain = "@1 was killed by " .. def.title,
+            assist = "@1 was killed by " .. def.title .. " whilst trying to escape @2",
+            killer = "@1 was killed by @2 using " .. def.title,
+            item = "@1 was killed by @2 using @3 with " .. def.title,
+        },
+    }
+    mcl_damage.types[typename] = { bypasses_armor = false, bypasses_magic = false, bypasses_invulnerability = false, bypasses_totem = false }
 end
-register_attack()
+register_attack("earth_primary", {
+    title = "an earth  spell",
+})
+register_attack("earth_secondary", {
+    title = "an earth  spell",
+})
+
+register_attack("electricity_primary", {
+    title = "an electricity  spell",
+})
+register_attack("electricity_secondary", {
+    title = "an electricity  spell",
+})
+
+register_attack("fire_primary", {
+    title = "a fire  spell",
+})
+register_attack("_secondary", {
+    title = "a fire  spell",
+})
+
+register_attack("ice_primary", {
+    title = "an ice  spell",
+})
+register_attack("ice_secondary", {
+    title = "an ice  spell",
+})
+
+register_attack("telepathic_primary", {
+    title = "an telepathic  spell",
+})
+register_attack("telepathic_secondary", {
+    title = "an telepathic  spell",
+})
+
+register_attack("void_primary", {
+    title = "a void blast spell",
+})
+
+register_attack("void_secondary", {
+    title = "a void vortex spell",
+})
+register_attack("water_primary", {
+    title = "an water  spell",
+})
+register_attack("water_secondary", {
+    title = "an water  spell",
+})
+
+register_attack("wind_primary", {
+    title = "an wind  spell",
+})
+register_attack("wind_secondary", {
+    title = "an wind  spell",
+})
 
 function mcl_bone_meal.add_bone_meal_particle(pos, def)
     if not def then
@@ -71,9 +141,90 @@ local function bone_meal(itemstack, user, pointed_thing)
     end
     return
 end
+local rng = PcgRandom(32321123312123)
+
+local function lightning_strike(pos)
+    if not pos then
+        return false
+    end
+    local do_strike = true
+    if mcl_lightning.on_strike_functions then
+        for _, func in pairs(mcl_lightning.on_strike_functions) do
+            local objects = minetest.get_objects_inside_radius(pos, 3.5)
+            local p, stop = pcall(function() return func(pos, pos, objects) end)
+        end
+    end
+    
+    local particle_pos = vector.offset(pos, 0, (mcl_lightning.size / 2) + 0.5, 0)
+    local time = 0.2
+    local particle_size = mcl_lightning.size * 10
+    minetest.add_particlespawner({
+        amount = 1,
+        time = time,
+        minpos = particle_pos,
+        maxpos = particle_pos,
+        minexptime = time,
+        maxexptime = time,
+        minsize = particle_size,
+        maxsize = particle_size,
+        collisiondetection = true,
+        vertical = true,
+        texture = "lightning_lightning_" .. rng:next(1, 3) .. ".png",
+        glow = minetest.LIGHT_MAX,
+    })
+
+    minetest.sound_play({ name = "lightning_thunder", gain = 10 }, { pos = pos, max_hear_distance = 500 }, true)
+
+    local objects = minetest.get_objects_inside_radius(pos, 3.5)
+    for _, obj in pairs(objects) do
+        local lua = obj:get_luaentity()
+        if lua then
+            if not lua._on_lightning_strike or (lua._on_lightning_strike and lua._on_lightning_strike(lua, pos, pos, objects) ~= true) then
+                mcl_util.deal_damage(obj, 5, { type = "magikacia_spell_electricity_primary" })
+            end
+        else
+            mcl_util.deal_damage(obj, 5, { type = "magikacia_spell_electricity_primary" })
+        end
+    end
+
+    for _, npos in pairs(minetest.find_nodes_in_area(vector.offset(pos, -5, -5, -5), vector.offset(pos, 5, 5, 5), { "group:affected_by_lightning" })) do
+        local node = minetest.get_node(npos)
+        if node then
+            local def = minetest.registered_nodes[node.name]
+            if def and def._on_lightning_strike then
+                pcall(function()
+                    def._on_lightning_strike(npos, pos, pos)
+                end)
+            end
+        end
+    end
 
 
+    pos.y = pos.y + 1 / 2
+    local node = minetest.get_node({ x = pos.x, y = pos.y - 1, z = pos.z })
+    if node and minetest.get_item_group(node.name, "liquid") < 1 then
+        local posnode = minetest.get_node(pos)
+        if posnode and posnode.name == "air" then
+            if rng:next(1, 100) <= 3 then
+                minetest.add_entity(pos, "mobs_mc:skeleton_horse")
 
+                local angle, posadd
+                angle = math.random(0, math.pi * 2)
+                for _ = 1, 3 do
+                    posadd = { x = math.cos(angle), y = 0, z = math.sin(angle) }
+                    posadd = vector.normalize(posadd)
+                    local mob = minetest.add_entity(vector.add(pos, posadd), "mobs_mc:skeleton")
+                    if mob then
+                        mob:set_yaw(angle - math.pi / 2)
+                    end
+                    angle = angle + (math.pi * 2) / 3
+                end
+            else
+                minetest.set_node(pos, { name = "mcl_fire:fire" })
+            end
+        end
+    end
+end
 
 
 
@@ -420,7 +571,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_electricity") then
-        mcl_lightning.strike(use_pos_above)
+        lightning_strike(use_pos_above)
         spawn_effect_anim(use_pos_above, "effect_vortex_blue")
         use_success = true
         use_at_place_above = true
@@ -573,7 +724,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
     end
 
     if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_protection") then
-        minetest.registered_chatcommands["area_pos2"].func(placer:get_player_name(), use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z) 
+        minetest.registered_chatcommands["area_pos"].func(placer:get_player_name(), use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z) 
         spawn_effect_anim(use_pos_under, "effect_vortex_blue")
         use_success = true
         use_at_place_under = true

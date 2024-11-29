@@ -210,6 +210,23 @@ for _, skin in pairs(list) do
     minetest.register_node(":mcl_meshhand:" .. skin.id, node_def)
 end
 ]]
+local file_func = [[
+for i, v in pairs(texture_list_default) do
+	mcl_skins.register_simple_skin({
+        index = n_skins,
+		texture = "blank.png^[png:" .. v,
+	})
+    n_skins = n_skins + 1
+end
+for i, v in pairs(texture_list_slim) do
+    mcl_skins.register_simple_skin({
+        index = n_skins,
+        texture = "blank.png^[png:" .. v,
+        slim_arms = true
+    })
+    n_skins = n_skins + 1
+end
+]]
 minetest.register_on_joinplayer(function(player, last_login)
     minetest.log(tostring(mcl_skins.player_skins[player].simple_skins_id))
     minetest.log(tostring(mcl_skins.player_skins[player].simple_skins_id):gsub("[^a-z0-9_]", ""))
