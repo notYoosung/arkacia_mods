@@ -291,7 +291,7 @@ end
 
 local mod_target = minetest.get_modpath("mcl_target")
 local function check_object_hit(self, pos, dmg)
-    for object in minetest.objects_inside_radius(pos, 3) do
+    for object in minetest.objects_inside_radius(pos, 2) do
         local entity = object:get_luaentity()
         if entity and entity.name ~= self.object:get_luaentity().name then
             if object:is_player() and self._thrower == object:get_player_name() then
@@ -318,15 +318,14 @@ local function register_projectile(def)
             time = 0.001,
             minpos = pos,
             maxpos = pos,
-            minvel = vector.add(
-                { x = -2, y = 3, z = -2 }, vel),
+            minvel = vector.add({ x = -2, y = 3, z = -2 }, vel),
             maxvel = vector.add({ x = 2, y = 5, z = 2 }, vel),
             minacc = { x = 0, y = -9.81, z = 0 },
             maxacc = { x = 0, y = -9.81, z = 0 },
             minexptime = 1,
             maxexptime = 3,
-            minsize = 5,
-            maxsize = 5,
+            minsize = 0.7,
+            maxsize = 0.7,
             collisiondetection = true,
             collision_removal = true,
             object_collision = false,
@@ -334,7 +333,7 @@ local function register_projectile(def)
         })
     end
     local ENTITY = {
-        initial_properties = { physical = false, textures = { def.texture }, visual_size = { x = 0.5, y = 0.5 }, collisionbox = { 0, 0, 0, 0, 0, 0 }, pointable = false, },
+        initial_properties = { physical = false, textures = { def.texture }, visual_size = { x = 2.5, y = 2.5 }, collisionbox = { 0, 0, 0, 0, 0, 0 }, pointable = false, },
         timer = 0,
         get_staticdata = mcl_throwing.get_staticdata,
         on_activate = mcl_throwing.on_activate,
