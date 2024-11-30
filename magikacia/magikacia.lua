@@ -135,7 +135,7 @@ minetest.register_craftitem(":" .. modname .. ":writable_book", {
 
 local runes = {
     "earth",
-    "electricity",
+    "electric",
     "fire",
     "ice",
     "telepathic",

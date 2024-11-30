@@ -192,13 +192,15 @@ local function lightning_strike(pos, user)
 
     local objects = minetest.get_objects_inside_radius(pos, 3.5)
     for _, obj in pairs(objects) do
-        local lua = obj:get_luaentity()
-        if lua then
-            if not lua._on_lightning_strike or (lua._on_lightning_strike and lua._on_lightning_strike(lua, pos, pos, objects) ~= true) then
+        if obj:is_player() and obj:get_player_name() ~= user:get_player_name() then
+            local lua = obj:get_luaentity()
+            if lua then
+                if not lua._on_lightning_strike or (lua._on_lightning_strike and lua._on_lightning_strike(lua, pos, pos, objects) ~= true) then
+                    deal_spell_damage(obj, 5, "electric_primary", user)
+                end
+            else
                 deal_spell_damage(obj, 5, "electric_primary", user)
             end
-        else
-            deal_spell_damage(obj, 5, "electric_primary", user)
         end
     end
 
@@ -323,8 +325,8 @@ local function register_projectile(def)
             maxacc = { x = 0, y = -9.81, z = 0 },
             minexptime = 1,
             maxexptime = 3,
-            minsize = 1.5,
-            maxsize = 1.5,
+            minsize = 5,
+            maxsize = 5,
             collisiondetection = true,
             collision_removal = true,
             object_collision = false,
@@ -352,7 +354,7 @@ local function register_projectile(def)
                 snowball_particles(self._lastpos, vel)
                 self.object:remove()
                 if mod_target and node.name == "mcl_target:target_off" then mcl_target.hit(vector.round(pos), 0.4) end
-                if def.do_custom_hit then
+                if def.do_custom_hit ~= nil then
                     def.do_custom_hit(
                         minetest.get_player_by_name(tostring(self._thrower)) or self._thrower or self.object,
                         nil, pos)
@@ -362,7 +364,7 @@ local function register_projectile(def)
         end
         local did_hit, obj_hit = check_object_hit(self, pos, def.damage)
         if did_hit then
-            if def.do_custom_hit then
+            if def.do_custom_hit ~= nil then
                 def.do_custom_hit(minetest.get_player_by_name(tostring(self._thrower)) or self._thrower or self.object,
                     obj_hit)
             end
@@ -784,12 +786,12 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_ice") then
-        spawn_effect_anim({
-            pos = use_pos_above,
-            texture = "effect_vortex_blue",
-        })
-        use_success = true
-        use_at_place_above = true
+        -- spawn_effect_anim({
+        --     pos = use_pos_above,
+        --     texture = "effect_vortex_blue",
+        -- })
+        -- use_success = true
+        -- use_at_place_above = true
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_telepathic") then
@@ -807,12 +809,12 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_water") then
-        spawn_effect_anim({
-            pos = use_pos_above,
-            texture = "effect_vortex_blue",
-        })
-        use_success = true
-        use_at_place_above = true
+        -- spawn_effect_anim({
+        --     pos = use_pos_above,
+        --     texture = "effect_vortex_blue",
+        -- })
+        -- use_success = true
+        -- use_at_place_above = true
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_void") then
@@ -847,7 +849,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
                         and obj:get_luaentity().name ~= "mcl_enchanting:book")
                     or obj:is_player()
                 then
-                    local newvel = vector.offset(vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 10, 0)
+                    local newvel = vector.offset(vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
                     obj:add_velocity(newvel)
                 end
             end
@@ -979,7 +981,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
             return minetest.after(0.1, function(t, obj)
                 if obj and t - 0.1 > 0 then
                     obj:set_pos(vector.offset(obj:get_pos(), 0, -0.1, 0))
-                    return suck(t - 0.1, obj)
+                    suck(t - 0.1, obj)
                 else
                     deal_spell_damage(obj, 20, "void_secondary", placer)
                 end

@@ -15,7 +15,7 @@ minetest.register_on_mods_loaded(function()
 		return t
 	end
 
-	local ignorefiles = {"init", "sg", "_autogroup", "base64"}
+	local ignorefiles = { "init", "sg", "_autogroup", "base64", "postertexture1", "postertexture2", "postertexture3" }
 
 	for k, v in pairs(scandir(modpath)) do
 		if not tostring(v):match("%.lua$") then goto continue end
