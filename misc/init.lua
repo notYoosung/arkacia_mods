@@ -3,6 +3,7 @@ local modpath = minetest.get_modpath(modname)
 
 require 'io'
 dofile(modpath .. "/base64.lua")
+dofile(modpath .. "/postergen.lua")
 minetest.register_on_mods_loaded(function()
 	local function scandir(directory)
 		local i, t, popen = 0, {}, io.popen
@@ -15,7 +16,7 @@ minetest.register_on_mods_loaded(function()
 		return t
 	end
 
-	local ignorefiles = { "init", "sg", "_autogroup", "base64", "postertexture1", "postertexture2", "postertexture3" }
+	local ignorefiles = { "init", "sg", "_autogroup", "base64", "postergen" }
 
 	for k, v in pairs(scandir(modpath)) do
 		if not tostring(v):match("%.lua$") then goto continue end

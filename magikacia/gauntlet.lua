@@ -85,10 +85,10 @@ register_attack("void_secondary", {
 })
 
 register_attack("water_primary", {
-    title = "an water ___ spell",
+    title = "an water burst spell",
 })
 register_attack("water_secondary", {
-    title = "an water ___ spell",
+    title = "an water riptide spell",
 })
 
 register_attack("wind_primary", {
@@ -284,6 +284,7 @@ local function spawn_effect_anim(def)
             length = def.duration_anim or 0.25,
         },
         glow = (def.glow ~= nil and def.glow) or 14,
+        attached = def.attached or nil
     })
 end
 
@@ -712,6 +713,23 @@ function magikacia.bag_inv_remove_item(bagstack, itemstack)
     return false
 end
 
+local function radius_effect_func(pos, radius, placer, func, include_placer)
+    for obj, _ in minetest.objects_inside_radius(pos, radius) do
+        if obj then
+            if (obj:get_luaentity() ~= nil
+                    and obj:get_luaentity().name ~= "mcl_chests:chest"
+                    and obj:get_luaentity().name ~= "mcl_itemframes:item"
+                    and obj:get_luaentity().name ~= "mcl_enchanting:book")
+                or (obj:is_player() and (include_placer or obj:get_player_name() ~= placer:get_player_name()))
+            then
+                if func then
+                    func(obj)
+                end
+            end
+        end
+    end
+end
+
 function gauntlet_use_primary(itemstack, placer, pointed_thing)
     if not placer then return nil end
     local use_pos_self = placer:get_pos()
@@ -737,18 +755,9 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         local offset = placer:get_look_dir()
         for i = 1, 5 do
             local pos = vector.add(vector.offset(use_pos_self, 0, placer:get_properties().eye_height * 0.7, 0), vector.multiply(offset, i))
-            for obj, _ in minetest.objects_inside_radius(pos, 2) do
-                if obj then
-                    if (obj:get_luaentity() ~= nil
-                            and obj:get_luaentity().name ~= "mcl_chests:chest"
-                            and obj:get_luaentity().name ~= "mcl_itemframes:item"
-                            and obj:get_luaentity().name ~= "mcl_enchanting:book")
-                        or (obj:is_player() and obj:get_player_name() ~= placer:get_player_name())
-                    then
-                        deal_spell_damage(obj, 3, "earth_primary", placer)
-                    end
-                end
-            end
+            radius_effect_func(use_pos_above, 2, placer, function(obj)
+                deal_spell_damage(obj, 3, "earth_primary", placer)
+            end)
             spawn_effect_anim({
                 pos = pos,
                 texture = "effect_earth_primary",
@@ -785,12 +794,16 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_ice") then
-        -- spawn_effect_anim({
-        --     pos = use_pos_above,
-        --     texture = "effect_vortex_blue",
-        -- })
-        -- use_success = true
-        -- use_at_place_above = true
+        radius_effect_func(use_pos_above, 3, placer, function(obj)
+            mcl_potions.swiftness_func(obj, -1, 3)
+            mcl_potions.leaping_func(obj, -1, 3)
+        end)
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
+        use_success = true
+        use_at_place_above = true
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_telepathic") then
@@ -808,27 +821,27 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_water") then
-        -- spawn_effect_anim({
-        --     pos = use_pos_above,
-        --     texture = "effect_vortex_blue",
-        -- })
-        -- use_success = true
-        -- use_at_place_above = true
+        radius_effect_func(use_pos_above, 6, placer, function(obj)
+            if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
+                deal_spell_damage(obj, 5, "water_primary", placer)
+            end
+            mcl_burning.extinguish(obj)
+        end, true)
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_water_primary",
+            size = 12,
+            duration_total = 0.4,
+            duration_anim = 0.4,
+        })
+        use_success = true
+        use_at_place_above = true
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_void") then
-        for obj, _ in minetest.objects_inside_radius(use_pos_above, 2) do
-            if obj then
-                if (obj:get_luaentity() ~= nil
-                        and obj:get_luaentity().name ~= "mcl_chests:chest"
-                        and obj:get_luaentity().name ~= "mcl_itemframes:item"
-                        and obj:get_luaentity().name ~= "mcl_enchanting:book")
-                    or (obj:is_player() and obj:get_player_name() ~= placer:get_player_name())
-                then
-                    deal_spell_damage(obj, 20, "void_primary", placer)
-                end
-            end
-        end
+        radius_effect_func(use_pos_above, 2, placer, function(obj)
+            deal_spell_damage(obj, 20, "void_primary", placer)
+        end)
         spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_void_primary",
@@ -840,19 +853,10 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_wind") then
-        for obj, _ in minetest.objects_inside_radius(use_pos_above, 8) do
-            if obj then
-                if (obj:get_luaentity() ~= nil
-                        and obj:get_luaentity().name ~= "mcl_chests:chest"
-                        and obj:get_luaentity().name ~= "mcl_itemframes:item"
-                        and obj:get_luaentity().name ~= "mcl_enchanting:book")
-                    or obj:is_player()
-                then
-                    local newvel = vector.offset(vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
-                    obj:add_velocity(newvel)
-                end
-            end
-        end
+        radius_effect_func(use_pos_above, 8, placer, function(obj)
+            local newvel = vector.offset(vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
+            obj:add_velocity(newvel)
+        end, true)
         spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_vortex_blue",
@@ -939,25 +943,11 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
     if has_in_gauntlet(itemstack, placer, modname .. ":rune_fire") then
         mcl_potions.fire_resistance_func(placer, nil, 10)
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_fire_secondary_entity")(ItemStack("magikacia:throwable_attack_fire_secondary", 64), placer, pointed_thing)
-        if use_pos_above then
-            spawn_effect_anim({
-                pos = use_pos_above,
-                texture = "effect_fire_primary",
-            })
-            use_at_place_above = true
-        end
         use_success = true
     end
 
     if has_in_gauntlet(itemstack, placer, modname .. ":rune_ice") then
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_ice_secondary_entity")(ItemStack("magikacia:throwable_attack_ice_secondary", 64), placer, pointed_thing)
-        if use_pos_above then
-            spawn_effect_anim({
-                pos = use_pos_above,
-                texture = "effect_vortex_blue",
-            })
-            use_at_place_above = true
-        end
         use_success = true
     end
 
@@ -965,39 +955,48 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(),
         formspec_ender_chest)
         spawn_effect_anim({
-            pos = placer:get_pos(),
+            pos = use_pos_self,
             texture = "effect_vortex_blue",
         })
         use_success = true
         use_at_self = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_water") then
+    if has_in_gauntlet(itemstack, placer, modname .. ":rune_water") then
+        radius_effect_func(use_pos_self, 8, placer, function(obj)
+            if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
+                deal_spell_damage(obj, 10, "water_secondary", placer)
+            end
+            mcl_burning.extinguish(obj)
+        end, true)
+        placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 50))
+        spawn_effect_anim({
+            pos = use_pos_self,
+            texture = "effect_water_secondary",
+            attached = placer
+        })
+        use_success = true
+        use_at_self = true
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_void") then
         local function suck(time, victim)
-            return minetest.after(0.1, function(t, obj)
-                if obj and t - 0.1 > 0 then
-                    obj:set_pos(vector.offset(obj:get_pos(), 0, -0.1, 0))
-                    suck(t - 0.1, obj)
-                else
-                    deal_spell_damage(obj, 20, "void_secondary", placer)
-                end
-            end, time, victim)
-        end
-        for obj, _ in minetest.objects_inside_radius(use_pos_above, 3) do
-            if obj then
-                if (obj:get_luaentity() ~= nil
-                        and obj:get_luaentity().name ~= "mcl_chests:chest"
-                        and obj:get_luaentity().name ~= "mcl_itemframes:item"
-                        and obj:get_luaentity().name ~= "mcl_enchanting:book")
-                    or (obj:is_player() and true)--obj:get_player_name() ~= placer:get_player_name())
-                then
-                    suck(5, obj)
-                end
+            if victim then
+                minetest.after(0.1, function(t, obj)
+                    if obj then
+                        if t - 0.1 > 0 then
+                            obj:set_pos(vector.offset(obj:get_pos(), 0, -0.1, 0))
+                            suck(t - 0.1, obj)
+                        else
+                            deal_spell_damage(obj, 20, "void_secondary", placer)
+                        end
+                    end
+                end, time, victim)
             end
         end
+        radius_effect_func(use_pos_above, 3, placer, function(obj)
+            suck(5, obj)
+        end)
         spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_void_secondary",

@@ -17,3 +17,32 @@ end
 
 
 
+local S = minetest.get_translator(minetest.get_current_modname())
+
+local name = "spruce"
+local rname = "Spruce"
+local p = {
+    leaves = {
+    	color = "#2bbb0f",
+    },
+}
+
+local function register_leaves(subname, def, sapling, drop_apples, sapling_chances)
+    local d = mcl_trees.generate_leaves_def("mcl_trees:", subname, def, sapling, drop_apples, sapling_chances)
+    minetest.register_node(":" .. d["leaves_id"], table.merge(d["leaves_def"], {
+        use_texture_alpha = "none",
+    }))
+    minetest.register_node(":" .. d["orphan_leaves_id"], table.merge(d["orphan_leaves_def"], {
+        use_texture_alpha = "none",
+    }))
+end
+register_leaves("leaves_" .. name,
+    table.merge({
+        description = S("@1 Leaves", rname),
+        _doc_items_longdesc = S("@1 leaves are grown from @2 trees.", rname, rname),
+        tiles = { "mcl_core" .. "_leaves_" .. name .. ".png" },
+    }, p.leaves or {}),
+    p.saplingdrop or ("mcl_trees:sapling_" .. name),
+    p.drop_apples or false,
+    p.sapling_chances or { 20, 16, 12, 10 }
+)

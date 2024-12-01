@@ -135,10 +135,11 @@ minetest.register_craftitem(":" .. modname .. ":writable_book", {
 
 local runes = {
     "earth",
-    "electricity",
+    "electric",
     "fire",
     "ice",
     "telepathic",
+    "void",
     "water",
     "wind",
 }
@@ -509,7 +510,7 @@ if not mcl_util._magikacia_init_fields then
         local spell_earth_time = meta:get_float("magikacia:spell_earth_time_active") or 0
         local nunderdef = minetest.registered_nodes[nodeunder.name]
         if spell_earth_time > 0 then
-            if (nunderdef.opaque or nunderdef.walkable == true) and nodeunder.name ~= "air" and player:get_velocity().y <= 0 and spell_earth_time > 1.1 then
+            if (nunderdef.opaque or nunderdef.walkable == true) and nodeunder.name ~= "air" and player:get_velocity().y <= 0 and spell_earth_time > 1.2 then
                 if nunderdef and nunderdef.walkable then
                     minetest.add_particlespawner({
                         amount = 50,
@@ -533,18 +534,16 @@ if not mcl_util._magikacia_init_fields then
                 for obj, _ in minetest.objects_inside_radius(pos, 8) do
                     if not obj then goto continue end
                     if (obj:get_luaentity() ~= nil
-                            and obj:get_luaentity().name ~= "mcl_chests:chest"
-                            and obj:get_luaentity().name ~= "mcl_itemframes:item"
-                            and obj:get_luaentity().name ~= "mcl_enchanting:book")
+                        and obj:get_luaentity().name ~= "mcl_chests:chest"
+                        and obj:get_luaentity().name ~= "mcl_itemframes:item"
+                        and obj:get_luaentity().name ~= "mcl_enchanting:book")
                     then
                         local v = vector.normalize(vector.subtract(obj:get_pos(), pos))
-                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 10 + 20) * spell_earth_time, z = v
-                        .z * 10 * spell_earth_time })
+                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 10 + 20) * spell_earth_time, z = v.z * 10 * spell_earth_time })
                     end
                     if (obj:is_player() and obj:get_player_name() ~= player:get_player_name()) then
                         local v = vector.normalize(vector.subtract(obj:get_pos(), pos))
-                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 10 + 10) * spell_earth_time, z = v
-                        .z * 10 * spell_earth_time })
+                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 1 + 10) * spell_earth_time, z = v.z * 10 * spell_earth_time })
                     end
                     ::continue::
                 end

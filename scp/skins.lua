@@ -278,6 +278,36 @@ local function write_file_default(filestr)
     file:close()
 end
 
+
+
+
+
+
+local file_cache = {}
+for k, v in pairsByKeys(texture_list_default) do
+    file_cache[k] = v;
+    n_cache_default = n_cache_default + 1
+    if n_cache_default == 10 then
+        local filestr = table_to_str(
+        "local n_skins = " .. n_skins .. " local texture_list_slim = {}\nlocal texture_list_default = {\n", file_cache) ..
+        file_func
+        write_file_default(filestr)
+        file_cache = {}
+        n_files_default = n_files_default + 1
+        n_cache_default = 0
+        n_skins = n_skins + 10
+    end
+end
+if n_cache_default > 0 then
+    local filestr = table_to_str(
+    "local n_skins = " .. n_skins .. " local texture_list_slim = {}\nlocal texture_list_default = {\n", file_cache) ..
+    file_func
+    write_file_default(filestr)
+    file_cache = {}
+    n_skins = n_skins + n_cache_default
+end
+
+
 local file_cache = {}
 for k, v in pairsByKeys(texture_list_slim) do
     file_cache[k] = v;
@@ -299,26 +329,6 @@ if n_cache_slim > 0 then
 end
 
 
-
-local file_cache = {}
-for k, v in pairsByKeys(texture_list_default) do
-    file_cache[k] = v;
-    n_cache_default = n_cache_default + 1
-    if n_cache_default == 10 then
-        local filestr = table_to_str("local n_skins = " .. n_skins .. " local texture_list_slim = {}\nlocal texture_list_default = {\n", file_cache) .. file_func
-        write_file_default(filestr)
-        file_cache = {}
-        n_files_default = n_files_default + 1
-        n_cache_default = 0
-        n_skins = n_skins + 10
-    end
-end
-if n_cache_default > 0 then
-	local filestr = table_to_str("local n_skins = " .. n_skins .. " local texture_list_slim = {}\nlocal texture_list_default = {\n", file_cache) .. file_func
-    write_file_default(filestr)
-	file_cache = {}
-    n_skins = n_skins + n_cache_default
-end
 
 
 
