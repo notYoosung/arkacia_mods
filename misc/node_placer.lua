@@ -122,14 +122,13 @@ local dispenserdef = {
                     local iname = stack:get_name()
                     local igroups = stackdef.groups
 
-                    local node = minetest.get_node(droppos)
-                    if node then
-                        if minetest.registered_nodes[iname] and node.name == "air" then
+                    if dropnode then
+                        if minetest.registered_nodes[iname] and dropnode.name == "air" then
                             minetest.set_node(droppos, {name = iname})
                             stack:take_item()
                             inv:set_stack("main", stack_id, stack)
                         else
-                            if node.name ~= "air" and node.name == stack:get_name() then
+                            if dropnode.name ~= "air" and dropnode.name == stack:get_name() then
                                 minetest.dig_node(droppos)
                                 stack:add_item(ItemStack(stack))
                             end

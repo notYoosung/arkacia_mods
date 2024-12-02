@@ -6,6 +6,7 @@ local textures = {
     yellow_autumnal = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAPUExURbmOGOnRMY5xEda1JKSDE/fZayUAAAAJcEhZcwAACxEAAAsRAX9kX5EAAABwSURBVBjTFYzbDcMwDAOZyANUcgaoJQ0gPwYInO4/U5UPEiCIOxyilYQNNdPVBE2iq346VNeYdgimbqN4FPfQd3xB7uVkL8hyIykwukZyjujBa7hijdavVMBd+beDIeXc21uaEZ4PI73lxfDoBDeqf2vIEGS6Fp+NAAAAAElFTkSuQmCC",
     azalea = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAPUExURVBpLDA/HzpMJmyAMXCSLQ6Yf+EAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABwSURBVBjTDcbBFcQgCAXAT6SAgClASQrAaAG60n9Nm8u8AZU0ySSh6TOpr4wK2B4/xWavgUMR15KThuBTTKJjVhtxnF9IOd7CqJc7TwPwzM19dThTtOtL0+KSkaEolMIr8uiVww1pbxPcDeClorf/AXRPD/2XUlv7AAAAAElFTkSuQmCC",
     flowering_azalea = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAYUExURVBpLDA/HzpMJmyAMXCSLbpiztB7455QiH0cspkAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB9SURBVBjTDcYxEoMgEAXQj66xdRdn0gJG6yWYHgOegRNkvP8N4qsejOuzCb5HlFc26bDwAJfPT1BIfX1sgjp/vRsuBk+dBK4J2fNeuynhvJjq2xG2VZVyAMaWC6UjQcnUON+J4vTZYCFwZlg1wO7Jj+1OX0pgLBGgQ1gW/QP0DxGRE2uqGAAAAABJRU5ErkJggg==",
+    spruce = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAj1JREFUOE91U8tKclEU/rYXFEFpYCRCLyBkIF6IzFspioETgwZioG/jE/gMDs2gSEVNC8NI9AEaCFKg4ECdGO5Yq38fKvjP7Oyz9vquR5RKJfnw8ICTkxP0ej0cHx/j6ekJqVQK2+0W9O3w8BCj0QjBYBCNRgOfn584OjrCzs4OxMXFhTw9PcX19TXC4TBfSKfToKfZbGI2myGZTOL29hZ2ux2xWAw6nQ739/eIx+MQ5XJZ3tzcYLVaaYMWiwXn5+dotVrweDyMtFgseKli+fLyAgIW+Xxertdr+P1+bbDT6cBsNiORSGhICpEWPT8/4+zsjAHE1dWVJN1q4OegQiMG1WoVBKTk0BkBiEKhIInaZrNhI8mkaDSKbrcLt9sNokrvtDgQCGgsySshBESxWJRvb2/Y39/nJaFQCO12Gx8fH7/MI8p/WRKYoBgV1fF4zBHp9XpGV+b1+302kBCJNl8UgtMQuVxO0jBdJi+IGsX5F61Wq2G5XMJqtX5f/LdMxGIxqYxxOp1cFmIkpWQ5hEaF8vl8WoSUEsVM3WEJiupwOITRaGS6k8mEi0NokUiES+X1erUIiRGBcBOpUYry4+MjXC6Xhmaz2ZjFfD7XTN3b22OZLCWTyUiqbr1eh8lkYh9IwsHBAV5fX3lQoSumdE5GT6fTbwnULIPBwFQpf/qgfHE4HHz+v6KJbDYrVS3JLHpIq0IbDAb8Q6lFxIYW3t3d8R/JKezu7nLbKpUKLi8vf6H9dF9JohTe39+Z5RdhXHiOJeCYdwAAAABJRU5ErkJggg==",
 }
 for k, v in pairs(textures) do
     minetest.register_node(":arkacia:opaque_leaves_" .. k, {
@@ -17,32 +18,23 @@ end
 
 
 
-local S = minetest.get_translator(minetest.get_current_modname())
 
-local name = "spruce"
-local rname = "Spruce"
-local p = {
-    leaves = {
-    	color = "#2bbb0f",
+minetest.register_node(":arkacia:leaves_spruce_opaque", {
+    description = "Opaque Spruce Leaves",
+    waving = 2,
+    paramtype2 = "color",
+    palette = "mcl_core_palette_leaves.png",
+    groups = {
+        handy = 1,
+        hoey = 1,
+        shearsy = 1,
+        swordy = 1,
+        deco_block = 1,
+        biomecolor = 1,
+        compostability = 30,
+        unsticky = 1,
+        dig_immediate = 3,
     },
-}
-
-local function register_leaves(subname, def, sapling, drop_apples, sapling_chances)
-    local d = mcl_trees.generate_leaves_def("mcl_trees:", subname, def, sapling, drop_apples, sapling_chances)
-    minetest.register_node(":" .. d["leaves_id"], table.merge(d["leaves_def"], {
-        use_texture_alpha = "none",
-    }))
-    minetest.register_node(":" .. d["orphan_leaves_id"], table.merge(d["orphan_leaves_def"], {
-        use_texture_alpha = "none",
-    }))
-end
-register_leaves("leaves_" .. name,
-    table.merge({
-        description = S("@1 Leaves", rname),
-        _doc_items_longdesc = S("@1 leaves are grown from @2 trees.", rname, rname),
-        tiles = { "mcl_core" .. "_leaves_" .. name .. ".png" },
-    }, p.leaves or {}),
-    p.saplingdrop or ("mcl_trees:sapling_" .. name),
-    p.drop_apples or false,
-    p.sapling_chances or { 20, 16, 12, 10 }
-)
+    sounds = mcl_sounds.node_sound_leaves_defaults(),
+    tiles = { "blank.png^[png:" .. textures.spruce },
+})
