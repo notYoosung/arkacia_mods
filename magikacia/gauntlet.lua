@@ -735,21 +735,29 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     local use_pos_self = placer:get_pos()
     local meta = placer:get_meta()
     local use_pos_above = nil
+    local use_pos_under = nil
+    local pointed_obj = nil
     if pointed_thing.type == "node" then
         use_pos_above = pointed_thing.above
-    elseif pointed_thing.type == "object" then
-        use_pos_above = pointed_thing.ref:get_pos()
-    end
-    local use_pos_under = nil
-    if pointed_thing.type == "node" then
         use_pos_under = pointed_thing.under
     elseif pointed_thing.type == "object" then
-        use_pos_under = vector.offset(pointed_thing.ref:get_pos(), 0, -1, 0)
+        pointed_obj = pointed_thing.ref
+        use_pos_above = pointed_obj:get_pos()
+        use_pos_under = vector.offset(use_pos_above, 0, -1, 0)
     end
     local use_success = false
     local use_at_place_above = false
     local use_at_place_under = false
     local use_at_self = false
+
+    local is_placer_sneaking = false
+    if placer:is_player() then
+        local placer_name = placer:get_player_name()
+        if controls.players[placer_name].sneak[1] then
+            is_placer_sneaking = true
+        end
+    end
+
 
     if has_in_gauntlet(itemstack, placer, modname .. ":rune_earth") then
         local offset = placer:get_look_dir()
@@ -807,10 +815,24 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_telepathic") then
-        if pointed_thing.type == "node" then
-            placer:set_pos({ x = use_pos_above.x, y = use_pos_above.y - 0.5, z = use_pos_above.z })
+        if is_placer_sneaking then
+            if pointed_obj then
+                local pself = placer:get_pos()
+                if pself then
+                    pointed_obj:set_pos(pself)
+                end
+                placer:set_pos(use_pos_above)
+            elseif pointed_thing.type == "node" then
+                placer:set_pos({ x = use_pos_above.x, y = use_pos_above.y - 0.5, z = use_pos_above.z })
+            else
+                placer:set_pos(use_pos_above)
+            end
         else
-            placer:set_pos(use_pos_above)
+            if pointed_thing.type == "node" then
+                placer:set_pos({ x = use_pos_above.x, y = use_pos_above.y - 0.5, z = use_pos_above.z })
+            else
+                placer:set_pos(use_pos_above)
+            end
         end
         spawn_effect_anim({
             pos = use_pos_above,
@@ -877,13 +899,6 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_place_under = true
     end
 
-    if use_at_place_above then
-    end
-    if use_at_place_under then
-    end
-    if use_at_self then
-    end
-
     if use_success then
         minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 64 }, true)
     end
@@ -896,26 +911,21 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
     local use_pos_self = placer:get_pos()
     local meta = placer:get_meta()
     local use_pos_above = nil
+    local use_pos_under = nil
+    local pointed_obj = nil
     if pointed_thing.type == "node" then
         use_pos_above = pointed_thing.above
-    elseif pointed_thing.type == "object" then
-        use_pos_above = pointed_thing.ref:get_pos()
-    end
-    if pointed_thing.type == "node" then
-        use_pos = pointed_thing.above
-    elseif pointed_thing.type == "object" then
-        use_pos = pointed_thing.ref:get_pos()
-    end
-    local use_pos_under = nil
-    if pointed_thing.type == "node" then
         use_pos_under = pointed_thing.under
     elseif pointed_thing.type == "object" then
-        use_pos_under = vector.offset(pointed_thing.ref:get_pos(), 0, -1, 0)
+        pointed_obj = pointed_thing.ref
+        use_pos_above = pointed_obj:get_pos()
+        use_pos_under = vector.offset(use_pos_above, 0, -1, 0)
     end
     local use_success = false
     local use_at_place_above = false
     local use_at_place_under = false
     local use_at_self = false
+
 
     if placer:is_player() then
         local placer_name = placer:get_player_name()
@@ -951,7 +961,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         use_success = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_telepathic") then
+    if has_in_gauntlet(itemstack, placer, modname .. ":rune_telepathic") then
         minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(),
         formspec_ender_chest)
         spawn_effect_anim({
@@ -969,7 +979,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
             end
             mcl_burning.extinguish(obj)
         end, true)
-        placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 50))
+        placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30))
         spawn_effect_anim({
             pos = use_pos_self,
             texture = "effect_water_secondary",
@@ -984,11 +994,14 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
             if victim then
                 minetest.after(0.1, function(t, obj)
                     if obj then
-                        if t - 0.1 > 0 then
-                            obj:set_pos(vector.offset(obj:get_pos(), 0, -0.1, 0))
-                            suck(t - 0.1, obj)
-                        else
-                            deal_spell_damage(obj, 20, "void_secondary", placer)
+                        local pobj = obj:get_pos()
+                        if pobj then
+                            if t - 0.1 > 0 then
+                                obj:set_pos(vector.offset(pobj, 0, -1.1, 0))
+                                suck(t - 0.1, obj)
+                            else
+                                deal_spell_damage(obj, 20, "void_secondary", placer)
+                            end
                         end
                     end
                 end, time, victim)
