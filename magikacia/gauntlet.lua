@@ -843,12 +843,18 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_water") then
-        radius_effect_func(use_pos_above, 6, placer, function(obj)
+        radius_effect_func(use_pos_above, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
                 deal_spell_damage(obj, 5, "water_primary", placer)
             end
             mcl_burning.extinguish(obj)
         end, true)
+
+        local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_above, -3, -3, -3), vector.offset(use_pos_above, 3, 3, 3), "group:fire", true)
+        if nodes then
+            minetest.bulk_swap_node(nodes, "air")
+        end
+        
         spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_water_primary",
@@ -980,6 +986,12 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
             mcl_burning.extinguish(obj)
         end, true)
         placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30))
+
+        local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_above, -3, -3, -3), vector.offset(use_pos_above, 3, 3, 3), "group:fire", true)
+        if nodes then
+            minetest.bulk_swap_node(nodes, "air")
+        end
+        
         spawn_effect_anim({
             pos = use_pos_self,
             texture = "effect_water_secondary",
@@ -1022,6 +1034,16 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
     end
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_wind") then
+        radius_effect_func(use_pos_above, 8, placer, function(obj)
+            local newvel = vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), -10)
+            obj:add_velocity(newvel)
+        end, true)
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
+        use_success = true
+        use_at_place_above = true
     end
 
 
@@ -1034,13 +1056,6 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         })
         use_success = true
         use_at_place_under = true
-    end
-
-    if use_at_place_above then
-    end
-    if use_at_place_under then
-    end
-    if use_at_self then
     end
 
     if use_success then
