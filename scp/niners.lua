@@ -55,7 +55,7 @@ minetest.register_node(":scp:niners",
         node_box = { type = "fixed", fixed = { { -0.25, -0.25, -0.25, 0.25, 0.25, 0.25 }, { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 }, } },
         use_texture_alpha =
         "blend",
-        groups = { dig_immediate = 3, bouncy = 100, fall_damage_add_percent = -100 },
+        groups = { dig_immediate = 3, bouncy = 100, fall_damage_add_percent = -100, unmovable_by_piston = 1 },
         is_ground_content = false,
         sounds = { dug = { name = "slimenodes_dug", gain = 0.6 }, place = { name = "slimenodes_place", gain = 0.6 }, footstep = { name = "slimenodes_step", gain = 0.3 }, },
         _mcl_blast_resistance = 0,
@@ -77,7 +77,6 @@ minetest.register_node(":scp:niners",
             niners_walk(pos)
         end,
     })
-mesecon.register_mvps_stopper("scp:niners")
 minetest.register_node(":scp:mvy",
     {
         description = "SCP-899234",
@@ -88,7 +87,7 @@ minetest.register_node(":scp:mvy",
         node_box = { type = "fixed", fixed = { { -0.25, -0.25, -0.25, 0.25, 0.25, 0.25 }, { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 }, } },
         use_texture_alpha =
         "blend",
-        groups = { dig_immediate = 3, bouncy = 100, fall_damage_add_percent = -100 },
+        groups = { dig_immediate = 3, bouncy = 100, fall_damage_add_percent = -100, unmovable_by_piston = 1 },
         is_ground_content = false,
         sounds = { dug = { name = "slimenodes_dug", gain = 0.6 }, place = { name = "slimenodes_place", gain = 0.6 }, footstep = { name = "slimenodes_step", gain = 0.3 }, },
         _mcl_blast_resistance = 0,
@@ -107,7 +106,6 @@ minetest.register_node(":scp:mvy",
             niners_walk(pos)
         end,
     })
-mesecon.register_mvps_stopper("scp:mvy")
 
 mcl_util._scp_niners_activated = mcl_util._scp_niners_activated or false
 if not mcl_util._scp_niners_activated then

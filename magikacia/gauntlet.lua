@@ -16,8 +16,9 @@ local gauntlet_types = {
 mcl_util._magikacia_gauntlet_init = mcl_util._magikacia_gauntlet_init or false
 
 local function safe_replace(pos, node_name, placer)
+    if not pos then return end
     local node = minetest.get_node(pos)
-    if (node.name == "air" or minetest.registered_nodes[node.name].buildable_to == true) then
+    if node and (node.name == "air" or minetest.registered_nodes[node.name] and minetest.registered_nodes[node.name].buildable_to == true) then
         minetest.place_node(pos, { name = node_name }, placer)
     end
 end
@@ -125,7 +126,7 @@ function mcl_bone_meal.add_bone_meal_particle(pos, def)
         maxexptime = def.maxexptime or 4,
         minsize = def.minsize or 0.7,
         maxsize = def.maxsize or 2.4,
-        texture = "mcl_particles_bonemeal.png^[colorize:#00EE00:125", 
+        texture = "mcl_particles_bonemeal.png^[colorize:#00EE00:125",
         glow = def.glow or 1,
     })
 end
@@ -169,7 +170,7 @@ local function lightning_strike(pos, user)
             local p, stop = pcall(function() return func(pos, pos, objects) end)
         end
     end
-    
+
     local particle_pos = vector.offset(pos, 0, (mcl_lightning.size / 2) + 0.5, 0)
     local time = 0.2
     local particle_size = mcl_lightning.size * 10
@@ -246,8 +247,6 @@ local function lightning_strike(pos, user)
                     end
                     angle = angle + (math.pi * 2) / 3
                 end
-            else
-                safe_replace(pos, "mcl_fire:fire", user)
             end
         end
     end
@@ -368,7 +367,8 @@ local function register_projectile(def)
                 def.do_custom_hit(minetest.get_player_by_name(tostring(self._thrower)) or self._thrower or self.object,
                     obj_hit)
             end
-            minetest.sound_play("mcl_throwing_snowball_impact_soft", { pos = pos, max_hear_distance = 16, gain = 0.7 }, true)
+            minetest.sound_play("mcl_throwing_snowball_impact_soft", { pos = pos, max_hear_distance = 16, gain = 0.7 },
+                true)
             snowball_particles(pos, vel)
             self.object:remove()
             return
@@ -393,7 +393,8 @@ local function register_projectile(def)
             _on_dispense = mcl_throwing
                 .dispense_function,
         })
-    mcl_throwing.register_throwable_object("magikacia:throwable_" .. def.name, "magikacia:throwable_" .. def.name .. "_entity",
+    mcl_throwing.register_throwable_object("magikacia:throwable_" .. def.name,
+        "magikacia:throwable_" .. def.name .. "_entity",
         22)
 end
 register_projectile({
@@ -415,7 +416,7 @@ register_projectile({
         if pos then
             for _, k in ipairs(around_plus_pos_list) do
                 safe_replace({ x = pos.x + k[1], y = pos.y, z = pos.z + k[2] },
-                    "mcl_fire:fire",
+                    "magikacia:fire_temp",
                     thrower)
             end
         end
@@ -423,6 +424,52 @@ register_projectile({
 })
 
 
+
+
+
+minetest.register_node(":magikacia:fire_temp", {
+    description = "Temporary Fire",
+    drawtype = "firelike",
+    tiles = {
+        {
+            name = "fire_basic_flame_animated.png",
+            animation = {
+                type = "vertical_frames",
+                aspect_w = 16,
+                aspect_h = 16,
+                length = 1
+            },
+        },
+    },
+    inventory_image = "fire_basic_flame.png",
+    paramtype = "light",
+    light_source = minetest.LIGHT_MAX,
+    walkable = false,
+    buildable_to = true,
+    sunlight_propagates = true,
+    damage_per_second = 1,
+    groups = { fire = 1, dig_immediate = 3, not_in_creative_inventory = 0, dig_by_piston = 1, destroys_items = 1, set_on_fire = 8, unsticky = 1 },
+    floodable = true,
+    on_flood = function(pos, _, newnode)
+        if minetest.get_item_group(newnode.name, "water") ~= 0 then
+            minetest.sound_play("fire_extinguish_flame", { pos = pos, gain = 0.25, max_hear_distance = 16 }, true)
+        end
+    end,
+    drop = "",
+    sounds = {},
+    on_construct = function(pos)
+        local timer = minetest.get_node_timer(pos)
+        -- if not timer:is_started() then
+            timer:start(5)
+        -- end
+    end,
+    on_timer = function(pos)
+        if minetest.get_node(pos).name == "magikacia:fire_gauntlet" then
+            minetest.sound_play("fire_extinguish_flame", { pos = pos, gain = 0.25, max_hear_distance = 16 }, true)
+            minetest.swap_node(pos, { name = "air" })
+        end
+    end,
+})
 
 
 local function get_formspec(name, width, height)
@@ -473,15 +520,13 @@ end
 
 
 local function has_in_gauntlet(itemstack, player, itemname)
-    
     if not player or not itemstack then return nil end
-    
+
     local meta = itemstack:get_meta()
     local invmetastring = meta:get_string("magikacia_inv_content")
     if invmetastring ~= "" then
-        
         local t = assert(minetest.deserialize(invmetastring).main)
-        
+
         for i, v in pairs(t) do
             if v.name == itemname then return true end
         end
@@ -514,26 +559,21 @@ function magikacia.on_change_bag_inv(bagstack, baginv)
     return bagstack, baginv
 end
 
-
 function magikacia.on_open_bag(bagstack, baginv, player)
     return bagstack, baginv, player
 end
-
 
 function magikacia.on_close_bag(player, fields, name, formname, sound)
     return player, fields, name, formname, sound
 end
 
-
 function magikacia.before_open_bag(itemstack, user, width, height, sound)
     return itemstack, user, width, height, sound
 end
 
-
 function magikacia.on_use_bag(itemstack, user, pointed_thing)
     return itemstack, user, pointed_thing
 end
-
 
 function magikacia.on_drop_bag(itemstack, dropper, pos)
     minetest.item_drop(itemstack, dropper, pos)
@@ -589,7 +629,7 @@ local function open_bag(itemstack, user, width, height, sound)
     local playername = user:get_player_name()
     local invname = meta:get_string("magikacia_bag_identity")
 
-    
+
     if invname == "" then
         local item_count = itemstack:get_count()
         if item_count > 1 then
@@ -623,7 +663,6 @@ local function open_bag(itemstack, user, width, height, sound)
             save_bag_inv(inv, player)
         end,
         on_take = function(inv, listname, index, stack, player)
-            
             local size = inv:get_size(listname)
             for i = 1, size, 1 do
                 local stack = inv:get_stack(listname, i)
@@ -762,7 +801,8 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     if has_in_gauntlet(itemstack, placer, modname .. ":rune_earth") then
         local offset = placer:get_look_dir()
         for i = 1, 5 do
-            local pos = vector.add(vector.offset(use_pos_self, 0, placer:get_properties().eye_height * 0.7, 0), vector.multiply(offset, i))
+            local pos = vector.add(vector.offset(use_pos_self, 0, placer:get_properties().eye_height * 0.7, 0),
+                vector.multiply(offset, i))
             radius_effect_func(use_pos_above, 2, placer, function(obj)
                 deal_spell_damage(obj, 3, "earth_primary", placer)
             end)
@@ -789,7 +829,8 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_fire") then
         for _, k in ipairs(around_plus_pos_list) do
-            safe_replace({ x = use_pos_above.x + k[1], y = use_pos_above.y, z = use_pos_above.z + k[2] }, "mcl_fire:fire",
+            safe_replace({ x = use_pos_above.x + k[1], y = use_pos_above.y, z = use_pos_above.z + k[2] },
+                "magikacia:fire_temp",
                 placer)
         end
         spawn_effect_anim({
@@ -850,11 +891,13 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
             mcl_burning.extinguish(obj)
         end, true)
 
-        local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_above, -3, -3, -3), vector.offset(use_pos_above, 3, 3, 3), "group:fire", true)
+        local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_above, -3, -3, -3),
+            vector.offset(use_pos_above, 3, 3, 3), "group:fire", false)
+        minetest.log(minetest.serialize(nodes))
         if nodes then
-            minetest.bulk_swap_node(nodes, "air")
+            minetest.bulk_set_node(nodes, "air")
         end
-        
+
         spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_water_primary",
@@ -882,7 +925,8 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_wind") then
         radius_effect_func(use_pos_above, 8, placer, function(obj)
-            local newvel = vector.offset(vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
+            local newvel = vector.offset(
+            vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
             obj:add_velocity(newvel)
         end, true)
         spawn_effect_anim({
@@ -900,7 +944,8 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_protection") then
-        minetest.registered_chatcommands["area_pos1"].func(placer:get_player_name(), use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z) 
+        minetest.registered_chatcommands["area_pos1"].func(placer:get_player_name(),
+            use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z)
         use_success = true
         use_at_place_under = true
     end
@@ -936,7 +981,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
     if placer:is_player() then
         local placer_name = placer:get_player_name()
         if controls.players[placer_name].sneak[1] then
-            return open_bag(itemstack, placer, bagtable.width, bagtable.height, bagtable.sound_open) 
+            return open_bag(itemstack, placer, bagtable.width, bagtable.height, bagtable.sound_open)
         end
     end
 
@@ -958,18 +1003,20 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
 
     if has_in_gauntlet(itemstack, placer, modname .. ":rune_fire") then
         mcl_potions.fire_resistance_func(placer, nil, 10)
-        mcl_throwing.get_player_throw_function("magikacia:throwable_attack_fire_secondary_entity")(ItemStack("magikacia:throwable_attack_fire_secondary", 64), placer, pointed_thing)
+        mcl_throwing.get_player_throw_function("magikacia:throwable_attack_fire_secondary_entity")(
+        ItemStack("magikacia:throwable_attack_fire_secondary", 64), placer, pointed_thing)
         use_success = true
     end
 
     if has_in_gauntlet(itemstack, placer, modname .. ":rune_ice") then
-        mcl_throwing.get_player_throw_function("magikacia:throwable_attack_ice_secondary_entity")(ItemStack("magikacia:throwable_attack_ice_secondary", 64), placer, pointed_thing)
+        mcl_throwing.get_player_throw_function("magikacia:throwable_attack_ice_secondary_entity")(
+        ItemStack("magikacia:throwable_attack_ice_secondary", 64), placer, pointed_thing)
         use_success = true
     end
 
     if has_in_gauntlet(itemstack, placer, modname .. ":rune_telepathic") then
         minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(),
-        formspec_ender_chest)
+            formspec_ender_chest)
         spawn_effect_anim({
             pos = use_pos_self,
             texture = "effect_vortex_blue",
@@ -987,11 +1034,12 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         end, true)
         placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30))
 
-        local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_above, -3, -3, -3), vector.offset(use_pos_above, 3, 3, 3), "group:fire", true)
+        local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_above, -3, -3, -3),
+            vector.offset(use_pos_above, 3, 3, 3), "group:fire", true)
         if nodes then
             minetest.bulk_swap_node(nodes, "air")
         end
-        
+
         spawn_effect_anim({
             pos = use_pos_self,
             texture = "effect_water_secondary",
@@ -1049,7 +1097,8 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
 
 
     if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_protection") then
-        minetest.registered_chatcommands["area_pos"].func(placer:get_player_name(), use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z) 
+        minetest.registered_chatcommands["area_pos"].func(placer:get_player_name(),
+            use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z)
         spawn_effect_anim({
             pos = use_pos_under,
             texture = "effect_vortex_blue",
