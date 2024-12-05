@@ -18,8 +18,8 @@ mcl_util._magikacia_gauntlet_init = mcl_util._magikacia_gauntlet_init or false
 local function safe_replace(pos, node_name, placer)
     if not pos then return end
     local node = minetest.get_node(pos)
-    if node and (node.name == "air" or minetest.registered_nodes[node.name] and minetest.registered_nodes[node.name].buildable_to == true) then
-        minetest.place_node(pos, { name = node_name }, placer)
+    if node and (node.name == "air" or minetest.registered_nodes[node.name] and minetest.registered_nodes[node.name].buildable_to == true) and not minetest.is_protected(pos, placer:get_player_name()) then
+        minetest.swap_node(pos, { name = node_name })
     end
 end
 
@@ -459,9 +459,9 @@ minetest.register_node(":magikacia:fire_temp", {
     sounds = {},
     on_construct = function(pos)
         local timer = minetest.get_node_timer(pos)
-        
-            timer:start(5)
-        
+        -- if not timer:is_started() then
+        timer:start(5)
+        -- end
     end,
     on_timer = function(pos)
         if minetest.get_node(pos).name == "magikacia:fire_gauntlet" then
@@ -893,9 +893,10 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
 
         local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_above, -3, -3, -3),
             vector.offset(use_pos_above, 3, 3, 3), "group:fire", false)
-        minetest.log(minetest.serialize(nodes))
-        if nodes then
-            minetest.bulk_set_node(nodes, "air")
+        for _, node_pos in ipairs(nodes) do
+            if not minetest.is_protected(node_pos, placer:get_player_name()) then
+                minetest.swap_node(node_pos, { name = "air" })
+            end
         end
 
         spawn_effect_anim({
@@ -926,7 +927,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_wind") then
         radius_effect_func(use_pos_above, 8, placer, function(obj)
             local newvel = vector.offset(
-            vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
+                vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
             obj:add_velocity(newvel)
         end, true)
         spawn_effect_anim({
@@ -1004,13 +1005,13 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
     if has_in_gauntlet(itemstack, placer, modname .. ":rune_fire") then
         mcl_potions.fire_resistance_func(placer, nil, 10)
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_fire_secondary_entity")(
-        ItemStack("magikacia:throwable_attack_fire_secondary", 64), placer, pointed_thing)
+            ItemStack("magikacia:throwable_attack_fire_secondary", 64), placer, pointed_thing)
         use_success = true
     end
 
     if has_in_gauntlet(itemstack, placer, modname .. ":rune_ice") then
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_ice_secondary_entity")(
-        ItemStack("magikacia:throwable_attack_ice_secondary", 64), placer, pointed_thing)
+            ItemStack("magikacia:throwable_attack_ice_secondary", 64), placer, pointed_thing)
         use_success = true
     end
 
