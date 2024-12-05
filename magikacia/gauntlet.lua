@@ -937,6 +937,35 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
+    if entity_modifier and use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_disguise") then
+        entity_modifier.disguise_tool_primary(itemstack, placer, pointed_thing)
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
+        use_success = true
+        use_at_place_above = true
+    end
+
+    if entity_modifier and use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_resize") then
+        if pointed_obj and pointed_obj:is_player() then
+            local vs = pointed_obj:get_properties().visual_size
+            if vs then
+                entity_modifier.resize_player(
+                    pointed_obj,
+                    (vs.x or 1) * 1.1
+                )
+            end
+            spawn_effect_anim({
+                pos = use_pos_above,
+                texture = "effect_vortex_blue",
+            })
+            use_success = true
+            use_at_place_above = true
+        end
+    end
+
+
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_nature") then
         bone_meal(itemstack, placer, pointed_thing)
         use_success = true
@@ -1092,6 +1121,34 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         })
         use_success = true
         use_at_place_above = true
+    end
+
+    if entity_modifier and use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_disguise") then
+        entity_modifier.disguise_tool_secondary(itemstack, placer, pointed_thing)
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
+        use_success = true
+        use_at_place_above = true
+    end
+
+    if entity_modifier and use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_resize") then
+        if pointed_obj and pointed_obj:is_player() then
+            local vs = pointed_obj:get_properties().visual_size
+            if vs then
+                entity_modifier.resize_player(
+                    pointed_obj,
+                    (vs.x or 1) / 1.1
+                )
+            end
+            spawn_effect_anim({
+                pos = use_pos_above,
+                texture = "effect_vortex_blue",
+            })
+            use_success = true
+            use_at_place_above = true
+        end
     end
 
 
