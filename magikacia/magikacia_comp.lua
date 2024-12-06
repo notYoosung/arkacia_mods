@@ -142,11 +142,18 @@ local runes = {
     "void",
     "water",
     "wind",
+    "disguise",
+    "resize",
+    "poison",
+    "healing",
+    "summoning",
+    "shield",
+    ""
 }
 for _, v in ipairs(runes) do
     minetest.register_craftitem(":" .. modname .. ":rune_" .. v, {
         description = "Rune: " .. v,
-        inventory_image = magikacia.textures["rune_" .. v],
+        inventory_image = magikacia.textures["rune_" .. v] or nil,
     })
 end
 

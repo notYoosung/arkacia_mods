@@ -15,6 +15,32 @@ local gauntlet_types = {
 
 mcl_util._magikacia_gauntlet_init = mcl_util._magikacia_gauntlet_init or false
 
+
+local static_objs = {
+    "mcl_chests:chest",
+    "mcl_itemframes:item",
+    "mcl_enchanting:book",
+}
+local function is_obj_not_static(obj)
+    if not obj then
+        return
+    end
+    if obj:is_player() then
+        return true
+    end
+    local le = obj:get_luaentity()
+    if not le then
+        return
+    end
+    if not le then
+        return false
+    end
+    for _, name in ipairs(static_objs) do
+        if name == obj:get_luaentity().name then
+            return false
+        end
+    end
+end
 local function safe_replace(pos, node_name, placer)
     if not pos then return end
     local node = minetest.get_node(pos)
@@ -193,7 +219,7 @@ local function lightning_strike(pos, user)
 
     local objects = minetest.get_objects_inside_radius(pos, 3.5)
     for _, obj in pairs(objects) do
-        if obj:is_player() and obj:get_player_name() ~= user:get_player_name() then
+        if obj:is_player() and obj:get_player_name() ~= user:get_player_name() or obj:get_luaentity() then
             local lua = obj:get_luaentity()
             if lua then
                 if not lua._on_lightning_strike or (lua._on_lightning_strike and lua._on_lightning_strike(lua, pos, pos, objects) ~= true) then
@@ -464,7 +490,7 @@ minetest.register_node(":magikacia:fire_temp", {
         -- end
     end,
     on_timer = function(pos)
-        if minetest.get_node(pos).name == "magikacia:fire_gauntlet" then
+        if minetest.get_node(pos).name == "magikacia:fire_temp" then
             minetest.sound_play("fire_extinguish_flame", { pos = pos, gain = 0.25, max_hear_distance = 16 }, true)
             minetest.swap_node(pos, { name = "air" })
         end
@@ -755,10 +781,7 @@ end
 local function radius_effect_func(pos, radius, placer, func, include_placer)
     for obj, _ in minetest.objects_inside_radius(pos, radius) do
         if obj then
-            if (obj:get_luaentity() ~= nil
-                    and obj:get_luaentity().name ~= "mcl_chests:chest"
-                    and obj:get_luaentity().name ~= "mcl_itemframes:item"
-                    and obj:get_luaentity().name ~= "mcl_enchanting:book")
+            if (obj:get_luaentity() ~= nil and is_obj_not_static(obj))
                 or (obj:is_player() and (include_placer or obj:get_player_name() ~= placer:get_player_name()))
             then
                 if func then
@@ -893,16 +916,14 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
 
         local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_above, -3, -3, -3),
             vector.offset(use_pos_above, 3, 3, 3), "group:fire", false)
-        for _, node_pos in ipairs(nodes) do
-            if not minetest.is_protected(node_pos, placer:get_player_name()) then
-                minetest.swap_node(node_pos, { name = "air" })
-            end
+        if nodes then
+            minetest.bulk_set_node(nodes, { name = "air" })
         end
 
         spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_water_primary",
-            size = 12,
+            size = 30,
             duration_total = 0.4,
             duration_anim = 0.4,
         })
@@ -937,6 +958,35 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_success = true
         use_at_place_above = true
     end
+
+    if entity_modifier and use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_disguise") then
+        entity_modifier.disguise_tool_primary(itemstack, placer, pointed_thing)
+        spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
+        use_success = true
+        use_at_place_above = true
+    end
+
+    if entity_modifier and use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_resize") then
+        if pointed_obj and pointed_obj:is_player() then
+            local vs = pointed_obj:get_properties().visual_size
+            if vs then
+                entity_modifier.resize_player(
+                    pointed_obj,
+                    (vs.x or 1) * 1.1
+                )
+            end
+            spawn_effect_anim({
+                pos = use_pos_above,
+                texture = "effect_vortex_blue",
+            })
+            use_success = true
+            use_at_place_above = true
+        end
+    end
+
 
     if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_nature") then
         bone_meal(itemstack, placer, pointed_thing)
@@ -1035,10 +1085,10 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         end, true)
         placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30))
 
-        local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_above, -3, -3, -3),
-            vector.offset(use_pos_above, 3, 3, 3), "group:fire", true)
+        local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_self, -3, -3, -3),
+            vector.offset(use_pos_self, 3, 3, 3), "group:fire", true)
         if nodes then
-            minetest.bulk_swap_node(nodes, "air")
+            minetest.bulk_set_node(nodes, {name = "air"})
         end
 
         spawn_effect_anim({
@@ -1093,6 +1143,38 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         })
         use_success = true
         use_at_place_above = true
+    end
+
+    if entity_modifier and has_in_gauntlet(itemstack, placer, modname .. ":rune_disguise") then
+        entity_modifier.disguise_tool_secondary(itemstack, placer, pointed_thing)
+        spawn_effect_anim({
+            pos = use_pos_above or use_pos_self,
+            texture = "effect_vortex_blue",
+        })
+        use_success = true
+        -- use_at_place_above = true
+    end
+
+    if entity_modifier and has_in_gauntlet(itemstack, placer, modname .. ":rune_resize") then
+        if pointed_obj then
+            if pointed_obj:is_player() then
+                local vs = entity_modifier.player_sizes[placer:get_player_name()]
+                if vs then
+                    entity_modifier.resize_player(
+                        pointed_obj,
+                        (vs.x or 1) / 1.1
+                    )
+                end
+                spawn_effect_anim({
+                    pos = use_pos_above,
+                    texture = "effect_vortex_blue",
+                })
+                use_success = true
+                use_at_place_above = true
+            end
+        else
+
+        end
     end
 
 

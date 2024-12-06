@@ -407,29 +407,29 @@ minetest.register_chatcommand("list_models", {
         minetest.chat_send_player(name, "Available entity model names:" .. model_names)
     end
 })
-local player_sizes = {}
+entity_modifier.player_sizes = {}
 
 minetest.register_on_joinplayer(function(player)
-    local size = player_sizes[player:get_player_name()]
+    local size = entity_modifier.player_sizes[player:get_player_name()]
     if size == nil then
-        player_sizes[player:get_player_name()] = 1
+        entity_modifier.player_sizes[player:get_player_name()] = 1
     else
         entity_modifier.resize_player(player, size)
     end
 end)
 
 minetest.register_on_leaveplayer(function(player)
-    player_sizes[player:get_player_name()] = nil
+    entity_modifier.player_sizes[player:get_player_name()] = nil
 end)
 
 minetest.register_on_respawnplayer(function(player)
-    entity_modifier.resize_player(player, player_sizes[player:get_player_name()])
+    entity_modifier.resize_player(player, entity_modifier.player_sizes[player:get_player_name()])
 end)
 
 entity_modifier.resize_player = function(player, size)
     local player_name = player:get_player_name()
     size = size or 1
-    player_sizes[player_name] = size
+    entity_modifier.player_sizes[player_name] = size
 
 
     if size < 0 or size > 80 then
