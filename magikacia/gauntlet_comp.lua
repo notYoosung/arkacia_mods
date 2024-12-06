@@ -485,9 +485,9 @@ minetest.register_node(":magikacia:fire_temp", {
     sounds = {},
     on_construct = function(pos)
         local timer = minetest.get_node_timer(pos)
-        -- if not timer:is_started() then
+          
         timer:start(5)
-        -- end
+          
     end,
     on_timer = function(pos)
         if minetest.get_node(pos).name == "magikacia:fire_temp" then
@@ -1152,7 +1152,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
             texture = "effect_vortex_blue",
         })
         use_success = true
-        -- use_at_place_above = true
+          
     end
 
     if entity_modifier and has_in_gauntlet(itemstack, placer, modname .. ":rune_resize") then
