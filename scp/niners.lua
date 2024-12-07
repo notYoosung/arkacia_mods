@@ -63,9 +63,6 @@ minetest.register_node(":scp:niners",
         after_place_node = function(pos, placer, itemstack, pointed_thing)
             core.get_node_timer(pos):start(niners_timer())
         end,
-        on_activate = function(self, staticdata, dtime_s)
-            core.get_node_timer(pos):start(niners_timer())
-        end,
         on_timer = function(
             pos, elapsed)
             niners_rotate(pos)

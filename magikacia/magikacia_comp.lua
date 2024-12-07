@@ -7,7 +7,7 @@ local S = minetest.get_translator(minetest.get_current_modname())
 local F = minetest.formspec_escape
 local C = minetest.colorize
 
-local gauntlet_types = {
+local spellbook_types = {
     "iron",
     "gold",
     "diamond",
@@ -505,7 +505,7 @@ if not mcl_util._magikacia_init_fields then
 
     minetest.register_on_joinplayer(function(player)
         local inv = player:get_inventory()
-        inv:set_size("gauntlet_inv", 3)
+        inv:set_size("spellbook_inv", 3)
     end)
 
     mcl_player.register_globalstep(function(player, dtime)
@@ -541,16 +541,18 @@ if not mcl_util._magikacia_init_fields then
                 for obj, _ in minetest.objects_inside_radius(pos, 8) do
                     if not obj then goto continue end
                     if (obj:get_luaentity() ~= nil
-                        and obj:get_luaentity().name ~= "mcl_chests:chest"
-                        and obj:get_luaentity().name ~= "mcl_itemframes:item"
-                        and obj:get_luaentity().name ~= "mcl_enchanting:book")
+                            and obj:get_luaentity().name ~= "mcl_chests:chest"
+                            and obj:get_luaentity().name ~= "mcl_itemframes:item"
+                            and obj:get_luaentity().name ~= "mcl_enchanting:book")
                     then
                         local v = vector.normalize(vector.subtract(obj:get_pos(), pos))
-                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 10 + 20) * spell_earth_time, z = v.z * 10 * spell_earth_time })
+                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 10 + 20) * spell_earth_time, z = v
+                        .z * 10 * spell_earth_time })
                     end
                     if (obj:is_player() and obj:get_player_name() ~= player:get_player_name()) then
                         local v = vector.normalize(vector.subtract(obj:get_pos(), pos))
-                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 1 + 10) * spell_earth_time, z = v.z * 10 * spell_earth_time })
+                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 1 + 10) * spell_earth_time, z = v
+                        .z * 10 * spell_earth_time })
                     end
                     ::continue::
                 end

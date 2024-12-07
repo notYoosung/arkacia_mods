@@ -7,7 +7,7 @@ local S = minetest.get_translator(minetest.get_current_modname())
 local F = minetest.formspec_escape
 local C = minetest.colorize
 
-local gauntlet_types = {
+local spellbook_types = {
     "iron",
     "gold",
     "diamond",
@@ -505,7 +505,7 @@ if not mcl_util._magikacia_init_fields then
 
     minetest.register_on_joinplayer(function(player)
         local inv = player:get_inventory()
-        inv:set_size("gauntlet_inv", 3)
+        inv:set_size("spellbook_inv", 3)
     end)
 
     mcl_player.register_globalstep(function(player, dtime)

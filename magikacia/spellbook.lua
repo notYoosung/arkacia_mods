@@ -6,14 +6,14 @@ local S = minetest.get_translator(minetest.get_current_modname())
 local F = minetest.formspec_escape
 local C = minetest.colorize
 
-local gauntlet_types = {
+local spellbook_types = {
     "iron",
     "gold",
     "diamond",
     "netherite",
 }
 
-mcl_util._magikacia_gauntlet_init = mcl_util._magikacia_gauntlet_init or false
+mcl_util._magikacia_spellbook_init = mcl_util._magikacia_spellbook_init or false
 
 
 local static_objs = {
@@ -255,6 +255,7 @@ local function lightning_strike(pos, user)
                     local le = sh:get_luaentity()
                     if le then
                         le.owner = (user and user:is_player() and user:get_player_name()) or nil
+                        le.tamed = true
                     end
                 end
 
@@ -323,13 +324,10 @@ local function check_object_hit(self, pos, dmg)
             if object:is_player() and self._thrower == object:get_player_name() then
                 self.object:remove()
                 return true, nil
-            elseif (entity.is_mob == true or entity._hittable_by_projectile or object:is_player()) and (self._thrower ~= object) then
-                local pl = self._thrower and self._thrower.is_player or
-                    type(self._thrower) == "string" and minetest.get_player_by_name(self._thrower)
-                if pl then
-                    deal_spell_damage(object, dmg, "")
-                    return true, object
-                end
+            elseif (entity.is_mob == true or entity._hittable_by_projectile or object:is_player() and self._thrower ~= object:get_player_name()) then
+                local pl = self._thrower and (type(self._thrower) == "string" and minetest.get_player_by_name(self._thrower) or self._thrower)
+                deal_spell_damage(object, dmg, "projectile", pl)
+                return true, object
             end
         end
     end
@@ -497,7 +495,7 @@ minetest.register_node(":magikacia:fire_temp", {
 
 
 local function get_formspec(name, width, height)
-    local gauntlet_inv_formspec = table.concat({
+    local spellbook_inv_formspec = table.concat({
         "formspec_version[4]",
         "size[11.75,10.425]",
 
@@ -517,7 +515,7 @@ local function get_formspec(name, width, height)
         "listring[current_player;main]",
         "listring[detached:" .. name .. ";main]",
     })
-    return gauntlet_inv_formspec
+    return spellbook_inv_formspec
 end
 
 local function inv_to_table(inv)
@@ -543,7 +541,7 @@ local function table_to_inv(inv, t)
 end
 
 
-local function has_in_gauntlet(itemstack, player, itemname)
+local function has_in_spellbook(itemstack, player, itemname)
     if not player or not itemstack then return nil end
 
     local meta = itemstack:get_meta()
@@ -791,7 +789,7 @@ local function radius_effect_func(pos, radius, placer, func, include_placer)
     end
 end
 
-function gauntlet_use_primary(itemstack, placer, pointed_thing)
+function spellbook_use_primary(itemstack, placer, pointed_thing)
     if not placer then return nil end
     local use_pos_self = placer:get_pos()
     local meta = placer:get_meta()
@@ -820,7 +818,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     end
 
 
-    if has_in_gauntlet(itemstack, placer, modname .. ":rune_earth") then
+    if has_in_spellbook(itemstack, placer, modname .. ":rune_earth") then
         local offset = placer:get_look_dir()
         for i = 1, 5 do
             local pos = vector.add(vector.offset(use_pos_self, 0, placer:get_properties().eye_height * 0.7, 0),
@@ -839,7 +837,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_self = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_electric") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_electric") then
         lightning_strike(vector.offset(use_pos_above, 0, -1, 0), placer)
         spawn_effect_anim({
             pos = use_pos_above,
@@ -849,7 +847,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_fire") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_fire") then
         for _, k in ipairs(around_plus_pos_list) do
             safe_replace({ x = use_pos_above.x + k[1], y = use_pos_above.y, z = use_pos_above.z + k[2] },
                 "magikacia:fire_temp",
@@ -864,7 +862,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_ice") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_ice") then
         radius_effect_func(use_pos_above, 3, placer, function(obj)
             mcl_potions.swiftness_func(obj, -1, 3)
             mcl_potions.leaping_func(obj, -1, 3)
@@ -877,7 +875,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_telepathic") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_telepathic") then
         if is_placer_sneaking then
             if pointed_obj then
                 local pself = placer:get_pos()
@@ -905,7 +903,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_water") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_water") then
         radius_effect_func(use_pos_above, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
                 deal_spell_damage(obj, 5, "water_primary", placer)
@@ -930,7 +928,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_void") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_void") then
         radius_effect_func(use_pos_above, 2, placer, function(obj)
             deal_spell_damage(obj, 20, "void_primary", placer)
         end)
@@ -944,7 +942,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_wind") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_wind") then
         radius_effect_func(use_pos_above, 8, placer, function(obj)
             local newvel = vector.offset(
                 vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
@@ -958,7 +956,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if entity_modifier and use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_disguise") then
+    if entity_modifier and use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_disguise") then
         entity_modifier.disguise_tool_primary(itemstack, placer, pointed_thing)
         spawn_effect_anim({
             pos = use_pos_above,
@@ -968,7 +966,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if entity_modifier and use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_resize") then
+    if entity_modifier and use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_resize") then
         if pointed_obj and pointed_obj:is_player() then
             local vs = pointed_obj:get_properties().visual_size
             if vs then
@@ -986,7 +984,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         end
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_poison") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_poison") then
         radius_effect_func(use_pos_above, 3, placer, function(obj, obj_is_player)
             if obj_is_player then
                 mcl_potions.poison_func(obj, 1, 3)
@@ -1000,7 +998,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_healing") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_healing") then
         radius_effect_func(use_pos_above, 3, placer, function(obj)
             mcl_potions.regeneration_func(obj, 1, 3)
             mcl_potions.healing_func(obj, 6)
@@ -1013,13 +1011,13 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_nature") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_nature") then
         bone_meal(itemstack, placer, pointed_thing)
         use_success = true
         use_at_place_above = true
     end
 
-    if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_protection") then
+    if use_pos_under and has_in_spellbook(itemstack, placer, modname .. ":rune_protection") then
         minetest.registered_chatcommands["area_pos1"].func(placer:get_player_name(),
             use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z)
         use_success = true
@@ -1033,7 +1031,7 @@ function gauntlet_use_primary(itemstack, placer, pointed_thing)
     return magikacia.on_use_bag(itemstack, placer, pointed_thing)
 end
 
-local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtable)
+local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagtable)
     if not placer then return nil end
     local use_pos_self = placer:get_pos()
     local meta = placer:get_meta()
@@ -1063,7 +1061,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
 
 
     local spell_earth_time_active = meta:get_float("magikacia:spell_earth_time_active")
-    if has_in_gauntlet(itemstack, placer, modname .. ":rune_earth") and spell_earth_time_active == 0 then
+    if has_in_spellbook(itemstack, placer, modname .. ":rune_earth") and spell_earth_time_active == 0 then
         meta:set_float("magikacia:spell_earth_time_active", spell_earth_time_active + 1)
         placer:add_velocity({ x = 0, y = 15, z = 0 })
         spawn_effect_anim({
@@ -1074,23 +1072,23 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         use_at_self = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_electric") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_electric") then
     end
 
-    if has_in_gauntlet(itemstack, placer, modname .. ":rune_fire") then
+    if has_in_spellbook(itemstack, placer, modname .. ":rune_fire") then
         mcl_potions.fire_resistance_func(placer, nil, 10)
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_fire_secondary_entity")(
             ItemStack("magikacia:throwable_attack_fire_secondary", 64), placer, pointed_thing)
         use_success = true
     end
 
-    if has_in_gauntlet(itemstack, placer, modname .. ":rune_ice") then
+    if has_in_spellbook(itemstack, placer, modname .. ":rune_ice") then
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_ice_secondary_entity")(
             ItemStack("magikacia:throwable_attack_ice_secondary", 64), placer, pointed_thing)
         use_success = true
     end
 
-    if has_in_gauntlet(itemstack, placer, modname .. ":rune_telepathic") then
+    if has_in_spellbook(itemstack, placer, modname .. ":rune_telepathic") then
         minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(),
             formspec_ender_chest)
         spawn_effect_anim({
@@ -1101,8 +1099,8 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         use_at_self = true
     end
 
-    if has_in_gauntlet(itemstack, placer, modname .. ":rune_water") then
-        radius_effect_func(use_pos_self, 8, placer, function(obj)
+    if has_in_spellbook(itemstack, placer, modname .. ":rune_water") then
+        radius_effect_func(use_pos_self, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
                 deal_spell_damage(obj, 10, "water_secondary", placer)
             end
@@ -1125,7 +1123,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         use_at_self = true
     end
 
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_void") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_void") then
         local function suck(time, victim)
             if victim then
                 minetest.after(0.1, function(t, obj)
@@ -1156,14 +1154,15 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         use_success = true
         use_at_place_above = true
     end
-    if has_in_gauntlet(itemstack, placer, modname .. ":rune_water") then
-        radius_effect_func(use_pos_self, 8, placer, function(obj)
+    if has_in_spellbook(itemstack, placer, modname .. ":rune_water") then
+        radius_effect_func(use_pos_self, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
                 deal_spell_damage(obj, 10, "water_secondary", placer)
             end
             mcl_burning.extinguish(obj)
         end, true)
         placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30))
+        mcl_potions.water_breathing_func(placer, nil, 10)
 
         local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_self, -3, -3, -3),
             vector.offset(use_pos_self, 3, 3, 3), "group:fire", true)
@@ -1180,7 +1179,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         use_at_self = true
     end
     
-    if use_pos_above and has_in_gauntlet(itemstack, placer, modname .. ":rune_wind") then
+    if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_wind") then
         radius_effect_func(use_pos_above, 8, placer, function(obj)
             local newvel = vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), -10)
             obj:add_velocity(newvel)
@@ -1193,7 +1192,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         use_at_place_above = true
     end
 
-    if entity_modifier and has_in_gauntlet(itemstack, placer, modname .. ":rune_disguise") then
+    if entity_modifier and has_in_spellbook(itemstack, placer, modname .. ":rune_disguise") then
         entity_modifier.disguise_tool_secondary(itemstack, placer, pointed_thing)
         spawn_effect_anim({
             pos = use_pos_above or use_pos_self,
@@ -1203,7 +1202,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
         --[[use_at_place_above = true]]
     end
 
-    if entity_modifier and has_in_gauntlet(itemstack, placer, modname .. ":rune_resize") then
+    if entity_modifier and has_in_spellbook(itemstack, placer, modname .. ":rune_resize") then
         if pointed_obj then
             if pointed_obj:is_player() then
                 local vs = entity_modifier.player_sizes[placer:get_player_name()] or {x=1}
@@ -1227,7 +1226,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
 
 
 
-    if use_pos_under and has_in_gauntlet(itemstack, placer, modname .. ":rune_protection") then
+    if use_pos_under and has_in_spellbook(itemstack, placer, modname .. ":rune_protection") then
         minetest.registered_chatcommands["area_pos"].func(placer:get_player_name(),
             use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z)
         spawn_effect_anim({
@@ -1239,7 +1238,7 @@ local gauntlet_use_secondary = function(itemstack, placer, pointed_thing, bagtab
     end
 
     if use_success then
-        minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 64 }, true)
+        minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 64, gain = 0.5 }, true)
     end
 
     return nil
@@ -1249,22 +1248,22 @@ function magikacia.register_bag(name, bagtable)
     minetest.register_tool(":" .. name, {
         description = bagtable.description,
         inventory_image = bagtable.inventory_image,
-        groups = { gauntlet = 1, enchanted = 1 },
+        groups = { spellbook = 1, enchanted = 1 },
         on_secondary_use = function(itemstack, user, pointed_thing)
-            return gauntlet_use_secondary(itemstack, user, pointed_thing, bagtable)
+            return spellbook_use_secondary(itemstack, user, pointed_thing, bagtable)
         end,
         on_place = function(itemstack, placer, pointed_thing)
-            return gauntlet_use_secondary(itemstack, placer, pointed_thing, bagtable)
+            return spellbook_use_secondary(itemstack, placer, pointed_thing, bagtable)
         end,
         on_use = function(itemstack, user, pointed_thing)
-            return gauntlet_use_primary(itemstack, user, pointed_thing)
+            return spellbook_use_primary(itemstack, user, pointed_thing)
         end,
         on_drop = function(itemstack, dropper, pos)
             return magikacia.on_drop_bag(itemstack, dropper, pos)
         end,
         range = bagtable.range,
     })
-    local s = "_magikacia_gauntlet_init_" .. name:gsub("[^a-zA-Z0-9]", "") .. "_C_"
+    local s = "_magikacia_spellbook_init_" .. name:gsub("[^a-zA-Z0-9]", "") .. "_C_"
     if not mcl_util[s] then
         mcl_util[s] = true
         minetest.register_on_player_receive_fields(function(player, formname, fields)
@@ -1281,43 +1280,54 @@ function magikacia.register_bag(name, bagtable)
             return
         end)
     end
+    
+    minetest.register_alias(":" .. name:gsub("spellbook", "gauntlet"), ":" .. name)
 end
 
-magikacia.register_bag("magikacia:gauntlet_iron", {
-    description = "Iron Magikacia Gauntlet",
-    inventory_image = magikacia.textures.gauntlet_iron_inv,
+magikacia.register_bag("magikacia:spellbook_leather", {
+    description = "Leather Magikacia Spellbook",
+    inventory_image = magikacia.textures.spellbook_leather_inv,
     width = 1,
     height = 1,
     sound_open = "magikacia_open_bag",
     sound_close = "magikacia_close_bag",
     range = 8,
 })
-
-magikacia.register_bag("magikacia:gauntlet_gold", {
-    description = "Gold Magikacia Gauntlet",
-    inventory_image = magikacia.textures.gauntlet_gold_inv,
+magikacia.register_bag("magikacia:spellbook_iron", {
+    description = "Iron Magikacia Spellbook",
+    inventory_image = magikacia.textures.spellbook_iron_inv,
     width = 2,
-    height = 2,
+    height = 1,
+    sound_open = "magikacia_open_bag",
+    sound_close = "magikacia_close_bag",
+    range = 8,
+})
+
+magikacia.register_bag("magikacia:spellbook_gold", {
+    description = "Gold Magikacia spellbook",
+    inventory_image = magikacia.textures.spellbook_gold_inv,
+    width = 3,
+    height = 1,
     sound_open = "magikacia_open_bag",
     sound_close = "magikacia_close_bag",
     range = 16,
 })
 
-magikacia.register_bag("magikacia:gauntlet_diamond", {
-    description = "Diamond Magikacia Gauntlet",
-    inventory_image = magikacia.textures.gauntlet_diamond_inv,
-    width = 3,
-    height = 3,
+magikacia.register_bag("magikacia:spellbook_diamond", {
+    description = "Diamond Magikacia spellbook",
+    inventory_image = magikacia.textures.spellbook_diamond_inv,
+    width = 5,
+    height = 1,
     sound_open = "magikacia_open_bag",
     sound_close = "magikacia_close_bag",
     range = 32,
 })
 
-magikacia.register_bag("magikacia:gauntlet_netherite", {
-    description = "Netherite Magikacia Gauntlet",
-    inventory_image = magikacia.textures.gauntlet_netherite_inv,
-    width = 4,
-    height = 4,
+magikacia.register_bag("magikacia:spellbook_netherite", {
+    description = "Netherite Magikacia spellbook",
+    inventory_image = magikacia.textures.spellbook_netherite_inv,
+    width = 5,
+    height = 2,
     sound_open = "magikacia_open_bag",
     sound_close = "magikacia_close_bag",
     range = 64,
@@ -1325,9 +1335,9 @@ magikacia.register_bag("magikacia:gauntlet_netherite", {
 
 
 
-minetest.register_tool(":magikacia:gauntlet_transporting_bag", {
-    description = "Bag Transporting Bag",
-    inventory_image = magikacia.textures.gauntlet_transporting_bag_inv,
+minetest.register_tool(":magikacia:spellbook_transporting_bag", {
+    description = "Spellbook Transporting Bag",
+    inventory_image = magikacia.textures.spellbook_transporting_bag_inv,
     groups = { bag = 1, bag_bag = 1 },
 
     on_secondary_use = function(itemstack, user)
@@ -1343,8 +1353,9 @@ minetest.register_tool(":magikacia:gauntlet_transporting_bag", {
         return magikacia.on_drop_bag(itemstack, dropper, pos)
     end
 })
+minetest.register_alias("magikacia:gauntlet_transporting_bag", "magikacia:spellbook_transporting_bag")
 
-if not mcl_util._magikacia_gauntlet_init then
+if not mcl_util._magikacia_spellbook_init then
     minetest.register_on_player_receive_fields(function(player, formname, fields)
         local nisformn = string.find(formname, "magikacia:bag_transporting_bag_C_")
         if nisformn == 1 then
@@ -1358,6 +1369,6 @@ if not mcl_util._magikacia_gauntlet_init then
     end)
 end
 
-if not mcl_util._magikacia_gauntlet_init then
-    mcl_util._magikacia_gauntlet_init = true
+if not mcl_util._magikacia_spellbook_init then
+    mcl_util._magikacia_spellbook_init = true
 end
