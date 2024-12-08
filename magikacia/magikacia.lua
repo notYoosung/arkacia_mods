@@ -559,8 +559,8 @@ end
 
 
 
-mcl_mobs.register_mob("mobs_mc:endermite", {
-    description = "Endermite",
+mcl_mobs.register_mob(":magikacia:adminite", {
+    description = "Adminite",
     type = "monster",
     spawn_class = "hostile",
     passive = false,
@@ -600,4 +600,4 @@ mcl_mobs.register_mob("mobs_mc:endermite", {
     reach = 1,
 })
 
-mcl_mobs.register_egg("mobs_mc:endermite", "Endermite", "#161616", "#6d6d6d", 0)
+mcl_mobs.register_egg("magikacia:adminite", "Adminite", "#161616", "#6d6d6d", 0)
