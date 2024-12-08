@@ -1,20 +1,25 @@
-entity_modifier = {}
+mcl_util._arkacia_entity_modifier_init = mcl_util._arkacia_entity_modifier_init or false
+
+if not mcl_util._arkacia_entity_modifier_init or not entity_modifier then
+    entity_modifier = {}
+    entity_modifier.player_original_disguise_properties = {}
+    entity_modifier.player_clipboard = {}
+    entity_modifier.player_sizes = {}
+    entity_modifier.player_initial_properties = {}
+end
 
 
-entity_modifier.player_original_disguise_properties = {}
-local player_clipboard = {}
 
-
-local player_initial_properties = {}
-
-minetest.register_on_leaveplayer(function(player)
-    local player_name = player:get_player_name()
-    player_clipboard[player_name] = nil
-    player_initial_properties[player_name] = nil
-end)
+if not mcl_util._arkacia_entity_modifier_init then
+    minetest.register_on_leaveplayer(function(player)
+        local player_name = player:get_player_name()
+        entity_modifier.player_clipboard[player_name] = nil
+        entity_modifier.player_initial_properties[player_name] = nil
+    end)
+end
 
 function entity_modifier.reset_player_model(player_name, player)
-    local player_properties = player_initial_properties[player_name]
+    local player_properties = entity_modifier.player_initial_properties[player_name]
     if not player_properties then
         minetest.chat_send_player(player_name, "Nothing to reset for " .. player_name)
         return
@@ -22,7 +27,7 @@ function entity_modifier.reset_player_model(player_name, player)
     player_properties.nametag = ""
     player:set_properties(player_properties)
     entity_modifier.player_original_disguise_properties[player_name] = nil
-    player_initial_properties[player_name] = nil
+    entity_modifier.player_initial_properties[player_name] = nil
     minetest.chat_send_player(player_name, "Your player model is reset to the default: " .. player_name)
     return player_properties
 end
@@ -91,8 +96,8 @@ function entity_modifier.disguise_player(player, model_name, model_properties)
 
     local player_name = player:get_player_name()
 
-    if not player_initial_properties[player_name] then
-        player_initial_properties[player_name] = entity_modifier.get_entity_properties_with_defaults(
+    if not entity_modifier.player_initial_properties[player_name] then
+        entity_modifier.player_initial_properties[player_name] = entity_modifier.get_entity_properties_with_defaults(
             player:get_properties(), player_name
         )
     end
@@ -103,12 +108,12 @@ function entity_modifier.disguise_player(player, model_name, model_properties)
 end
 
 function entity_modifier.copy_to_or_clear_clipboard(player_name, object_name, properties)
-    local copied_model = player_clipboard[player_name]
+    local copied_model = entity_modifier.player_clipboard[player_name]
     if copied_model and object_name == copied_model.name then
-        player_clipboard[player_name] = nil
+        entity_modifier.player_clipboard[player_name] = nil
         minetest.chat_send_player(player_name, "Clipboard cleared")
     else
-        player_clipboard[player_name] = { name = object_name, properties = properties }
+        entity_modifier.player_clipboard[player_name] = { name = object_name, properties = properties }
         minetest.chat_send_player(player_name, "Model copied: " .. object_name)
     end
 end
@@ -136,7 +141,7 @@ function entity_modifier.disguise_tool_primary(_, player, pointed_object)
             )
         end
     elseif pointed_object.type == "object" then
-        local copied_model = player_clipboard[player_name]
+        local copied_model = entity_modifier.player_clipboard[player_name]
 
         local name = pointed_object.ref:get_player_name() or ""
         local luaentity = pointed_object.ref:get_luaentity()
@@ -152,7 +157,7 @@ function entity_modifier.disguise_tool_primary(_, player, pointed_object)
                 return
             end
 
-            player_clipboard[player_name] = {
+            entity_modifier.player_clipboard[player_name] = {
                 name = name,
                 properties = properties,
             }
@@ -227,7 +232,7 @@ function entity_modifier.disguise_to_model(player_name, model_name, doer_name)
     local model_properties
 
     if not model_name or model_name == "" then
-        local clipboard_model = player_clipboard[doer_name]
+        local clipboard_model = entity_modifier.player_clipboard[doer_name]
         if clipboard_model then
             model_name = clipboard_model.name
             model_properties = clipboard_model.properties
@@ -252,7 +257,7 @@ function entity_modifier.disguise_to_model(player_name, model_name, doer_name)
 end
 
 local function get_clipboard(name)
-    local clipboard = player_clipboard[name]
+    local clipboard = entity_modifier.player_clipboard[name]
     if clipboard then return clipboard end
     minetest.chat_send_player(name, "Clipboard is empty")
 end
@@ -274,7 +279,7 @@ minetest.register_chatcommand("clipboard", {
                 message = "Model in clipboard: " .. clipboard.name
             end
         elseif first_char == "*" then
-            player_clipboard[name] = {}
+            entity_modifier.player_clipboard[name] = {}
             minetest.chat_send_player(name, "Reset mode enabled")
         elseif first_char == "." then
             local clipboard = get_clipboard(name)
@@ -311,12 +316,12 @@ minetest.register_chatcommand("clipboard", {
                 end
             end
         elseif arg == '""' then
-            player_clipboard[name] = nil
+            entity_modifier.player_clipboard[name] = nil
             message = "Clipboard cleared."
         else
             local properties = entity_modifier.get_model_properties(name, arg)
             if properties then
-                player_clipboard[name] = { name = arg, properties = properties }
+                entity_modifier.player_clipboard[name] = { name = arg, properties = properties }
                 message = "Model copied to clipboard: " .. arg
             end
         end
@@ -360,13 +365,13 @@ minetest.register_chatcommand("disguise", {
 
 function entity_modifier.disguise_tool_secondary(_, player, _)
     local player_name = player:get_player_name()
-    local copied_model = player_clipboard[player_name]
+    local copied_model = entity_modifier.player_clipboard[player_name]
     if copied_model and next(copied_model) ~= nil then
         entity_modifier.disguise_player(player, copied_model.name, copied_model.properties)
-    elseif player_initial_properties[player_name] then
+    elseif entity_modifier.player_initial_properties[player_name] then
         entity_modifier.reset_player_model(player_name, player)
     else
-        player_clipboard[player_name] = {
+        entity_modifier.player_clipboard[player_name] = {
             name = player_name,
             properties = entity_modifier.get_entity_properties_with_defaults(
                 player:get_properties(),
@@ -407,7 +412,6 @@ minetest.register_chatcommand("list_models", {
         minetest.chat_send_player(name, "Available entity model names:" .. model_names)
     end
 })
-entity_modifier.player_sizes = {}
 
 minetest.register_on_joinplayer(function(player)
     local size = entity_modifier.player_sizes[player:get_player_name()]
@@ -418,21 +422,61 @@ minetest.register_on_joinplayer(function(player)
     end
 end)
 
-minetest.register_on_leaveplayer(function(player)
-    entity_modifier.player_sizes[player:get_player_name()] = nil
-end)
+if not mcl_util._arkacia_entity_modifier_init then
+    minetest.register_on_leaveplayer(function(player)
+        entity_modifier.player_sizes[player:get_player_name()] = nil
+    end)
 
-minetest.register_on_respawnplayer(function(player)
-    entity_modifier.resize_player(player, entity_modifier.player_sizes[player:get_player_name()])
-end)
+    minetest.register_on_respawnplayer(function(player)
+        entity_modifier.resize_player(player, entity_modifier.player_sizes[player:get_player_name()])
+    end)
+end
 
-entity_modifier.resize_player = function(player, size)
+entity_modifier.resize_mob = function(obj, size, minsize, max_size)
+    minsize = minsize or 0
+    max_size = max_size or 100
+    size = size or 1
+
+    
+
+    if size < minsize or size > max_size or not obj then
+        return
+    end
+
+    local le = obj:get_luaentity()
+    if not le then return end
+
+    local default_properties = mcl_mobs.registered_mobs[le.name]
+
+
+
+    local new_properties = {}
+
+
+    if default_properties.collisionbox then
+        for i, v in ipairs(default_properties.collisionbox) do
+            default_properties.collisionbox[i] = v * size
+        end
+    end
+    if default_properties.selectionbox then
+        for i, v in ipairs(default_properties.selectionbox) do
+            default_properties.selectionbox[i] = v * size
+        end
+    end
+    new_properties.visual_size = { x = size, y = size }
+
+    obj:set_properties(new_properties)
+end
+
+entity_modifier.resize_player = function(player, size, minsize, max_size)
+    minsize = minsize or 0
+    max_size = max_size or 100
     local player_name = player:get_player_name()
     size = size or 1
     entity_modifier.player_sizes[player_name] = size
 
 
-    if size < 0 or size > 80 then
+    if size < minsize or size > max_size then
         minetest.chat_send_player(player_name, "Invalid size: " .. size)
         return
     end
@@ -461,9 +505,6 @@ entity_modifier.resize_player = function(player, size)
             { x = 0, y = 0, z = 0 },
             { x = 0, y = size * 5, z = -size }
         )
-        if size >= 4 then
-            jump = 2
-        end
     end
     player:set_physics_override({ jump = jump })
 
@@ -485,8 +526,23 @@ entity_modifier.resize_player = function(player, size)
         new_properties.eye_height = default_properties.eye_height * size
     end
     new_properties.visual_size = { x = size, y = size }
+    new_properties.stepheight = 0.6
+    
+    local offset = { x = 0, y = (size * 2 - 1.8375) * 10, z = 0 }
+    player:set_eye_offset(offset, offset)
 
     player:set_properties(new_properties)
+end
+
+entity_modifier.resize = function(obj, size, minsize, max_size)
+    if not obj then return end
+    if obj:is_player() then
+        return entity_modifier.resize_player(obj, size, minsize, max_size)
+    end
+    local le = obj:get_luaentity()
+    if le and le.is_mob then
+        return entity_modifier.resize_mob(obj, size, minsize, max_size)
+    end
 end
 
 minetest.register_privilege("resize", {
@@ -530,7 +586,12 @@ minetest.register_chatcommand("resizeme", {
     end
 })
 
+if not mcl_util._arkacia_entity_modifier_init then
+    minetest.register_on_leaveplayer(function(player)
+        entity_modifier.player_original_disguise_properties[player:get_player_name()] = nil
+    end)
+end
 
-minetest.register_on_leaveplayer(function(player)
-    entity_modifier.player_original_disguise_properties[player:get_player_name()] = nil
-end)
+if not mcl_util._arkacia_entity_modifier_init then
+    mcl_util._arkacia_entity_modifier_init = true
+end

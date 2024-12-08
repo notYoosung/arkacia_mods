@@ -15,13 +15,8 @@ local spellbook_types = {
 }
 
 
-local max_text_length = 4500 -- TODO: Increase to 12800 when scroll bar was added to written book
-local max_title_length = 64
-
-
--- local magic = {
-
--- }
+local max_text_length = 12800
+local max_title_length = 128
 
 
 local header = ""
@@ -30,7 +25,6 @@ if minetest.get_modpath("mcl_init") then
         "style_type[button;border=false;bgimg=mcl_books_button9.png;bgimg_pressed=mcl_books_button9_pressed.png;bgimg_middle=2,2]"
 end
 
--- Book
 minetest.register_craftitem(":" .. modname .. ":book", {
     description = S("Book"),
     inventory_image = "default_book.png",
@@ -61,8 +55,8 @@ end
 local function write(itemstack, user, pointed_thing)
     local rc = mcl_util.call_on_rightclick(itemstack, user, pointed_thing)
     if rc then return rc end
-    --.25/6
-    -- 73x90
+    
+    
     local text = itemstack:get_meta():get_string("text")
     local formspec = table.concat({
         "formspec_version[4]",
@@ -72,9 +66,9 @@ local function write(itemstack, user, pointed_thing)
         "background[7.5,-0.5;9,10;z_magic_page_right.png]",
         "background[7.5,-0.5;9,10;z_magic_page_button_yes.png]",
         "background[7.5,-0.5;9,10;z_magic_page_button_no.png]",
-        --"textarea[0.75,0.1;7.25,9;text;;" .. minetest.formspec_escape(text) .. "]",
-        --"button[0.75,7.95;3,1;sign;" .. minetest.formspec_escape(S("Sign")) .. "]",
-        --"button_exit[4.25,7.95;3,1;ok;" .. minetest.formspec_escape(S("Done")) .. "]",
+        --[["textarea[0.75,0.1;7.25,9;text;;" .. minetest.formspec_escape(text) .. "]",
+        "button[0.75,7.95;3,1;sign;" .. minetest.formspec_escape(S("Sign")) .. "]",
+        "button_exit[4.25,7.95;3,1;ok;" .. minetest.formspec_escape(S("Done")) .. "]",]]
         "button_exit[08.45,1.5;3.178,1.7;yes;" .. minetest.formspec_escape(" ") .. "]",
         "button_exit[12.054,1.8;3.178,1.7;no;" .. minetest.formspec_escape(" ") .. "]",
     })
@@ -94,7 +88,6 @@ local function read(itemstack, user, pointed_thing)
     minetest.show_formspec(user:get_player_name(), modname .. ":written_book", formspec)
 end
 
--- Book and Quill
 minetest.register_craftitem(":" .. modname .. ":writable_book", {
     description = S("Book and Quill"),
     _tt_help = S("Write down some notes"),
@@ -111,14 +104,6 @@ minetest.register_craftitem(":" .. modname .. ":writable_book", {
 })
 
 
--- minetest.register_craft({
--- 	type = "fuel",
--- 	recipe = modname .. ":bookbookshelf",
--- 	burntime = 15,
--- })
-
-
---
 
 
 
@@ -177,13 +162,13 @@ local wield_scale = minetest.settings:get("wield3d_scale")
 
 update_time = update_time and tonumber(update_time) or 1
 verify_time = verify_time and tonumber(verify_time) or 10
-wield_scale = wield_scale and tonumber(wield_scale) or 0.25 -- default scale
+wield_scale = wield_scale and tonumber(wield_scale) or 0.25 --[[default scale]]
 
 local location = {
-    "Arm_Right",                    -- default bone
-    { x = 0, y = 2 / 16, z = 0 },   -- default position
-    { x = 0, y = 0,      z = 0 },   -- default rotation
-    { x = 5, y = 5,      z = 0.5 }, -- visual size
+    "Arm_Right",                    --[[default bone]
+    { x = 0, y = 2 / 16, z = 0 },   --[[default position]]
+    { x = 0, y = 0,      z = 0 },   --[[default rotation]]
+    { x = 5, y = 5,      z = 0.5 }, --[[visual size]]
 }
 
 
@@ -210,30 +195,30 @@ local magic_circle_entity = {
     pointable = false,
     collide_with_objects = false,
     collisionbox = { -0.125, -0.125, -0.125, 0.125, 0.125, 0.125 },
-    -- is_visible = false,
+    --[[is_visible = false,]]
     visual = "cube",
     mesh = "flat_plane.obj",
     textures = {
-        -- {
-        -- name =
+        --[[{
+        name =]]
         "temp_magic_circle.png",
         "blank.png",
         "blank.png",
         "blank.png",
         "blank.png",
         "blank.png",
-        -- 	animation = {
-        -- 		type = "vertical_frames",
-        -- 		aspect_w = 210,
-        -- 		aspect_h = 210,
-        -- 		length = 75 * 0.06,
-        -- 	}
-        -- },
-        -- {name = "blank.png"},
-        -- {name = "blank.png"},
-        -- {name = "blank.png"},
-        -- {name = "blank.png"},
-        -- {name = "blank.png"},
+        --[[ 	animation = {
+        		type = "vertical_frames",
+        		aspect_w = 210,
+        		aspect_h = 210,
+        		length = 75 * 0.06,
+        	}
+        },
+        {name = "blank.png"},
+        {name = "blank.png"},
+        {name = "blank.png"},
+        {name = "blank.png"},
+        {name = "blank.png"},]]
     },
     wielder = nil,
     timer = 0,
@@ -241,9 +226,9 @@ local magic_circle_entity = {
     visual_size = { x = 10, y = 0, z = 10 },
     glow = 14,
     automatic_rotate = 0.25,
-    -- wield_image = "magic_circle.png",
-    -- use_texture_alpha = true,
-    -- _pos = vector.zero(),
+    --[[wield_image = "magic_circle.png",
+    use_texture_alpha = true,
+    _pos = vector.zero(),]]
 }
 
 
@@ -464,7 +449,7 @@ if not mcl_util._magikacia_init_fields then
                 meta:set_string("text", text)
                 meta:set_string("description", make_description(title, name, 0))
 
-                -- The book copy counter. 0 = original, 1 = copy of original, 2 = copy of copy of original, …
+                --[[The book copy counter. 0 = original, 1 = copy of original, 2 = copy of copy of original, …]]
                 meta:set_int("generation", 0)
 
                 player:set_wielded_item(newbook)
@@ -480,7 +465,6 @@ if not mcl_util._magikacia_init_fields then
     end)
 
     minetest.register_craft_predict(craft_copy_book)
-    --This adds 8 recipes containing 1 written book and 1-8 writeable book
     for i = 1, 8 do
         local rc = {}
         table.insert(rc, modname .. ":written_book")
@@ -533,7 +517,7 @@ if not mcl_util._magikacia_init_fields then
                         minsize = 1,
                         maxsize = 3,
                         collisiondetection = true,
-                        -- attached = player,
+                        --[[attached = player,]]
                         vertical = false,
                         node = nodeunder,
                     })
@@ -561,3 +545,59 @@ if not mcl_util._magikacia_init_fields then
         end
     end)
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mcl_mobs.register_mob("mobs_mc:endermite", {
+    description = "Endermite",
+    type = "monster",
+    spawn_class = "hostile",
+    passive = false,
+    hp_min = 8,
+    hp_max = 8,
+    xp_min = 3,
+    xp_max = 3,
+    armor = { fleshy = 100, arthropod = 100 },
+    group_attack = true,
+    collisionbox = { -0.2, -0.01, -0.2, 0.2, 0.29, 0.2 },
+    visual = "mesh",
+    mesh = "mobs_mc_endermite.b3d",
+    textures = {
+        { magikacia.textures.mobs_adminite },
+    },
+    visual_size = { x = 3, y = 3 },
+    makes_footstep_sound = false,
+    sounds = {
+        random = "mobs_mc_endermite_random",
+        damage = "mobs_mc_endermite_hurt",
+        death = "mobs_mc_endermite_death",
+        distance = 16,
+    },
+    walk_velocity = 2,
+    run_velocity = 4,
+    animation = {
+        stand_start = 0,
+        stand_end = 0,
+        walk_start = 0,
+        walk_end = 20,
+        walk_speed = 55
+    },
+    jump = true,
+    fear_height = 4,
+    view_range = 16,
+    damage = 2,
+    reach = 1,
+})
+
+mcl_mobs.register_egg("mobs_mc:endermite", "Endermite", "#161616", "#6d6d6d", 0)

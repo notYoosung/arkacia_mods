@@ -43,8 +43,8 @@ local pr = PseudoRandom(os.time() * (-334))
 
 
 
- 
- 
+
+
 local create_enderman_textures = function(block_type, itemstring)
     local base = "mobs_mc_enderman.png^mobs_mc_enderman_eyes.png"
     return {
@@ -56,13 +56,12 @@ local create_enderman_textures = function(block_type, itemstring)
         "blank.png",
         "blank.png",
         "blank.png",
-        base,  
+        base,
     }
 end
 
- 
+
 local select_enderman_animation = function(animation_type)
-     
     if animation_type == "block" then
         return {
             stand_start = 200,
@@ -76,7 +75,6 @@ local select_enderman_animation = function(animation_type)
             punch_start = 121,
             punch_end = 160,
         }
-         
     elseif animation_type == "normal" or animation_type == nil then
         return {
             stand_start = 40,
@@ -160,7 +158,6 @@ mcl_mobs.register_mob(":scp:scp_4335", {
         return #minetest.find_nodes_in_area(vector.offset(pos, 0, 1, 0), vector.offset(pos, 0, 3, 0), { "air" }) > 2
     end,
     do_custom = function(self, dtime)
-         
         local enderpos = self.object:get_pos()
         local dim = mcl_worlds.pos_to_dimension(enderpos)
         if dim == "overworld" then
@@ -170,13 +167,12 @@ mcl_mobs.register_mob(":scp:scp_4335", {
                 enderpos.y = enderpos.y + 2.89
                 local height = { x = enderpos.x, y = enderpos.y + 512, z = enderpos.z }
                 local ray = minetest.raycast(enderpos, height, true)
-                 
+
                 for pointed_thing in ray do
                     if pointed_thing.type == "node" then
                         local nn = minetest.get_node(minetest.get_pointed_thing_position(pointed_thing)).name
                         local def = minetest.registered_nodes[nn]
                         if (not def) or def.walkable then
-                             
                             damage = false
                             break
                         end
@@ -185,18 +181,18 @@ mcl_mobs.register_mob(":scp:scp_4335", {
 
                 if damage == true then
                     self.state = ""
-                     
+
                     self.object:punch(self.object, 1.0, {
                         full_punch_interval = 1.0,
                         damage_groups = { fleshy = self._damage },
                     }, nil)
-                     
+
                     self:teleport(nil)
                 end
             end
         end
 
-         
+
         if self.state == "attack" then
             if self.attack then
                 local target = self.attack
@@ -207,7 +203,7 @@ mcl_mobs.register_mob(":scp:scp_4335", {
                     end
                 end
             end
-        else  
+        else
             if dim == 'overworld' then
                 local light = minetest.get_node_light(enderpos)
                 if light and light > minetest.LIGHT_MAX then
@@ -215,8 +211,8 @@ mcl_mobs.register_mob(":scp:scp_4335", {
                 end
             end
         end
-         
-         
+
+
 
         enderpos = self.object:get_pos()
         enderpos.y = enderpos.y + 1.5
@@ -231,24 +227,22 @@ mcl_mobs.register_mob(":scp:scp_4335", {
             end
         end
 
-         
+
         local enderpos = self.object:get_pos()
         if self.provoked == "broke_contact" then
             self.provoked = "false"
-             
-             
-             
-             
+
+
+
+
             if self.attack ~= nil and enable_damage then
                 self.state = 'attack'
             end
-             
         end
-         
+
         for obj in mcl_util.connected_players(enderpos, 64) do
-             
             local player_pos = obj:get_pos()
-             
+
             local look_dir_not_normalized = obj:get_look_dir()
             local look_dir = vector.normalize(look_dir_not_normalized)
             local player_eye_height = obj:get_properties().eye_height
@@ -266,14 +260,14 @@ mcl_mobs.register_mob(":scp:scp_4335", {
                     self.provoked = "staring"
                     self.attack = minetest.get_player_by_name(obj:get_player_name())
                     break
-                else  
+                else
                     if self.provoked == "staring" then
                         self.provoked = "broke_contact"
                     end
                 end
             end
         end
-         
+
         local enderpos = self.object:get_pos()
         if math.random(1, 140) == 1 then
             for mob in minetest.objects_inside_radius(enderpos, self.view_range) do
@@ -284,23 +278,22 @@ mcl_mobs.register_mob(":scp:scp_4335", {
                 end
             end
         end
-         
     end,
     do_teleport = function(self, target)
         if target ~= nil then
             local target_pos = target:get_pos()
-             
+
             local nodes = minetest.find_nodes_in_area_under_air(vector.subtract(target_pos, 5), vector.add(target_pos, 5),
-                { "mcl_core:andesite_smooth", "mcl_copper:block_oxidized_preserved", "mcl_stairs:slab_andesite_smooth_top", "mcl_copper:block_oxidized_grate_preserved" })
+                { "mcl_core:andesite_smooth", "mcl_copper:block_oxidized_preserved",
+                    "mcl_stairs:slab_andesite_smooth_top", "mcl_copper:block_oxidized_grate_preserved" })
             local telepos
             if nodes ~= nil then
                 if #nodes > 0 then
-                     
                     for _ = 1, math.min(64, #nodes) do
                         local r = pr:next(1, #nodes)
                         local nodepos = nodes[r]
                         local node_ok = true
-                         
+
                         for u = 1, 3 do
                             local node = minetest.get_node({ x = nodepos.x, y = nodepos.y + u, z = nodepos.z })
                             local ndef = minetest.registered_nodes[node.name]
@@ -321,19 +314,17 @@ mcl_mobs.register_mob(":scp:scp_4335", {
                 end
             end
         else
-             
             local pos = self.object:get_pos()
-             
+
             for _ = 1, 8 do
                 local node_ok = false
-                 
+
                 local randomCube = vector.new(pos.x + 8 * (pr:next(0, 16) - 8), pos.y + 8 * (pr:next(0, 16) - 8),
                     pos.z + 8 * (pr:next(0, 16) - 8))
                 local nodes = minetest.find_nodes_in_area_under_air(vector.subtract(randomCube, 4),
                     vector.add(randomCube, 4), { "group:solid", "group:cracky", "group:crumbly" })
                 if nodes ~= nil then
                     if #nodes > 0 then
-                         
                         for _ = 1, math.min(8, #nodes) do
                             local r = pr:next(1, #nodes)
                             local nodepos = nodes[r]
@@ -362,18 +353,13 @@ mcl_mobs.register_mob(":scp:scp_4335", {
             end
         end
     end,
-    do_punch = function(self, hitter, tflp, tool_caps, dir)  
-         
+    do_punch = function(self, hitter, tflp, tool_caps, dir)
         if hitter ~= self.object and hitter ~= nil then
-             
-             
-             
-            if pr:next(1, 8) == 8 then  
+            if pr:next(1, 8) == 8 then
                 self:teleport(hitter)
             end
             self.attack = hitter
             self.state = "attack"
-             
         end
     end,
     custom_attack = function(self)
@@ -394,7 +380,7 @@ mcl_mobs.register_mob(":scp:scp_4335", {
 })
 
 
- 
+
 mcl_mobs.register_egg(":scp:scp_4335", S("SCP-4335"), "#252525", "#151515", 0)
 
 

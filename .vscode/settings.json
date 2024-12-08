@@ -12,7 +12,8 @@
         "mcl_sounds",
         "mesecon",
         "mcl_skins",
-        "ItemStack"
+        "ItemStack",
+        "PcgRandom"
     ],
     "git.postCommitCommand": "sync",
     "luahelper.format.column_limit": 1000000000
