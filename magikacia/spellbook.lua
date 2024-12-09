@@ -7,169 +7,14 @@ local S = minetest.get_translator(minetest.get_current_modname())
 local F = minetest.formspec_escape
 local C = minetest.colorize
 
+local resize_max_size = 80
+
 local spellbook_types = {
     "iron",
     "gold",
     "diamond",
     "netherite",
 }
-
-mcl_util._magikacia_spellbook_init = mcl_util._magikacia_spellbook_init or false
-
-local resize_max_size = 80
-
-local static_objs = {
-    "mcl_chests:chest",
-    "mcl_itemframes:item",
-    "mcl_enchanting:book",
-}
-function magikacia.is_obj_not_static(obj)
-    if not obj then
-        return
-    end
-    if obj:is_player() then
-        return true
-    end
-    local le = obj:get_luaentity()
-    if not le then
-        return
-    end
-    if not le then
-        return false
-    end
-    for _, name in ipairs(static_objs) do
-        if name == obj:get_luaentity().name then
-            return false
-        end
-    end
-end
-
-function magikacia.safe_replace(pos, node_name, placer)
-    if not pos then return end
-    local node = minetest.get_node(pos)
-    if node and (node.name == "air" or minetest.registered_nodes[node.name] and minetest.registered_nodes[node.name].buildable_to == true) and not minetest.is_protected(pos, placer:get_player_name()) then
-        minetest.swap_node(pos, { name = node_name })
-    end
-end
-
-local runes = {
-    "earth",
-    "electric",
-    "fire",
-    "ice",
-    "telepathic",
-    "void",
-    "water",
-    "wind",
-}
-
-
-
-local function deal_spell_damage(obj, damage, typename, source)
-    mcl_util.deal_damage(obj, 20, { type = "magikacia_spell_" .. typename, source = source, direct = source })
-end
-
-
-
-
-
-local rng = PcgRandom(32321123312123)
-
-local function lightning_strike(pos, user)
-    if not pos then
-        return false
-    end
-    local do_strike = true
-    if mcl_lightning.on_strike_functions then
-        for _, func in pairs(mcl_lightning.on_strike_functions) do
-            local objects = minetest.get_objects_inside_radius(pos, 3.5)
-            local p, stop = pcall(function() return func(pos, pos, objects) end)
-        end
-    end
-
-    local particle_pos = vector.offset(pos, 0, (mcl_lightning.size / 2) + 0.5, 0)
-    local time = 0.2
-    local particle_size = mcl_lightning.size * 10
-    minetest.add_particlespawner({
-        amount = 1,
-        time = time,
-        minpos = particle_pos,
-        maxpos = particle_pos,
-        minexptime = time,
-        maxexptime = time,
-        minsize = particle_size,
-        maxsize = particle_size,
-        collisiondetection = true,
-        vertical = true,
-        texture = "lightning_lightning_" .. rng:next(1, 3) .. ".png",
-        glow = minetest.LIGHT_MAX,
-    })
-
-    minetest.sound_play({ name = "lightning_thunder", gain = 10 }, { pos = pos, max_hear_distance = 500 }, true)
-
-    local objects = minetest.get_objects_inside_radius(pos, 3.5)
-    for _, obj in pairs(objects) do
-        if obj:is_player() and obj:get_player_name() ~= user:get_player_name() or obj:get_luaentity() then
-            local lua = obj:get_luaentity()
-            if lua then
-                if not lua._on_lightning_strike or (lua._on_lightning_strike and lua._on_lightning_strike(lua, pos, pos, objects) ~= true) then
-                    deal_spell_damage(obj, 5, "electric_primary", user)
-                end
-            else
-                deal_spell_damage(obj, 5, "electric_primary", user)
-            end
-        end
-    end
-
-    for _, npos in pairs(minetest.find_nodes_in_area(vector.offset(pos, -5, -5, -5), vector.offset(pos, 5, 5, 5), { "group:affected_by_lightning" })) do
-        local node = minetest.get_node(npos)
-        if node then
-            local def = minetest.registered_nodes[node.name]
-            if def and def._on_lightning_strike then
-                pcall(function()
-                    def._on_lightning_strike(npos, pos, pos)
-                end)
-            end
-        end
-    end
-
-
-    pos.y = pos.y + 1 / 2
-    local node = minetest.get_node({ x = pos.x, y = pos.y - 1, z = pos.z })
-    if node and minetest.get_item_group(node.name, "liquid") < 1 then
-        local posnode = minetest.get_node(pos)
-        if posnode and posnode.name == "air" then
-            if rng:next(1, 100) <= 3 then
-                local sh = minetest.add_entity(pos, "mobs_mc:skeleton_horse")
-                if sh then
-                    local le = sh:get_luaentity()
-                    if le then
-                        le.owner = (user and user:is_player() and user:get_player_name()) or nil
-                        le.tamed = true
-                    end
-                end
-
-                local angle, posadd
-                angle = math.random(0, math.pi * 2)
-                for _ = 1, 3 do
-                    posadd = { x = math.cos(angle), y = 0, z = math.sin(angle) }
-                    posadd = vector.normalize(posadd)
-                    local mob = minetest.add_entity(vector.add(pos, posadd), "mobs_mc:skeleton")
-                    if mob then
-                        mob:set_yaw(angle - math.pi / 2)
-                        local le = mob:get_luaentity()
-                        if le then
-                            le.owner = (user and user:is_player() and user:get_player_name()) or ""
-                        end
-                    end
-                    angle = angle + (math.pi * 2) / 3
-                end
-            end
-        end
-    end
-end
-
-
 
 local around_plus_pos_list = {
     { 0,  0 },
@@ -178,81 +23,11 @@ local around_plus_pos_list = {
     { -1, 0 },
     { 0,  -1 },
 }
-local function spawn_effect_anim(def)
-    if not def.pos then return end
-    minetest.add_particle({
-        pos = def.pos,
-        velocity = { x = 0, y = 0, z = 0 },
-        acceleration = { x = 0, y = 0, z = 0 },
-        expirationtime = def.duration_total or 2,
-        size = def.size or 25,
-        collisiondetection = false,
-        collision_removal = false,
-        object_collision = false,
-        vertical = false,
-        texture = {
-            name = magikacia.textures[def.texture] or "blank.png",
-        },
-        animation = {
-            type = "vertical_frames",
-            aspect_w = 32,
-            aspect_h = 32,
-            length = def.duration_anim or 0.25,
-        },
-        glow = (def.glow ~= nil and def.glow) or 14,
-        attached = def.attached or nil
-    })
-end
+
+mcl_util._magikacia_spellbook_init = mcl_util._magikacia_spellbook_init or false
 
 
 
-local mod_target = minetest.get_modpath("mcl_target")
-
-
-
-
-
-minetest.register_node(":magikacia:fire_temp", {
-    description = "Temporary Fire",
-    drawtype = "firelike",
-    tiles = {
-        {
-            name = "fire_basic_flame_animated.png",
-            animation = {
-                type = "vertical_frames",
-                aspect_w = 16,
-                aspect_h = 16,
-                length = 1
-            },
-        },
-    },
-    inventory_image = "fire_basic_flame.png",
-    paramtype = "light",
-    light_source = minetest.LIGHT_MAX,
-    walkable = false,
-    buildable_to = true,
-    sunlight_propagates = true,
-    damage_per_second = 1,
-    groups = { fire = 1, dig_immediate = 3, not_in_creative_inventory = 0, dig_by_piston = 1, destroys_items = 1, set_on_fire = 8, unsticky = 1 },
-    floodable = true,
-    on_flood = function(pos, _, newnode)
-        if minetest.get_item_group(newnode.name, "water") ~= 0 then
-            minetest.sound_play("fire_extinguish_flame", { pos = pos, gain = 0.25, max_hear_distance = 16 }, true)
-        end
-    end,
-    drop = "",
-    sounds = {},
-    on_construct = function(pos)
-        local timer = minetest.get_node_timer(pos)
-        timer:start(5)
-    end,
-    on_timer = function(pos)
-        if minetest.get_node(pos).name == "magikacia:fire_temp" then
-            minetest.sound_play("fire_extinguish_flame", { pos = pos, gain = 0.25, max_hear_distance = 16 }, true)
-            minetest.swap_node(pos, { name = "air" })
-        end
-    end,
-})
 
 
 local function get_formspec(name, width, height)
@@ -535,20 +310,6 @@ function magikacia.bag_inv_remove_item(bagstack, itemstack)
     return false
 end
 
-local function radius_effect_func(pos, radius, placer, func, include_placer)
-    for obj, _ in minetest.objects_inside_radius(pos, radius) do
-        if obj then
-            local obj_is_player = obj:is_player()
-            if (obj:get_luaentity() ~= nil and magikacia.is_obj_not_static(obj))
-                or (obj_is_player and (include_placer or obj:get_player_name() ~= placer:get_player_name()))
-            then
-                if func then
-                    func(obj, obj_is_player)
-                end
-            end
-        end
-    end
-end
 
 
 local function get_visual_size(obj)
@@ -589,6 +350,8 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
     local use_at_place_above = false
     local use_at_place_under = false
     local use_at_self = false
+    local itemname = itemstack:get_name()
+    local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
 
     local is_placer_sneaking = false
     if placer:is_player() then
@@ -604,10 +367,12 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         for i = 1, 5 do
             local pos = vector.add(vector.offset(use_pos_self, 0, placer:get_properties().eye_height * 0.7, 0),
                 vector.multiply(offset, i))
-            radius_effect_func(use_pos_above, 2, placer, function(obj)
-                deal_spell_damage(obj, 3, "earth_primary", placer)
-            end)
-            spawn_effect_anim({
+            if use_pos_above then
+                magikacia.radius_effect_func(use_pos_above, 2, placer, function(obj)
+                    magikacia.deal_spell_damage(obj, 3, "earth_primary", placer)
+                end)
+            end
+            magikacia.spawn_effect_anim({
                 pos = pos,
                 texture = "effect_earth_primary",
                 duration_total = 0.4,
@@ -619,8 +384,8 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_electric") then
-        lightning_strike(vector.offset(use_pos_above, 0, -1, 0), placer)
-        spawn_effect_anim({
+        magikacia.lightning_strike(vector.offset(use_pos_above, 0, -1, 0), placer)
+        magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_vortex_blue",
         })
@@ -634,7 +399,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
                 "magikacia:fire_temp",
                 placer)
         end
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_fire_primary",
         })
@@ -644,11 +409,11 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_ice") then
-        radius_effect_func(use_pos_above, 3, placer, function(obj)
+        magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             mcl_potions.swiftness_func(obj, -1, 3)
             mcl_potions.leaping_func(obj, -1, 3)
         end)
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_vortex_blue",
         })
@@ -676,7 +441,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
                 placer:set_pos(use_pos_above)
             end
         end
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_vortex_blue",
         })
@@ -685,9 +450,9 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_water") then
-        radius_effect_func(use_pos_above, 3, placer, function(obj)
+        magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
-                deal_spell_damage(obj, 5, "water_primary", placer)
+                magikacia.deal_spell_damage(obj, 5, "water_primary", placer)
             end
             mcl_burning.extinguish(obj)
         end, true)
@@ -698,7 +463,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
             minetest.bulk_set_node(nodes, { name = "air" })
         end
 
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_water_primary",
             size = 30,
@@ -710,10 +475,10 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_void") then
-        radius_effect_func(use_pos_above, 2, placer, function(obj)
-            deal_spell_damage(obj, 20, "void_primary", placer)
+        magikacia.radius_effect_func(use_pos_above, 2, placer, function(obj)
+            magikacia.deal_spell_damage(obj, 20, "void_primary", placer)
         end)
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_void_primary",
             duration_total = 0.5,
@@ -724,12 +489,12 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_wind") then
-        radius_effect_func(use_pos_above, 8, placer, function(obj)
+        magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
             local newvel = vector.offset(
                 vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
             obj:add_velocity(newvel)
         end, true)
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_vortex_blue",
         })
@@ -739,7 +504,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
 
     if entity_modifier and use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_disguise") then
         entity_modifier.disguise_tool_primary(itemstack, placer, pointed_thing)
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_vortex_blue",
         })
@@ -758,7 +523,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
                     resize_max_size
                 )
                 if use_pos_above then
-                    spawn_effect_anim({
+                    magikacia.spawn_effect_anim({
                         pos = use_pos_above,
                         texture = "effect_vortex_blue",
                         size = 15,
@@ -769,14 +534,14 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
             use_success = true
         else
             local vs = get_visual_size(placer) * 1.1
-            if vs and vs <= resize_max_size then
+            if vs and (is_gauntlet_admin or vs <= resize_max_size) then
                 entity_modifier.resize_player(
                     placer,
                     vs,
                     0.1,
-                    resize_max_size
+                    is_gauntlet_admin or resize_max_size
                 )
-                spawn_effect_anim({
+                magikacia.spawn_effect_anim({
                     pos = use_pos_self,
                     texture = "effect_vortex_blue",
                     size = 15,
@@ -788,7 +553,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_poison") then
-        radius_effect_func(use_pos_above, 3, placer, function(obj, obj_is_player)
+        magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj, obj_is_player)
             if obj_is_player then
                 mcl_potions.poison_func(obj, 1, 3)
             end
@@ -799,11 +564,11 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_healing") then
-        radius_effect_func(use_pos_above, 3, placer, function(obj)
+        magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             mcl_potions.regeneration_func(obj, 1, 3)
             mcl_potions.healing_func(obj, 6)
         end, true)
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_vortex_blue",
         })
@@ -865,7 +630,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     if has_in_spellbook(itemstack, placer, modname .. ":rune_earth") and spell_earth_time_active == 0 then
         meta:set_float("magikacia:spell_earth_time_active", spell_earth_time_active + 1)
         placer:add_velocity({ x = 0, y = 15, z = 0 })
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_self,
             texture = "effect_earth_secondary",
         })
@@ -890,9 +655,10 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     end
 
     if has_in_spellbook(itemstack, placer, modname .. ":rune_telepathic") then
-        minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(),
-            formspec_ender_chest)
-        spawn_effect_anim({
+        --[[minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(),
+             formspec_ender_chest)]]
+        magikacia.random_teleport_obj(placer)
+        magikacia.spawn_effect_anim({
             pos = use_pos_self,
             texture = "effect_vortex_blue",
         })
@@ -901,13 +667,16 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     end
 
     if has_in_spellbook(itemstack, placer, modname .. ":rune_water") then
-        radius_effect_func(use_pos_self, 3, placer, function(obj)
+        magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
-                deal_spell_damage(obj, 10, "water_secondary", placer)
+                magikacia.deal_spell_damage(obj, 10, "water_secondary", placer)
             end
             mcl_burning.extinguish(obj)
         end, true)
-        placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30))
+        local node = minetest.get_node(vector.offset(use_pos_self, 0, 0.5, 0))
+        if minetest.get_item_group(node.name, "water") > 0 or (mcl_weather.rain.raining and mcl_weather.is_outdoor(use_pos_self) and mcl_weather.has_rain(use_pos_self)) then
+            placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30))
+        end
 
         local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_self, -3, -3, -3),
             vector.offset(use_pos_self, 3, 3, 3), "group:fire", true)
@@ -915,7 +684,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             minetest.bulk_set_node(nodes, { name = "air" })
         end
 
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_self,
             texture = "effect_water_secondary",
             attached = placer
@@ -935,17 +704,17 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                                 obj:set_pos(vector.offset(pobj, 0, -1.1, 0))
                                 suck(t - 0.1, obj)
                             else
-                                deal_spell_damage(obj, 20, "void_secondary", placer)
+                                magikacia.deal_spell_damage(obj, 20, "void_secondary", placer)
                             end
                         end
                     end
                 end, time, victim)
             end
         end
-        radius_effect_func(use_pos_above, 3, placer, function(obj)
+        magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             suck(5, obj)
         end)
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_void_secondary",
             duration_total = 5,
@@ -956,9 +725,9 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_place_above = true
     end
     if has_in_spellbook(itemstack, placer, modname .. ":rune_water") then
-        radius_effect_func(use_pos_self, 3, placer, function(obj)
+        magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
-                deal_spell_damage(obj, 10, "water_secondary", placer)
+                magikacia.deal_spell_damage(obj, 10, "water_secondary", placer)
             end
             mcl_burning.extinguish(obj)
         end, true)
@@ -971,7 +740,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             minetest.bulk_set_node(nodes, { name = "air" })
         end
 
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_self,
             texture = "effect_water_secondary",
             attached = placer
@@ -981,11 +750,11 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     end
 
     if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_wind") then
-        radius_effect_func(use_pos_above, 8, placer, function(obj)
+        magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
             local newvel = vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), -10)
             obj:add_velocity(newvel)
         end, true)
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_vortex_blue",
         })
@@ -995,7 +764,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
 
     if entity_modifier and has_in_spellbook(itemstack, placer, modname .. ":rune_disguise") then
         entity_modifier.disguise_tool_secondary(itemstack, placer, pointed_thing)
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_above or use_pos_self,
             texture = "effect_vortex_blue",
         })
@@ -1014,7 +783,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                     resize_max_size
                 )
                 if use_pos_above then
-                    spawn_effect_anim({
+                    magikacia.spawn_effect_anim({
                         pos = use_pos_above,
                         texture = "effect_vortex_blue",
                         size = 15,
@@ -1032,7 +801,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                     0.1,
                     resize_max_size
                 )
-                spawn_effect_anim({
+                magikacia.spawn_effect_anim({
                     pos = use_pos_self,
                     texture = "effect_vortex_blue",
                     size = 15,
@@ -1049,7 +818,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     if use_pos_under and has_in_spellbook(itemstack, placer, modname .. ":rune_protection") then
         minetest.registered_chatcommands["area_pos"].func(placer:get_player_name(),
             use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z)
-        spawn_effect_anim({
+        magikacia.spawn_effect_anim({
             pos = use_pos_under,
             texture = "effect_vortex_blue",
         })

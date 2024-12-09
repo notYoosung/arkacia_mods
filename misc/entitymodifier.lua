@@ -528,7 +528,7 @@ entity_modifier.resize_player = function(player, size, minsize, max_size)
     new_properties.visual_size = { x = size, y = size }
     new_properties.stepheight = 0.6
     
-    local offset = { x = 0, y = (size * 2 - 1.8375) * 10, z = 0 }
+    local offset = { x = 0, y = (size * 2 - 1.675) * 10, z = 0 }
     player:set_eye_offset(offset, offset)
 
     player:set_properties(new_properties)

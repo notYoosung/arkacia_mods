@@ -240,11 +240,11 @@ function magic_circle_entity:on_activate(staticdata)
     self.object:remove()
 end
 
---:set_attach(parent[, bone, position, rotation, forced_visible])
+--[[:set_attach(parent[, bone, position, rotation, forced_visible])]]
 
 
 function magic_circle_entity:on_step(dtime)
-    -- if self.wielder == nil then return end
+    --[[if self.wielder == nil then return end]]
     self.timer = self.timer + (dtime * 25)
     if self.timer > 360 then self.timer = self.timer - 360 end
     local player = minetest.get_player_by_name(self.wielder)
@@ -253,34 +253,34 @@ function magic_circle_entity:on_step(dtime)
         return
     end
     local wield = player_wielding[self.wielder]
-    -- local stack = player:get_wielded_item()
-    -- local item = stack:get_name() or ""
+    --[[local stack = player:get_wielded_item()
+    local item = stack:get_name() or ""]]
     if self.object and wield then
-        -- if has_wieldview then
-        -- 		local def = minetest.registered_items[item] or {}
-        -- 		if def.inventory_image ~= "" then item = "" end
-        -- 	end
-        -- 	wield.item = item
-        -- 	if item == "" then item = modname .. ":magic_magic_circle" end
-        -- 	local loc = location
-        -- 	if loc[1] ~= wield.location[1] or not vector.equals(loc[2], wield.location[2]) or not vector.equals(loc[3], wield.location[3]) then
-        -- if self.object:get_properties()._pos ~= player:get_pos() then
-        --------!	-- self.object:set_attach(player, "", location[2], vector.add(location[3], {x=0, y=(self.timer), z=0}), true)
-        -- self.object:set_properties({_pos = player:get_pos()})
-        -- end
-        -- wield.location = {loc[1], loc[2], loc[3]}
-        -- 	end
-        -- 	self.object:set_properties({
-        -- 		textures = {item},
-        -- 		visual_size = loc[4]
-        -- 	})
+        --[[if has_wieldview then
+        		local def = minetest.registered_items[item] or {}
+        		if def.inventory_image ~= "" then item = "" end
+        	end
+        	wield.item = item
+        	if item == "" then item = modname .. ":magic_magic_circle" end
+        	local loc = location
+        	if loc[1] ~= wield.location[1] or not vector.equals(loc[2], wield.location[2]) or not vector.equals(loc[3], wield.location[3]) then
+        if self.object:get_properties()._pos ~= player:get_pos() then
+        -!	- self.object:set_attach(player, "", location[2], vector.add(location[3], {x=0, y=(self.timer), z=0}), true)
+        self.object:set_properties({_pos = player:get_pos()})
+        end
+        wield.location = {loc[1], loc[2], loc[3]}
+        	end
+        	self.object:set_properties({
+        		textures = {item},
+        		visual_size = loc[4]
+        	})]]
     end
-    -- self.timer = 0
+    --[[self.timer = 0]]
 end
 
 minetest.register_entity(":" .. modname .. ":magic_magic_circle", magic_circle_entity)
 
--- temp_magic_circle.png
+--[[temp_magic_circle.png]]
 local function add_magic_circle_entity(player)
     if not player or not player:is_player() then return end
     local name = player:get_player_name()
@@ -290,49 +290,49 @@ local function add_magic_circle_entity(player)
         local object = minetest.add_entity(pos, modname .. ":magic_magic_circle", name)
         if object then
             object:set_attach(player, "", location[2], location[3], true)
-            -- object:set_properties({
-            -- 	-- textures = {modname .. ":magic_magic_circle"},
-            -- 	-- textures = {"magic_circle.png"},
-            -- 	textures = {
-            -- 		{
-            -- 			name = "magic_circle",
-            -- 			animation = {
-            -- 				type = "vertical_frames",
-            -- 				aspect_w = 210,
-            -- 				aspect_h = 210,
-            -- 				length = 75 * 0.06,
-            -- 			}
-            -- 		},
-            -- 		{name = "blank.png"},
-            -- 		{name = "blank.png"},
-            -- 		{name = "blank.png"},
-            -- 		{name = "blank.png"},
-            -- 		{name = "blank.png"},
-            -- 	},
-            -- 	visual_size = location[4],
-            -- })
+            --[[object:set_properties({
+            	- textures = {modname .. ":magic_magic_circle"},
+            	- textures = {"magic_circle.png"},
+            	textures = {
+            		{
+            			name = "magic_circle",
+            			animation = {
+            				type = "vertical_frames",
+            				aspect_w = 210,
+            				aspect_h = 210,
+            				length = 75 * 0.06,
+            			}
+            		},
+            		{name = "blank.png"},
+            		{name = "blank.png"},
+            		{name = "blank.png"},
+            		{name = "blank.png"},
+            		{name = "blank.png"},
+            	},
+            	visual_size = location[4],
+            })]]
             player_wielding[name] = {
                 item = "",
                 location = location
             }
-            -- object:set_properties({_pos = pos})
+            --[[object:set_properties({_pos = pos})]]
         end
     end
 end
 
--- minetest.register_item(modname .. ":magic_magic_circle", {
--- 	type = "none",
--- 	wield_image = "magic_circle.png",
--- 	use_texture_alpha = "clip",
--- })
+--[[minetest.register_item(modname .. ":magic_magic_circle", {
+	type = "none",
+	wield_image = "magic_circle.png",
+	use_texture_alpha = "clip",
+})
 
--- minetest.register_on_joinplayer(function(ObjectRef, last_login)
--- minetest.after(1, add_magic_circle_entity, ObjectRef)
--- end)
+minetest.register_on_joinplayer(function(ObjectRef, last_login)
+minetest.after(1, add_magic_circle_entity, ObjectRef)
+end)]]
 
 
 
---pacman
+--[[pacman]]
 local function craft_copy_book(itemstack, player, old_craft_grid, craft_inv)
     if itemstack:get_name() ~= modname .. ":written_book" then
         return
@@ -353,18 +353,15 @@ local function craft_copy_book(itemstack, player, old_craft_grid, craft_inv)
     local ometa = original:get_meta()
     local generation = ometa:get_int("generation")
 
-    -- No copy of copy of copy of book allowed
     if generation >= 2 then
         return ItemStack("")
     end
 
-    -- Copy metadata
     local imeta = itemstack:get_meta()
     imeta:from_table(ometa:to_table())
     imeta:set_string("title", cap_text_length(ometa:get_string("title"), max_title_length))
     imeta:set_string("text", cap_text_length(ometa:get_string("text"), max_text_length))
 
-    -- Increase book generation and update description
     generation = generation + 1
     if generation < 1 then
         generation = 1
@@ -376,7 +373,6 @@ local function craft_copy_book(itemstack, player, old_craft_grid, craft_inv)
     return itemstack, original, index
 end
 
--- Written Book
 minetest.register_craftitem(":" .. modname .. ":written_book", {
     description = S("Written Book"),
     _doc_items_longdesc = S(
@@ -500,7 +496,7 @@ if not mcl_util._magikacia_init_fields then
         local meta = player:get_meta()
         local spell_earth_time = meta:get_float("magikacia:spell_earth_time_active") or 0
         local nunderdef = minetest.registered_nodes[nodeunder.name]
-        if spell_earth_time > 0 then
+        if nunderdef and spell_earth_time > 0 then
             if (nunderdef.opaque or nunderdef.walkable == true) and nodeunder.name ~= "air" and player:get_velocity().y <= 0 and spell_earth_time > 1.2 then
                 if nunderdef and nunderdef.walkable then
                     minetest.add_particlespawner({
@@ -556,8 +552,22 @@ end
 
 
 
+--[[
+ OOP the texture is tiny its at the bottom of this text lol- (the eye has the colors of the arkacia flag lol)
+Adminite 
+(it has the model of an endermite) 
+will walk around and has slightly fast speed kinda, abt the same walking speed as a player. Can be binded with commands to only attack certain mobs, or attack all mobs except that certain mob, (can be helpful to clean up spawn because mobs keep spawning and making it laggy)
+command could be:
+/adminite only mobs_mc_endermite
+/\ only attack mobs_mc_endermite (can be replaced with any mob name)
+/adminite except mobs_mc_endermite
+/\ attack all mobs except mobs_mc_endermite (can be replcaed with any mob name)
 
-
+maybe make it so that u hafta hold the specific spawn egg and all the spawn eggs in that current stack will be binded to the cmd-
+also make it a special priv or smt- we dont want random players spawning them to kill everything XD
+-
+also wat if u can seperate the mob names with a comma , so u can do multiple than one mob to whitelist or blacklist XD 
+]]
 
 mcl_mobs.register_mob(":magikacia:adminite", {
     description = "Adminite",
@@ -597,7 +607,93 @@ mcl_mobs.register_mob(":magikacia:adminite", {
     fear_height = 4,
     view_range = 16,
     damage = 2,
-    reach = 1,
+    reach = 3,
+    owner_loyal = true,
+    glow = 14,
+    retaliates = true,
+    follow_velocity = 5,
+    stepheight = 1.1,
+    runaway_from = { "player", "mobs_mc:cat" },
 })
 
-mcl_mobs.register_egg("magikacia:adminite", "Adminite", "#161616", "#6d6d6d", 0)
+mcl_mobs.register_egg(":magikacia:adminite", "Adminite", "#161616", "#6d6d6d", 0)
+
+function magikacia.spawn_adminite()
+
+end
+
+minetest.register_chatcommand("adminite", {
+    description = "Summon an adminite mob",
+    privs = {
+        interact = true,
+    },
+    func = function(name, param)
+        if (param ~= "") then
+            local params = string.split(param, " +")
+            
+            if params[0] == "" then
+                
+
+            end
+            
+            if (minetest.check_player_privs(name, "bring")) then
+                if (minetest.get_player_by_name(param) and name) then
+                    name = param
+                else
+                    minetest.chat_send_player(name, "\"" .. param .. "\" isn't online or doesn't exist.")
+                    return
+                end
+            else
+                minetest.chat_send_player(name,
+                    "You don't have permission to run this command (missing privileges: bring).")
+                return
+            end
+        end
+    end
+})
+
+
+
+
+
+minetest.register_node(":magikacia:fire_temp", {
+    description = "Temporary Fire",
+    drawtype = "firelike",
+    tiles = {
+        {
+            name = "fire_basic_flame_animated.png",
+            animation = {
+                type = "vertical_frames",
+                aspect_w = 16,
+                aspect_h = 16,
+                length = 1
+            },
+        },
+    },
+    inventory_image = "fire_basic_flame.png",
+    paramtype = "light",
+    light_source = minetest.LIGHT_MAX,
+    walkable = false,
+    buildable_to = true,
+    sunlight_propagates = true,
+    damage_per_second = 1,
+    groups = { fire = 1, dig_immediate = 3, not_in_creative_inventory = 0, dig_by_piston = 1, destroys_items = 1, set_on_fire = 8, unsticky = 1 },
+    floodable = true,
+    on_flood = function(pos, _, newnode)
+        if minetest.get_item_group(newnode.name, "water") ~= 0 then
+            minetest.sound_play("fire_extinguish_flame", { pos = pos, gain = 0.25, max_hear_distance = 16 }, true)
+        end
+    end,
+    drop = "",
+    sounds = {},
+    on_construct = function(pos)
+        local timer = minetest.get_node_timer(pos)
+        timer:start(5)
+    end,
+    on_timer = function(pos)
+        if minetest.get_node(pos).name == "magikacia:fire_temp" then
+            minetest.sound_play("fire_extinguish_flame", { pos = pos, gain = 0.25, max_hear_distance = 16 }, true)
+            minetest.swap_node(pos, { name = "air" })
+        end
+    end,
+})

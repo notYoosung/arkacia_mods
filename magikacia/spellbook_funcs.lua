@@ -1,8 +1,216 @@
+local modname = "magikacia"
+local vector = vector
+local minetest = minetest
+local magikacia = magikacia
+
+local S = minetest.get_translator(minetest.get_current_modname())
+local F = minetest.formspec_escape
+local C = minetest.colorize
+
+local static_objs = {
+    "mcl_chests:chest",
+    "mcl_itemframes:item",
+    "mcl_enchanting:book",
+}
+function magikacia.is_obj_not_static(obj)
+    if not obj then
+        return
+    end
+    if obj:is_player() then
+        return true
+    end
+    local le = obj:get_luaentity()
+    if not le then
+        return
+    end
+    if not le then
+        return false
+    end
+    if le.is_mob then
+        return
+    end
+    for _, name in ipairs(static_objs) do
+        if name == le.name then
+            return false
+        end
+    end
+end
+
+function magikacia.safe_replace(pos, node_name, placer)
+    if not pos then return end
+    local node = minetest.get_node(pos)
+    if node and (node.name == "air" or minetest.registered_nodes[node.name] and minetest.registered_nodes[node.name].buildable_to == true) and not minetest.is_protected(pos, placer:get_player_name()) then
+        minetest.swap_node(pos, { name = node_name })
+    end
+end
+
+local runes = {
+    "earth",
+    "electric",
+    "fire",
+    "ice",
+    "telepathic",
+    "void",
+    "water",
+    "wind",
+}
+
+
+
+function magikacia.radius_effect_func(pos, radius, placer, func, include_placer)
+    for obj, _ in minetest.objects_inside_radius(pos, radius) do
+        if obj then
+            local obj_is_player = obj:is_player()
+            local obj_le = obj:get_luaentity()
+            if (obj_le ~= nil and magikacia.is_obj_not_static(obj))
+                or (obj_is_player and (include_placer or obj:get_player_name() ~= placer:get_player_name()))
+            then
+                if func then
+                    func(obj, obj_is_player, obj_le)
+                end
+            end
+        end
+    end
+end
+
+
+
+local rng = PcgRandom(32321123312123)
+
+function magikacia.lightning_strike(pos, user)
+    if not pos then
+        return false
+    end
+    local do_strike = true
+    if mcl_lightning.on_strike_functions then
+        for _, func in pairs(mcl_lightning.on_strike_functions) do
+            local objects = minetest.get_objects_inside_radius(pos, 3.5)
+            local p, stop = pcall(function() return func(pos, pos, objects) end)
+        end
+    end
+
+    local particle_pos = vector.offset(pos, 0, (mcl_lightning.size / 2) + 0.5, 0)
+    local time = 0.2
+    local particle_size = mcl_lightning.size * 10
+    minetest.add_particlespawner({
+        amount = 1,
+        time = time,
+        minpos = particle_pos,
+        maxpos = particle_pos,
+        minexptime = time,
+        maxexptime = time,
+        minsize = particle_size,
+        maxsize = particle_size,
+        collisiondetection = true,
+        vertical = true,
+        texture = "lightning_lightning_" .. rng:next(1, 3) .. ".png",
+        glow = minetest.LIGHT_MAX,
+    })
+
+    minetest.sound_play({ name = "lightning_thunder", gain = 10 }, { pos = pos, max_hear_distance = 500 }, true)
+
+    local objects = minetest.get_objects_inside_radius(pos, 3.5)
+    for _, obj in pairs(objects) do
+        if obj:is_player() and obj:get_player_name() ~= user:get_player_name() or obj:get_luaentity() then
+            local lua = obj:get_luaentity()
+            if lua then
+                if not lua._on_lightning_strike or (lua._on_lightning_strike and lua._on_lightning_strike(lua, pos, pos, objects) ~= true) then
+                    magikacia.deal_spell_damage(obj, 5, "electric_primary", user)
+                end
+            else
+                magikacia.deal_spell_damage(obj, 5, "electric_primary", user)
+            end
+        end
+    end
+
+    for _, npos in pairs(minetest.find_nodes_in_area(vector.offset(pos, -5, -5, -5), vector.offset(pos, 5, 5, 5), { "group:affected_by_lightning" })) do
+        local node = minetest.get_node(npos)
+        if node then
+            local def = minetest.registered_nodes[node.name]
+            if def and def._on_lightning_strike then
+                pcall(function()
+                    def._on_lightning_strike(npos, pos, pos)
+                end)
+            end
+        end
+    end
+
+
+    pos.y = pos.y + 1 / 2
+    local node = minetest.get_node({ x = pos.x, y = pos.y - 1, z = pos.z })
+    if node and minetest.get_item_group(node.name, "liquid") < 1 then
+        local posnode = minetest.get_node(pos)
+        if posnode and posnode.name == "air" then
+            if rng:next(1, 100) <= 3 then
+                local sh = minetest.add_entity(pos, "mobs_mc:skeleton_horse")
+                if sh then
+                    local le = sh:get_luaentity()
+                    if le then
+                        le.owner = (user and user:is_player() and user:get_player_name()) or nil
+                        le.tamed = true
+                    end
+                end
+
+                local angle, posadd
+                angle = math.random(0, math.pi * 2)
+                for _ = 1, 3 do
+                    posadd = { x = math.cos(angle), y = 0, z = math.sin(angle) }
+                    posadd = vector.normalize(posadd)
+                    local mob = minetest.add_entity(vector.add(pos, posadd), "mobs_mc:skeleton")
+                    if mob then
+                        mob:set_yaw(angle - math.pi / 2)
+                        local le = mob:get_luaentity()
+                        if le then
+                            le.owner = (user and user:is_player() and user:get_player_name()) or ""
+                        end
+                    end
+                    angle = angle + (math.pi * 2) / 3
+                end
+            end
+        end
+    end
+end
+
+local around_plus_pos_list = {
+    { 0,  0 },
+    { 1,  0 },
+    { 0,  1 },
+    { -1, 0 },
+    { 0,  -1 },
+}
+function magikacia.spawn_effect_anim(def)
+    if not def.pos then return end
+    minetest.add_particle({
+        pos = def.pos,
+        velocity = { x = 0, y = 0, z = 0 },
+        acceleration = { x = 0, y = 0, z = 0 },
+        expirationtime = def.duration_total or 2,
+        size = def.size or 25,
+        collisiondetection = false,
+        collision_removal = false,
+        object_collision = false,
+        vertical = false,
+        texture = {
+            name = magikacia.textures[def.texture] or "blank.png",
+        },
+        animation = {
+            type = "vertical_frames",
+            aspect_w = 32,
+            aspect_h = 32,
+            length = def.duration_anim or 0.25,
+        },
+        glow = (def.glow ~= nil and def.glow) or 14,
+        attached = def.attached or nil
+    })
+end
+
+local mod_target = minetest.get_modpath("mcl_target")
+
 function magikacia.spawn_linger_particles(pos, d, texture, extradefs)
     extradefs = extradefs or {}
     minetest.add_particlespawner({
-        amount = extradefs.amount or (10 * d),
-        time = extradefs.time or 0.5,
+        amount = extradefs.amount or (10 * d * d),
+        time = extradefs.time or 3,
         minpos = { x = pos.x - d, y = pos.y - 0.5, z = pos.z - d },
         maxpos = { x = pos.x + d, y = pos.y + 0.5, z = pos.z + d },
         minvel = { x = -0.5, y = 0, z = -0.5 },
@@ -73,25 +281,27 @@ magikacia.register_attack("void_secondary", {
 })
 
 magikacia.register_attack("water_primary", {
-    title = "an water burst spell",
+    title = "a water burst spell",
 })
 magikacia.register_attack("water_secondary", {
-    title = "an water riptide spell",
+    title = "a water riptide spell",
 })
 
 magikacia.register_attack("wind_primary", {
-    title = "an wind burst spell",
+    title = "a wind burst spell",
 })
 magikacia.register_attack("wind_secondary", {
-    title = "an wind ___ spell",
+    title = "a wind ___ spell",
 })
 
+function magikacia.deal_spell_damage(obj, damage, typename, source)
+    mcl_util.deal_damage(obj, 20, { type = "magikacia_spell_" .. typename, source = source, direct = source })
+end
 
 
 
 
-
-local function check_object_hit(self, pos, dmg)
+function magikacia.check_object_hit(self, pos, dmg)
     for object in minetest.objects_inside_radius(pos, 2) do
         local entity = object:get_luaentity()
         if entity and entity.name ~= self.object:get_luaentity().name then
@@ -101,7 +311,7 @@ local function check_object_hit(self, pos, dmg)
             elseif (entity.is_mob == true or entity._hittable_by_projectile or object:is_player() and self._thrower ~= object:get_player_name()) then
                 local pl = self._thrower and
                     (type(self._thrower) == "string" and minetest.get_player_by_name(self._thrower) or self._thrower)
-                deal_spell_damage(object, dmg, "projectile", pl)
+                magikacia.deal_spell_damage(object, dmg, "projectile", pl)
                 return true, object
             end
         end
@@ -160,7 +370,7 @@ function magikacia.register_projectile(def)
                 return
             end
         end
-        local did_hit, obj_hit = check_object_hit(self, pos, def.damage)
+        local did_hit, obj_hit = magikacia.check_object_hit(self, pos, def.damage)
         if did_hit then
             if def.do_custom_hit ~= nil then
                 def.do_custom_hit(minetest.get_player_by_name(tostring(self._thrower)) or self._thrower or self.object,
@@ -215,7 +425,7 @@ magikacia.register_projectile({
         end
         if pos then
             for _, k in ipairs(around_plus_pos_list) do
-                safe_replace({ x = pos.x + k[1], y = pos.y, z = pos.z + k[2] },
+                magikacia.safe_replace({ x = pos.x + k[1], y = pos.y, z = pos.z + k[2] },
                     "magikacia:fire_temp",
                     thrower)
             end
@@ -273,4 +483,75 @@ function magikacia.bone_meal(itemstack, user, pointed_thing)
         end
     end
     return
+end
+
+
+
+
+
+
+
+
+
+local function round(num, idp)
+    local mult = 10 ^ (idp or 0)
+    return math.floor(num * mult + 0.5) / mult
+end
+function magikacia.random_teleport_obj(obj)
+    local pos = obj:get_pos()
+    for _ = 1, 16 do
+        local x, y, z
+        x = math.random(round(pos.x) - 16, round(pos.x) + 16)
+        y = math.random(math.ceil(pos.y) - 16, math.ceil(pos.y) + 16)
+        z = math.random(round(pos.z) - 16, round(pos.z) + 16)
+        local node_cache = {}
+        local ground_level = false
+        for t = 0, 16 do
+            local tpos = { x = x, y = y - t, z = z }
+            local tnode = minetest.get_node(tpos)
+            if tnode then
+                if tnode.name == "mcl_core:void" or tnode.name == "ignore" then
+                    break
+                end
+                local tdef = minetest.registered_nodes[tnode.name]
+                if tdef then
+                    table.insert(node_cache, { pos = tpos, node = tnode })
+                    if tdef.walkable then
+                        ground_level = true
+                        break
+                    end
+                end
+            end
+        end
+        if ground_level and #node_cache >= 1 then
+            local streak = 0
+            local last_was_walkable = true
+            for c = #node_cache, 1, -1 do
+                local tpos = node_cache[c].pos
+                local tnode = node_cache[c].node
+                if not tnode then
+                    goto continue
+                end
+                local tdef = minetest.registered_nodes[tnode.name]
+                if not tdef then
+                    goto continue
+                end
+                if not tdef.walkable and tdef.damage_per_second <= 0 then
+                    if (streak == 0 and last_was_walkable) or (streak > 0) then
+                        streak = streak + 1
+                    end
+                else
+                    streak = 0
+                end
+                last_was_walkable = tdef.walkable
+                if streak >= 2 then
+                    local goal = { x = tpos.x, y = tpos.y - 1.5, z = tpos.z }
+                    obj:set_pos(goal)
+                    return true
+                end
+            end
+            ::continue::
+        end
+    end
+    return false
 end

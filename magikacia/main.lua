@@ -1,1 +1,1 @@
-magikacia = {}
+magikacia = magikacia or {}

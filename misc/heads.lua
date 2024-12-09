@@ -19,6 +19,10 @@ for k, v in pairs(textures) do
         longdesc = "A " .. k .. " head is a small decorative block. It can also be worn as a helmet for fun, but does not offer any protection.",
     })
     minetest.override_item("mcl_heads:heads_tiny_" .. k, {
-        groups = table.merge(minetest.registered_items["mcl_heads:heads_tiny_" .. k].groups, { dig_immediate = 3, })
+        groups = table.merge(minetest.registered_items["mcl_heads:heads_tiny_" .. k].groups or {}, { dig_immediate = 3, })
+    })
+    minetest.override_item("mcl_heads:heads_tiny_" .. k .. "_wall", {
+        groups = table.merge(minetest.registered_items["mcl_heads:heads_tiny_" .. k .. "_wall"].groups or {},
+        { dig_immediate = 3, })
     })
 end

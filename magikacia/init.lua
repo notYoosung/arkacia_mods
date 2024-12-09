@@ -16,7 +16,7 @@ minetest.register_on_mods_loaded(function()
 		return t
 	end
 
-	local ignorefiles = { "init", }
+	local ignorefiles = { "init", "throwable", "spellbook_comp", "refs", "magikacia_comp", "magic_table", "bags", "boxes"}
 
 	for k, v in pairs(scandir(modpath)) do
 		if not tostring(v):match("%.lua$") then goto continue end
@@ -31,7 +31,20 @@ minetest.register_on_mods_loaded(function()
     -- end)
 	]]
 
-	local files = {"main", "textures", "textures2", "textures3", "textures4", "magikacia", "gauntlet", }
+	local files = {
+		"main",
+		"textures",
+		"textures2",
+		"textures3",
+		"textures4",
+		"textures5",
+		"magikacia",
+		"spellbook_funcs",
+		"spellbook",
+		"nodes",
+		"stone_statue",
+		"falling_bricks"
+	}
 	for _, v in ipairs(files) do
 		dofile(modpath .. "/" .. v .. ".lua")
 	end
