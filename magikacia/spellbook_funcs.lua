@@ -14,20 +14,20 @@ local static_objs = {
 }
 function magikacia.is_obj_not_static(obj)
     if not obj then
-        return
+        return nil
     end
     if obj:is_player() then
         return true
     end
     local le = obj:get_luaentity()
     if not le then
-        return
+        return nil
     end
     if not le then
         return false
     end
     if le.is_mob then
-        return
+        return true
     end
     for _, name in ipairs(static_objs) do
         if name == le.name then
