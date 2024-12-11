@@ -1,4 +1,4 @@
-mcl_death_messages.messages.scp_4335 = { plain = "@1's neck was snapped by SCP-4335." }
+mcl_death_messages.messages.scp_4335 = { plain = "@1 was slain by SCP-4335." }
 mcl_damage.types.scp_4335 = { bypasses_armor = true, bypasses_magic = true, bypasses_invulnerability = true, bypasses_totem = false }
 
 

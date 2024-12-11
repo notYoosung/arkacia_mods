@@ -55,8 +55,8 @@ end
 local function write(itemstack, user, pointed_thing)
     local rc = mcl_util.call_on_rightclick(itemstack, user, pointed_thing)
     if rc then return rc end
-    
-    
+
+
     local text = itemstack:get_meta():get_string("text")
     local formspec = table.concat({
         "formspec_version[4]",
@@ -66,6 +66,9 @@ local function write(itemstack, user, pointed_thing)
         "background[7.5,-0.5;9,10;z_magic_page_right.png]",
         "background[7.5,-0.5;9,10;z_magic_page_button_yes.png]",
         "background[7.5,-0.5;9,10;z_magic_page_button_no.png]",
+        --[["textarea[0.75,0.1;7.25,9;text;;" .. minetest.formspec_escape(text) .. "]",
+        "button[0.75,7.95;3,1;sign;" .. minetest.formspec_escape(S("Sign")) .. "]",
+        "button_exit[4.25,7.95;3,1;ok;" .. minetest.formspec_escape(S("Done")) .. "]",]]
         "button_exit[08.45,1.5;3.178,1.7;yes;" .. minetest.formspec_escape(" ") .. "]",
         "button_exit[12.054,1.8;3.178,1.7;no;" .. minetest.formspec_escape(" ") .. "]",
     })
@@ -159,13 +162,13 @@ local wield_scale = minetest.settings:get("wield3d_scale")
 
 update_time = update_time and tonumber(update_time) or 1
 verify_time = verify_time and tonumber(verify_time) or 10
-wield_scale = wield_scale and tonumber(wield_scale) or 0.25
+wield_scale = wield_scale and tonumber(wield_scale) or 0.25 --[[default scale]]
 
 local location = {
-    "Arm_Right",                    
-    { x = 0, y = 2 / 16, z = 0 },   
-    { x = 0, y = 0,      z = 0 },   
-    { x = 5, y = 5,      z = 0.5 }, 
+    "Arm_Right", --[[default bone]
+    { x = 0, y = 2 / 16, z = 0 },   --[[default position]]
+    { x = 0, y = 0, z = 0 }, --[[default rotation]]
+    { x = 5, y = 5, z = 0.5 }, --[[visual size]]
 }
 
 
@@ -187,7 +190,149 @@ wield3d.location = {
     ["default:torch"] = { bone, pos, { x = rx, y = 180, z = rz }, scale },
     ["default:sapling"] = { bone, pos, { x = rx, y = 180, z = rz }, scale },
 }
+local magic_circle_entity = {
+    physical = false,
+    pointable = false,
+    collide_with_objects = false,
+    collisionbox = { -0.125, -0.125, -0.125, 0.125, 0.125, 0.125 },
+    --[[is_visible = false,]]
+    visual = "cube",
+    mesh = "flat_plane.obj",
+    textures = {
+        --[[{
+        name =]]
+        "temp_magic_circle.png",
+        "blank.png",
+        "blank.png",
+        "blank.png",
+        "blank.png",
+        "blank.png",
+        --[[ 	animation = {
+        		type = "vertical_frames",
+        		aspect_w = 210,
+        		aspect_h = 210,
+        		length = 75 * 0.06,
+        	}
+        },
+        {name = "blank.png"},
+        {name = "blank.png"},
+        {name = "blank.png"},
+        {name = "blank.png"},
+        {name = "blank.png"},]]
+    },
+    wielder = nil,
+    timer = 0,
+    static_save = false,
+    visual_size = { x = 10, y = 0, z = 10 },
+    glow = 14,
+    automatic_rotate = 0.25,
+    --[[wield_image = "magic_circle.png",
+    use_texture_alpha = true,
+    _pos = vector.zero(),]]
+}
 
+
+function magic_circle_entity:on_activate(staticdata)
+    if staticdata and staticdata ~= "" then
+        self.wielder = staticdata
+        return
+    end
+    self.object:remove()
+end
+
+--[[:set_attach(parent[, bone, position, rotation, forced_visible])]]
+
+
+function magic_circle_entity:on_step(dtime)
+    --[[if self.wielder == nil then return end]]
+    self.timer = self.timer + (dtime * 25)
+    if self.timer > 360 then self.timer = self.timer - 360 end
+    local player = minetest.get_player_by_name(self.wielder)
+    if player == nil or not player:is_player() then
+        self.object:remove()
+        return
+    end
+    local wield = player_wielding[self.wielder]
+    --[[local stack = player:get_wielded_item()
+    local item = stack:get_name() or ""]]
+    if self.object and wield then
+        --[[if has_wieldview then
+        		local def = minetest.registered_items[item] or {}
+        		if def.inventory_image ~= "" then item = "" end
+        	end
+        	wield.item = item
+        	if item == "" then item = modname .. ":magic_magic_circle" end
+        	local loc = location
+        	if loc[1] ~= wield.location[1] or not vector.equals(loc[2], wield.location[2]) or not vector.equals(loc[3], wield.location[3]) then
+        if self.object:get_properties()._pos ~= player:get_pos() then
+        -!	- self.object:set_attach(player, "", location[2], vector.add(location[3], {x=0, y=(self.timer), z=0}), true)
+        self.object:set_properties({_pos = player:get_pos()})
+        end
+        wield.location = {loc[1], loc[2], loc[3]}
+        	end
+        	self.object:set_properties({
+        		textures = {item},
+        		visual_size = loc[4]
+        	})]]
+    end
+    --[[self.timer = 0]]
+end
+
+minetest.register_entity(":" .. modname .. ":magic_magic_circle", magic_circle_entity)
+
+--[[temp_magic_circle.png]]
+local function add_magic_circle_entity(player)
+    if not player or not player:is_player() then return end
+    local name = player:get_player_name()
+    local pos = player:get_pos()
+    if name and pos and not player_wielding[name] then
+        pos.y = pos.y + 0.5
+        local object = minetest.add_entity(pos, modname .. ":magic_magic_circle", name)
+        if object then
+            object:set_attach(player, "", location[2], location[3], true)
+            --[[object:set_properties({
+            	- textures = {modname .. ":magic_magic_circle"},
+            	- textures = {"magic_circle.png"},
+            	textures = {
+            		{
+            			name = "magic_circle",
+            			animation = {
+            				type = "vertical_frames",
+            				aspect_w = 210,
+            				aspect_h = 210,
+            				length = 75 * 0.06,
+            			}
+            		},
+            		{name = "blank.png"},
+            		{name = "blank.png"},
+            		{name = "blank.png"},
+            		{name = "blank.png"},
+            		{name = "blank.png"},
+            	},
+            	visual_size = location[4],
+            })]]
+            player_wielding[name] = {
+                item = "",
+                location = location
+            }
+            --[[object:set_properties({_pos = pos})]]
+        end
+    end
+end
+
+--[[minetest.register_item(modname .. ":magic_magic_circle", {
+	type = "none",
+	wield_image = "magic_circle.png",
+	use_texture_alpha = "clip",
+})
+
+minetest.register_on_joinplayer(function(ObjectRef, last_login)
+minetest.after(1, add_magic_circle_entity, ObjectRef)
+end)]]
+
+
+
+--[[pacman]]
 local function craft_copy_book(itemstack, player, old_craft_grid, craft_inv)
     if itemstack:get_name() ~= modname .. ":written_book" then
         return
@@ -351,7 +496,7 @@ if not mcl_util._magikacia_init_fields then
         local meta = player:get_meta()
         local spell_earth_time = meta:get_float("magikacia:spell_earth_time_active") or 0
         local nunderdef = minetest.registered_nodes[nodeunder.name]
-        if spell_earth_time > 0 then
+        if nunderdef and spell_earth_time > 0 then
             if (nunderdef.opaque or nunderdef.walkable == true) and nodeunder.name ~= "air" and player:get_velocity().y <= 0 and spell_earth_time > 1.2 then
                 if nunderdef and nunderdef.walkable then
                     minetest.add_particlespawner({
@@ -368,6 +513,7 @@ if not mcl_util._magikacia_init_fields then
                         minsize = 1,
                         maxsize = 3,
                         collisiondetection = true,
+                        --[[attached = player,]]
                         vertical = false,
                         node = nodeunder,
                     })
@@ -375,16 +521,18 @@ if not mcl_util._magikacia_init_fields then
                 for obj, _ in minetest.objects_inside_radius(pos, 8) do
                     if not obj then goto continue end
                     if (obj:get_luaentity() ~= nil
-                        and obj:get_luaentity().name ~= "mcl_chests:chest"
-                        and obj:get_luaentity().name ~= "mcl_itemframes:item"
-                        and obj:get_luaentity().name ~= "mcl_enchanting:book")
+                            and obj:get_luaentity().name ~= "mcl_chests:chest"
+                            and obj:get_luaentity().name ~= "mcl_itemframes:item"
+                            and obj:get_luaentity().name ~= "mcl_enchanting:book")
                     then
                         local v = vector.normalize(vector.subtract(obj:get_pos(), pos))
-                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 10 + 20) * spell_earth_time, z = v.z * 10 * spell_earth_time })
+                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 10 + 20) * spell_earth_time, z = v
+                        .z * 10 * spell_earth_time })
                     end
                     if (obj:is_player() and obj:get_player_name() ~= player:get_player_name()) then
                         local v = vector.normalize(vector.subtract(obj:get_pos(), pos))
-                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 1 + 10) * spell_earth_time, z = v.z * 10 * spell_earth_time })
+                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 1 + 10) * spell_earth_time, z = v
+                        .z * 10 * spell_earth_time })
                     end
                     ::continue::
                 end
@@ -400,6 +548,110 @@ end
 
 
 
+
+
+
+
+
+
+--[[
+ OOP the texture is tiny its at the bottom of this text lol- (the eye has the colors of the arkacia flag lol)
+Adminite
+(it has the model of an endermite)
+will walk around and has slightly fast speed kinda, abt the same walking speed as a player. Can be binded with commands to only attack certain mobs, or attack all mobs except that certain mob, (can be helpful to clean up spawn because mobs keep spawning and making it laggy)
+command could be:
+/adminite only mobs_mc_endermite
+/\ only attack mobs_mc_endermite (can be replaced with any mob name)
+/adminite except mobs_mc_endermite
+/\ attack all mobs except mobs_mc_endermite (can be replcaed with any mob name)
+
+maybe make it so that u hafta hold the specific spawn egg and all the spawn eggs in that current stack will be binded to the cmd-
+also make it a special priv or smt- we dont want random players spawning them to kill everything XD
+-
+also wat if u can seperate the mob names with a comma , so u can do multiple than one mob to whitelist or blacklist XD
+]]
+
+mcl_mobs.register_mob(":magikacia:adminite", {
+    description = "Adminite",
+    type = "monster",
+    spawn_class = "hostile",
+    passive = false,
+    hp_min = 8,
+    hp_max = 8,
+    xp_min = 3,
+    xp_max = 3,
+    armor = { fleshy = 100, arthropod = 100 },
+    group_attack = true,
+    collisionbox = { -0.2, -0.01, -0.2, 0.2, 0.29, 0.2 },
+    visual = "mesh",
+    mesh = "mobs_mc_endermite.b3d",
+    textures = {
+        { magikacia.textures.mobs_adminite },
+    },
+    visual_size = { x = 3, y = 3 },
+    makes_footstep_sound = false,
+    sounds = {
+        random = "mobs_mc_endermite_random",
+        damage = "mobs_mc_endermite_hurt",
+        death = "mobs_mc_endermite_death",
+        distance = 16,
+    },
+    walk_velocity = 2,
+    run_velocity = 4,
+    animation = {
+        stand_start = 0,
+        stand_end = 0,
+        walk_start = 0,
+        walk_end = 20,
+        walk_speed = 55
+    },
+    jump = true,
+    fear_height = 4,
+    view_range = 16,
+    damage = 2,
+    reach = 3,
+    owner_loyal = true,
+    glow = 14,
+    retaliates = true,
+    follow_velocity = 5,
+    stepheight = 1.1,
+    runaway_from = { "player", "mobs_mc:cat" },
+})
+
+mcl_mobs.register_egg(":magikacia:adminite", "Adminite", "#161616", "#6d6d6d", 0)
+
+function magikacia.spawn_adminite()
+
+end
+
+minetest.register_chatcommand("adminite", {
+    description = "Summon an adminite mob",
+    privs = {
+        interact = true,
+    },
+    func = function(name, param)
+        if (param ~= "") then
+            local params = string.split(param, " +")
+
+            if params[0] == "" then
+
+            end
+
+            if (minetest.check_player_privs(name, "bring")) then
+                if (minetest.get_player_by_name(param) and name) then
+                    name = param
+                else
+                    minetest.chat_send_player(name, "\"" .. param .. "\" isn't online or doesn't exist.")
+                    return
+                end
+            else
+                minetest.chat_send_player(name,
+                    "You don't have permission to run this command (missing privileges: bring).")
+                return
+            end
+        end
+    end
+})
 
 
 

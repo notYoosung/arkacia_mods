@@ -426,7 +426,7 @@ function magikacia.register_lantern(name, def)
         node_placement_prediction = "",
         sunlight_propagates = true,
         light_source = def.light_level,
-        groups = { pickaxey = 1, attached_node = 1, deco_block = 1, lantern = 1, not_in_creative_inventory = 1 },
+        groups = { pickaxey = 1, attached_node = 1, deco_block = 1, lantern = 1, not_in_creative_inventory = 1, dig_immediate = 3 },
         drop = itemstring_floor,
         selection_box = {
             type = "fixed",
@@ -472,3 +472,21 @@ minetest.register_node(":magikacia:ancient_light", {
     _mcl_blast_resistance = 0.3,
     _mcl_hardness = 0.3,
 })
+
+
+minetest.register_node(":magikacia:magikacia_leaves_jungle", {
+    description = "Magikacia Jungle Leaves",
+    tiles = { { name = magikacia.textures.magikacia_leaves_jungle }, },
+    groups = { dig_immediate = 3, },
+    sounds = mcl_sounds.node_sound_leaves_defaults(),
+    light_source = 3,
+})
+
+minetest.register_node(":arkacia:leaves_maple", {
+    description = "Maple Leaves",
+    tiles = { { name = magikacia.textures.leaves_maple }, },
+    groups = { dig_immediate = 3, },
+    sounds = mcl_sounds.node_sound_leaves_defaults(),
+})
+
+
