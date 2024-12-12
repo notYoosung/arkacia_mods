@@ -483,10 +483,6 @@ if not mcl_util._magikacia_init_fields then
         if original and index then craft_inv:set_stack("craft", index, original) end
     end)
 
-    minetest.register_on_joinplayer(function(player)
-        local inv = player:get_inventory()
-        inv:set_size("spellbook_inv", 3)
-    end)
 
     mcl_player.register_globalstep(function(player, dtime)
         if not player or not player:get_pos() then return end
