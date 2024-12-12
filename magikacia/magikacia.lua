@@ -618,7 +618,7 @@ mcl_mobs.register_mob(":magikacia:adminite", {
 
 mcl_mobs.register_egg(":magikacia:adminite", "Adminite", "#161616", "#6d6d6d", 0)
 
-function magikacia.spawn_adminite()
+function magikacia.spawn_adminite(def)
 
 end
 
@@ -630,24 +630,30 @@ minetest.register_chatcommand("adminite", {
     func = function(name, param)
         if (param ~= "") then
             local params = string.split(param, " +")
-            
-            if params[0] == "" then
-                
 
-            end
+            local attack_specific = {}
+            local owner = ""
             
-            if (minetest.check_player_privs(name, "bring")) then
-                if (minetest.get_player_by_name(param) and name) then
-                    name = param
-                else
-                    minetest.chat_send_player(name, "\"" .. param .. "\" isn't online or doesn't exist.")
-                    return
+            local subcmd = params[1]
+            local extraparams = #params > 1 and table.unpack(params, 2) or {}
+
+            if subcmd == "" then
+
+            elseif subcmd == "only" then
+                for i = 1, #params do
+                    if (params[i] ~= "only") then
+                        table.insert(attack_specific, params[i])
+                    end
+                end
+            elseif subcmd == "except" then
+                for mob_name in pairs(mcl_mobs.mobs) do
+                    table.insert(attack_specific, mob_name)
                 end
             else
-                minetest.chat_send_player(name,
-                    "You don't have permission to run this command (missing privileges: bring).")
+                minetest.chat_send_player(name, "Invalid subcommand: \"" .. subcmd .. "\". Valid subcommands are \"only\" and \"except\".")
                 return
             end
+            
         end
     end
 })

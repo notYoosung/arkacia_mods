@@ -1,9 +1,8 @@
 local filelist = {}
 for n_poster = 0, 15 do
     minetest.log((math.fmod(n_poster, 4) + 1))
-    filelist[#filelist + 1] = "'/Users/ble/Downloads/PineTools.com_files 2/row-" .. (math.fmod(n_poster, 4) + 1) .. "-column-" .. math.floor(n_poster / 4) + 1 .. ".png'"
+    filelist[#filelist + 1] = "'/Users/ble/Downloads/assets for arkacia/PineTools.com_files 2/row-" .. (math.fmod(n_poster, 4) + 1) .. "-column-" .. math.floor(n_poster / 4) + 1 .. ".png'"
 end
-
 
 
 require 'io'
