@@ -176,7 +176,7 @@ function magikacia.lightning_strike(pos, user)
         glow = minetest.LIGHT_MAX,
     })
 
-    minetest.sound_play({ name = "lightning_thunder", gain = 10 }, { pos = pos, max_hear_distance = 500 }, true)
+    minetest.sound_play({ name = "lightning_thunder", gain = 1 }, { pos = pos, max_hear_distance = 64 }, true)
 
     local objects = minetest.get_objects_inside_radius(pos, 3.5)
     for _, obj in pairs(objects) do
