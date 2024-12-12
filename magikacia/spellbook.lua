@@ -383,7 +383,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
 
     if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_electric") then
         local electric_primary_success = false
-        magikacia.radius_effect_func(use_pos_above, 1, placer, function(obj)
+        magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             if magikacia.tase(placer, obj) then
                 electric_primary_success = true
             end

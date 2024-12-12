@@ -551,8 +551,8 @@ magikacia.tase = function(user, obj)
             obj:set_look_horizontal(obj:get_look_horizontal() + math.random(-math.pi / 16, math.pi / 16))
             obj:set_look_vertical(obj:get_look_vertical() + math.random(-math.pi / 16, math.pi / 16))
         end
-        if (obj_is_player or obj:get_luaentity()) and mcl_util.get_hp(obj) > 1 then
-            magikacia.deal_spell_damage(obj, 1, "electric_primary", user)
+        if (obj_is_player or magikacia.is_obj_not_static(obj)) then
+            magikacia.deal_spell_damage(obj, 2, "electric_primary", user)
             return true
         end
     end
