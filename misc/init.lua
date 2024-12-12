@@ -2,8 +2,8 @@ local modname = minetest.get_current_modname()
 local modpath = minetest.get_modpath(modname)
 
 require 'io'
-dofile(modpath .. "/base64.lua")
-dofile(modpath .. "/postergen.lua")
+-- dofile(modpath .. "/base64.lua")
+-- dofile(modpath .. "/postergen.lua")
 minetest.register_on_mods_loaded(function()
 	local function scandir(directory)
 		local i, t, popen = 0, {}, io.popen
