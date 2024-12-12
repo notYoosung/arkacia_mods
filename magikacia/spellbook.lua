@@ -29,6 +29,24 @@ mcl_util._magikacia_spellbook_init = mcl_util._magikacia_spellbook_init or false
 
 
 
+magikacia.inv = {
+    has_in = function(itemstack, player, itemname, listname)
+        if not player or not itemstack then return nil end
+
+        local meta = itemstack:get_meta()
+        local invmetastring = meta:get_string("magikacia_inv_content")
+        if invmetastring ~= "" then
+            local t = assert(minetest.deserialize(invmetastring)[listname])
+
+            for i, v in pairs(t) do
+                if v.name == itemname then return true end
+            end
+        end
+        return false
+    end,
+}
+
+
 
 local function get_formspec(name, width, height)
     local spellbook_inv_formspec = table.concat({
@@ -38,7 +56,7 @@ local function get_formspec(name, width, height)
         "label[3.125,0.375;" .. F(C(mcl_formspec.label_color, S("Modifier"))) .. "]",
 
         mcl_formspec.get_itemslot_bg_v4(3.125, 0.75, 1, 1),
-        "list[detached:" .. name .. ";modifier;3.125,0.75;" .. 1 .. "," .. 1 .. ";]",
+        "list[detached:" .. name .. ";modifiers;3.125,0.75;" .. 1 .. "," .. 1 .. ";]",
 
         "label[4.125,0.375;" .. F(C(mcl_formspec.label_color, S("Magic Inventory"))) .. "]",
 
@@ -83,34 +101,11 @@ end
 
 
 local function has_in_spellbook_inv_main(itemstack, player, itemname)
-    if not player or not itemstack then return nil end
-
-    local meta = itemstack:get_meta()
-    local invmetastring = meta:get_string("magikacia_inv_content")
-    if invmetastring ~= "" then
-        local t = assert(minetest.deserialize(invmetastring).main)
-
-        for i, v in pairs(t) do
-            if v.name == itemname then return true end
-        end
-    end
-    return false
+    return magikacia.inv.has_in(itemstack, player, itemname, "main")
 end
-local function has_in_spellbook_inv_core(itemstack, player, itemname)
-    if not player or not itemstack then return nil end
-
-    local meta = itemstack:get_meta()
-    local invmetastring = meta:get_string("magikacia_inv_content")
-    if invmetastring ~= "" then
-        local t = assert(minetest.deserialize(invmetastring).main)
-
-        for i, v in pairs(t) do
-            if v.name == itemname then return true end
-        end
-    end
-    return false
+local function has_in_spellbook_inv_modifiers(itemstack, player, itemname)
+    return magikacia.inv.has_in(itemstack, player, itemname, "modifiers")
 end
-
 
 
 local formspec_ender_chest = table.concat({
@@ -164,10 +159,10 @@ local function save_bag_inv_itemstack(inv, stack)
     return stack
 end
 
-local function save_bag_inv(inv, player)
+local function save_bag_inv(inv, player, listname)
     local playerinv = minetest.get_inventory { type = "player", name = player:get_player_name() }
     local bag_id = inv:get_location().name
-    local listname = "main"
+    listname = listname or "main"
     local size = playerinv:get_size(listname)
     for i = 1, size, 1 do
         local stack = playerinv:get_stack(listname, i)
@@ -689,8 +684,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     end
 
     if has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_telepathic") then
-        --[[minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(),
-             formspec_ender_chest)]]
+        --[[minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(), formspec_ender_chest)]]
         magikacia.random_teleport_obj(placer)
         magikacia.spawn_effect_anim({
             pos = use_pos_self,
