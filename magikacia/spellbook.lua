@@ -239,24 +239,24 @@ local function open_bag(itemstack, user, width, height, sound)
         on_take = function(inv, listname, index, stack, player)
             local size = inv:get_size(listname)
             for i = 1, size, 1 do
-                local stack = inv:get_stack(listname, i)
+                local invstack = inv:get_stack(listname, i)
                 local remove_stack = false
                 if allow_bag_input then
-                    if minetest.get_item_group(stack:get_name(), "bag_bag") > 0 then
+                    if minetest.get_item_group(invstack:get_name(), "bag_bag") > 0 then
                         remove_stack = true
                     end
                 else
-                    if minetest.get_item_group(stack:get_name(), "bag") > 0 then
+                    if minetest.get_item_group(invstack:get_name(), "bag") > 0 then
                         remove_stack = true
                     end
                 end
                 if remove_stack == true then
                     inv:set_stack(listname, i, "")
                     local playerinv = player:get_inventory()
-                    if playerinv:room_for_item("main", stack) then
-                        playerinv:add_item("main", stack)
+                    if playerinv:room_for_item("main", invstack) then
+                        playerinv:add_item("main", invstack)
                     else
-                        minetest.item_drop(save_bag_inv_itemstack(inv, stack), player, player:get_pos())
+                        minetest.item_drop(save_bag_inv_itemstack(inv, invstack), player, player:get_pos())
                         minetest.close_formspec(player:get_player_name(), inv:get_location().name)
                     end
                 end
@@ -279,7 +279,7 @@ local function open_bag(itemstack, user, width, height, sound)
     minetest.show_formspec(playername, invname, get_formspec(invname, width, height))
     return itemstack
 end
-
+--[[
 function magikacia.bag_inv_add_item(bagstack, itemstack)
     local meta = bagstack:get_meta()
     local invname = meta:get_string("magikacia_bag_identity")
@@ -325,6 +325,7 @@ function magikacia.bag_inv_remove_item(bagstack, itemstack)
     end
     return false
 end
+--]]
 
 local function get_visual_size(obj)
     if not obj then return nil end
