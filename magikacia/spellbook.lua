@@ -219,6 +219,8 @@ local function open_bag(itemstack, user, width, height, sound)
 
     meta:set_int("magikacia_width", width)
     meta:set_int("magikacia_height", height)
+    meta:set_int("magikacia_width_modifiers", width)
+    meta:set_int("magikacia_height_modifiers", height)
 
     local inv = minetest.create_detached_inventory(invname, {
         allow_put = function(inv, listname, index, stack, player)
