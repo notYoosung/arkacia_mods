@@ -310,8 +310,6 @@ function magikacia.bag_inv_remove_item(bagstack, itemstack)
     return false
 end
 
-
-
 local function get_visual_size(obj)
     if not obj then return nil end
     local vs
@@ -384,13 +382,20 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_electric") then
-        magikacia.lightning_strike(vector.offset(use_pos_above, 0, -1, 0), placer)
-        magikacia.spawn_effect_anim({
-            pos = use_pos_above,
-            texture = "effect_vortex_blue",
-        })
-        use_success = true
-        use_at_place_above = true
+        local electric_primary_success = false
+        magikacia.radius_effect_func(use_pos_above, 1, placer, function(obj)
+            if magikacia.tase(placer, obj) then
+                electric_primary_success = true
+            end
+        end)
+        if electric_primary_success then
+            magikacia.spawn_effect_anim({
+                pos = use_pos_above,
+                texture = "effect_electric_primary",
+            })
+            use_success = true
+            use_at_place_above = true
+        end
     end
 
     if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_fire") then
@@ -596,7 +601,6 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
     return magikacia.on_use_bag(itemstack, placer, pointed_thing)
 end
 
-
 local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagtable)
     if not placer then return nil end
     local use_pos_self = placer:get_pos()
@@ -639,6 +643,13 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     end
 
     if use_pos_above and has_in_spellbook(itemstack, placer, modname .. ":rune_electric") then
+        magikacia.lightning_strike(vector.offset(use_pos_above, 0, -1, 0), placer)
+        magikacia.spawn_effect_anim({
+            pos = use_pos_above,
+            texture = "effect_vortex_blue",
+        })
+        use_success = true
+        use_at_place_above = true
     end
 
     if has_in_spellbook(itemstack, placer, modname .. ":rune_fire") then

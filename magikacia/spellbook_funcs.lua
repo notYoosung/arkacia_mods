@@ -44,6 +44,77 @@ function magikacia.safe_replace(pos, node_name, placer)
     end
 end
 
+function magikacia.register_attack(name, def)
+    local typename = "magikacia_spell_" .. name
+    mcl_death_messages.messages[typename] = {
+        plain = "@1 was killed by " .. def.title,
+        assist = "@1 was killed by " .. def.title .. " whilst trying to escape @2",
+        killer = "@1 was killed by @2 using " .. def.title,
+        item = "@1 was killed by @2 using " .. def.title .. " with " .. minetest.colorize(mcl_colors.AQUA, "@3"),
+    }
+    mcl_damage.types[typename] = { bypasses_armor = false, bypasses_magic = false, bypasses_invulnerability = false, bypasses_totem = false }
+end
+
+magikacia.register_attack("earth_primary", {
+    title = "an earth drill spell",
+})
+magikacia.register_attack("earth_secondary", {
+    title = "an earth smash spell",
+})
+
+magikacia.register_attack("electric_primary", {
+    title = "an electric taser spell",
+})
+magikacia.register_attack("electric_secondary", {
+    title = "an electric bolt spell",
+})
+
+magikacia.register_attack("fire_primary", {
+    title = "a fire summoning spell",
+})
+magikacia.register_attack("_secondary", {
+    title = "a fireball spell",
+})
+
+magikacia.register_attack("ice_primary", {
+    title = "an ice ___ spell",
+})
+magikacia.register_attack("ice_secondary", {
+    title = "an ice ball spell",
+})
+
+magikacia.register_attack("telepathic_primary", {
+    title = "an telepathic ___ spell",
+})
+magikacia.register_attack("telepathic_secondary", {
+    title = "an telepathic ___ spell",
+})
+
+magikacia.register_attack("void_primary", {
+    title = "a void blast spell",
+})
+magikacia.register_attack("void_secondary", {
+    title = "a void vortex spell",
+})
+
+magikacia.register_attack("water_primary", {
+    title = "a water burst spell",
+})
+magikacia.register_attack("water_secondary", {
+    title = "a water riptide spell",
+})
+
+magikacia.register_attack("wind_primary", {
+    title = "a wind burst spell",
+})
+magikacia.register_attack("wind_secondary", {
+    title = "a wind ___ spell",
+})
+
+function magikacia.deal_spell_damage(obj, damage, typename, source)
+    mcl_util.deal_damage(obj, damage, { type = "magikacia_spell_" .. typename, source = source, direct = source })
+end
+
 local runes = {
     "earth",
     "electric",
@@ -72,8 +143,6 @@ function magikacia.radius_effect_func(pos, radius, placer, func, include_placer)
         end
     end
 end
-
-
 
 local rng = PcgRandom(32321123312123)
 
@@ -227,80 +296,6 @@ function magikacia.spawn_linger_particles(pos, d, texture, extradefs)
     })
 end
 
-function magikacia.register_attack(name, def)
-    local typename = "magikacia_spell_" .. name
-    mcl_death_messages.messages[typename] = {
-        plain = "@1 was killed by " .. def.title,
-        assist = "@1 was killed by " .. def.title .. " whilst trying to escape @2",
-        killer = "@1 was killed by @2 using " .. def.title,
-        item = "@1 was killed by @2 using " .. def.title .. " with " .. minetest.colorize(mcl_colors.AQUA, "@3"),
-    }
-    mcl_damage.types[typename] = { bypasses_armor = false, bypasses_magic = false, bypasses_invulnerability = false, bypasses_totem = false }
-end
-
-magikacia.register_attack("earth_primary", {
-    title = "an earth drill spell",
-})
-magikacia.register_attack("earth_secondary", {
-    title = "an earth smash spell",
-})
-
-magikacia.register_attack("electric_primary", {
-    title = "an electric bolt spell",
-})
-magikacia.register_attack("electric_secondary", {
-    title = "an electric ___ spell",
-})
-
-magikacia.register_attack("fire_primary", {
-    title = "a fire summoning spell",
-})
-magikacia.register_attack("_secondary", {
-    title = "a fireball spell",
-})
-
-magikacia.register_attack("ice_primary", {
-    title = "an ice ___ spell",
-})
-magikacia.register_attack("ice_secondary", {
-    title = "an ice ball spell",
-})
-
-magikacia.register_attack("telepathic_primary", {
-    title = "an telepathic ___ spell",
-})
-magikacia.register_attack("telepathic_secondary", {
-    title = "an telepathic ___ spell",
-})
-
-magikacia.register_attack("void_primary", {
-    title = "a void blast spell",
-})
-magikacia.register_attack("void_secondary", {
-    title = "a void vortex spell",
-})
-
-magikacia.register_attack("water_primary", {
-    title = "a water burst spell",
-})
-magikacia.register_attack("water_secondary", {
-    title = "a water riptide spell",
-})
-
-magikacia.register_attack("wind_primary", {
-    title = "a wind burst spell",
-})
-magikacia.register_attack("wind_secondary", {
-    title = "a wind ___ spell",
-})
-
-function magikacia.deal_spell_damage(obj, damage, typename, source)
-    mcl_util.deal_damage(obj, 20, { type = "magikacia_spell_" .. typename, source = source, direct = source })
-end
-
-
-
-
 function magikacia.check_object_hit(self, pos, dmg)
     for object in minetest.objects_inside_radius(pos, 2) do
         local entity = object:get_luaentity()
@@ -318,6 +313,7 @@ function magikacia.check_object_hit(self, pos, dmg)
     end
     return false, nil
 end
+
 local how_to_throw = S("Use the punch key to throw.")
 function magikacia.register_projectile(def)
     local function snowball_particles(pos, vel)
@@ -485,14 +481,6 @@ function magikacia.bone_meal(itemstack, user, pointed_thing)
     return
 end
 
-
-
-
-
-
-
-
-
 local function round(num, idp)
     local mult = 10 ^ (idp or 0)
     return math.floor(num * mult + 0.5) / mult
@@ -554,4 +542,18 @@ function magikacia.random_teleport_obj(obj)
         end
     end
     return false
+end
+
+magikacia.tase = function(user, obj)
+    if obj then
+        local obj_is_player = obj:is_player()
+        if obj_is_player then
+            obj:set_look_horizontal(obj:get_look_horizontal() + math.random(-math.pi / 16, math.pi / 16))
+            obj:set_look_vertical(obj:get_look_vertical() + math.random(-math.pi / 16, math.pi / 16))
+        end
+        if (obj_is_player or obj:get_luaentity()) and mcl_util.get_hp(obj) > 1 then
+            magikacia.deal_spell_damage(obj, 1, "electric_primary", user)
+            return true
+        end
+    end
 end

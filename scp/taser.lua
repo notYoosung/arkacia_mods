@@ -10,10 +10,6 @@ minetest.register_tool(":bear:taser",
             mcl_tools.entity = pointed_thing.ref
             if pointed_thing.type == "object" then
                 local playerref = mcl_tools.entity
-                if mcl_tools.entity:is_player() and mcl_tools.entity:get_player_name() then
-                    playerref = minetest
-                        .get_player_by_name(mcl_tools.entity:get_player_name())
-                end
                 if playerref and (playerref:is_player() or playerref:get_luaentity()) and mcl_util.get_hp(playerref) > 1 then
                     mcl_util.deal_damage(playerref, 1, { type = "generic" })
                 end

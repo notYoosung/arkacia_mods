@@ -125,7 +125,7 @@ mcl_mobs.register_mob(":scp:scp_4335", {
     visual = "mesh",
     mesh = "mobs_mc_enderman.b3d",
     textures = create_enderman_textures(),
-    visual_size = { x = 30, y = 3 },
+    visual_size = { x = 3.5, y = 3.5 },
     makes_footstep_sound = true,
     spawn_in_group = 2,
     on_spawn = function(self)
