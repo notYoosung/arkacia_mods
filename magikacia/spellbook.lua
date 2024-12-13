@@ -36,8 +36,11 @@ magikacia.inv = {
         local meta = itemstack:get_meta()
         local invmetastring = meta:get_string("magikacia_inv_content")
         if invmetastring ~= "" then
-            local t = assert(minetest.deserialize(invmetastring)[listname])
-
+            minetest.log(invmetastring)
+            --assert
+            local invtable = minetest.deserialize(invmetastring)
+            local t = invtable[listname]
+            if not t then return nil end
             for i, v in pairs(t) do
                 if v.name == itemname then return true end
             end
@@ -95,7 +98,7 @@ magikacia.inv = {
                 magikacia.inv.save_bag_inv(inv, player, listname)
             end,
         }, playername)
-        inv:set_size("main", width * height)
+        inv:set_size(listname, width * height)
         local invmetastring = meta:get_string("magikacia_inv_content")
         if invmetastring ~= "" then
             magikacia.inv.table_to_inv(inv, minetest.deserialize(invmetastring))
@@ -115,17 +118,15 @@ magikacia.inv = {
     end,
     save_bag_inv = function(inv, player, _)
         local playerinv = player:get_inventory()
-        local bag_id = inv:get_location().name
+        local bag_id = inv:get_location().name:gsub("_main", "")
         local playerlistname = "main"
         local size = playerinv:get_size(playerlistname)
         for i = 1, size, 1 do
             local stack = playerinv:get_stack(playerlistname, i)
             local meta = stack:get_meta()
             local stack_id = meta:get_string("magikacia_bag_identity")
-            minetest.log(stack_id)
             if stack_id == bag_id then
                 stack = magikacia.inv.save_bag_inv_itemstack(inv, stack)
-                minetest.log(minetest.serialize(magikacia.inv.inv_to_table(inv)))
                 playerinv:set_stack(playerlistname, i, stack)
             end
         end
