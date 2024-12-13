@@ -779,7 +779,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
 
     if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_wind") then
         magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
-            local newvel = vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), -10)
+            local newvel = vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), vector.offset(use_pos_above, 0, -0.5, 0))), -10)
             obj:add_velocity(newvel)
         end, true)
         magikacia.spawn_effect_anim({

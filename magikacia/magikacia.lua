@@ -55,8 +55,8 @@ end
 local function write(itemstack, user, pointed_thing)
     local rc = mcl_util.call_on_rightclick(itemstack, user, pointed_thing)
     if rc then return rc end
-    
-    
+
+
     local text = itemstack:get_meta():get_string("text")
     local formspec = table.concat({
         "formspec_version[4]",
@@ -118,27 +118,156 @@ minetest.register_craftitem(":" .. modname .. ":writable_book", {
 
 
 
-local runes = {
-    "earth",
-    "electric",
-    "fire",
-    "ice",
-    "telepathic",
-    "void",
-    "water",
-    "wind",
-    "disguise",
-    "resize",
-    "poison",
-    "healing",
-    "summoning",
-    "shield",
+magikacia.runes = {
+    {
+        name = "earth",
+        description = "",
+        spell_descriptions = {
+            left = "",
+            left_sneak = "",
+            right = "",
+        }
+    },
+    {
+        name = "electric",
+        description = "",
+        spell_descriptions = {
+            left = "Taser - Click to create a shocking burst! Burst range: 2 blocks",
+            left_sneak = "",
+            right = "Electric Bolt - Summon a lightning strike!",
+        }
+    },
+    {
+        name = "fire",
+        description = "",
+        spell_descriptions = {
+            left = "",
+            left_sneak = "",
+            right = "",
+        }
+    },
+    {
+        name = "ice",
+        description = "",
+        spell_descriptions = {
+            left = "",
+            left_sneak = "",
+            right = "",
+        }
+    },
+    {
+        name = "telepathic",
+        description = "",
+        spell_descriptions = {
+            left = "Teleport - Teleport to where you click!",
+            left_sneak =
+            "Entity Swap/Teleport - If pointing at an entity, swap places with it. Otherwise, teleport like normal!",
+            right = "Evasion - Teleport to a random and nearby place!",
+        }
+    },
+    {
+        name = "void",
+        description = "",
+        spell_descriptions = {
+            left = "",
+            left_sneak = "",
+            right = "",
+        }
+    },
+    {
+        name = "water",
+        description = "",
+        spell_descriptions = {
+            left = "",
+            left_sneak = "",
+            right = "",
+        }
+    },
+    {
+        name = "wind",
+        description = "",
+        spell_descriptions = {
+            left = "Burst - Push mobs/players away! Range: 8 Blocks",
+            left_sneak = "Gravity Well - Pull mobs/players in! Range: 8 Blocks",
+            right = "",
+        }
+    },
+    {
+        name = "disguise",
+        description = "Warning: Complicated use!",
+        spell_descriptions = {
+        left =
+            "Save an mob/player's or node's look! Click on the same material to clear the save!\n    If a look is saved and you click on an mob/player, it be disguised with the look!",
+            left_sneak = "Same as left click!",
+            right = "If a look is saved, disguise yourself! If not, save your current look!",
+        }
+    },
+    {
+        name = "resize",
+        description = "",
+        spell_descriptions = {
+            left = "Growth - If looking at a mob/player, make it bigger! If not, then make yourself bigger!",
+            left_sneak = "Same as left click!",
+            right = "Shrink - If looking at a mob/player, make it smaller! If not, then make yourself smaller!",
+        }
+    },
+    {
+        name = "poison",
+        description = "",
+        spell_descriptions = {
+            left = "Silent But Deadly - Release a toxic cloud where you click! Range: 3 Blocks",
+            left_sneak = "",
+            right = "",
+        }
+    },
+    {
+        name = "healing",
+        description = "",
+        spell_descriptions = {
+            left = "",
+            left_sneak = "",
+            right = "",
+        }
+    },
+    {
+        name = "summoning",
+        description = "",
+        spell_descriptions = {
+            left = "",
+            left_sneak = "",
+            right = "",
+        }
+    },
+    {
+        name = "shield",
+        description = "",
+        spell_descriptions = {
+            left = "",
+            left_sneak = "",
+            right = "",
+        }
+    },
     ""
 }
-for _, v in ipairs(runes) do
-    minetest.register_craftitem(":" .. modname .. ":rune_" .. v, {
-        description = "Rune: " .. v,
-        inventory_image = magikacia.textures["rune_" .. v] or nil,
+local color_list = {
+    mcl_colors.DARK_GREEN,
+    mcl_colors.RED,
+    mcl_colors.AQUA,
+}
+local function c(color_id, text)
+    return minetest.colorize(color_list[color_id], text)
+end
+for _, v in ipairs(magikacia.runes) do
+    minetest.register_craftitem(":" .. modname .. ":rune_" .. v.name, {
+        description = table.concat({
+            c(1, "Rune: " .. v.name),
+            c(1, "Description: ") .. c(3, v.description),
+            c(1, "Left Click: ") .. C(3, v.spell_descriptions.left),
+            c(1, "Left Click + Sneak: ") .. C(3, v.spell_descriptions.left_sneak),
+            c(1, "Right Click: ") .. C(3, v.spell_descriptions.right),
+            c(1, "Right Click + Sneak: ") .. c(3, "Open Spellbook Inventory"),
+        }, "\n"),
+        inventory_image = magikacia.textures["rune_" .. v.name] or nil,
     })
 end
 
@@ -165,10 +294,10 @@ verify_time = verify_time and tonumber(verify_time) or 10
 wield_scale = wield_scale and tonumber(wield_scale) or 0.25 --[[default scale]]
 
 local location = {
-    "Arm_Right",                    --[[default bone]
+    "Arm_Right", --[[default bone]
     { x = 0, y = 2 / 16, z = 0 },   --[[default position]]
-    { x = 0, y = 0,      z = 0 },   --[[default rotation]]
-    { x = 5, y = 5,      z = 0.5 }, --[[visual size]]
+    { x = 0, y = 0, z = 0 }, --[[default rotation]]
+    { x = 5, y = 5, z = 0.5 }, --[[visual size]]
 }
 
 
@@ -517,16 +646,26 @@ if not mcl_util._magikacia_init_fields then
                 for obj, _ in minetest.objects_inside_radius(pos, 8) do
                     if not obj then goto continue end
                     if (obj:get_luaentity() ~= nil
-                        and obj:get_luaentity().name ~= "mcl_chests:chest"
-                        and obj:get_luaentity().name ~= "mcl_itemframes:item"
-                        and obj:get_luaentity().name ~= "mcl_enchanting:book")
+                            and obj:get_luaentity().name ~= "mcl_chests:chest"
+                            and obj:get_luaentity().name ~= "mcl_itemframes:item"
+                            and obj:get_luaentity().name ~= "mcl_enchanting:book")
                     then
                         local v = vector.normalize(vector.subtract(obj:get_pos(), pos))
-                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 10 + 20) * spell_earth_time, z = v.z * 10 * spell_earth_time })
+                        obj:add_velocity({
+                            x = v.x * 10 * spell_earth_time,
+                            y = (v.y * 10 + 20) * spell_earth_time,
+                            z = v
+                                .z * 10 * spell_earth_time
+                        })
                     end
                     if (obj:is_player() and obj:get_player_name() ~= player:get_player_name()) then
                         local v = vector.normalize(vector.subtract(obj:get_pos(), pos))
-                        obj:add_velocity({ x = v.x * 10 * spell_earth_time, y = (v.y * 1 + 10) * spell_earth_time, z = v.z * 10 * spell_earth_time })
+                        obj:add_velocity({
+                            x = v.x * 10 * spell_earth_time,
+                            y = (v.y * 1 + 10) * spell_earth_time,
+                            z = v
+                                .z * 10 * spell_earth_time
+                        })
                     end
                     ::continue::
                 end
@@ -550,8 +689,8 @@ end
 
 --[[
  OOP the texture is tiny its at the bottom of this text lol- (the eye has the colors of the arkacia flag lol)
-Adminite 
-(it has the model of an endermite) 
+Adminite
+(it has the model of an endermite)
 will walk around and has slightly fast speed kinda, abt the same walking speed as a player. Can be binded with commands to only attack certain mobs, or attack all mobs except that certain mob, (can be helpful to clean up spawn because mobs keep spawning and making it laggy)
 command could be:
 /adminite only mobs_mc_endermite
@@ -562,7 +701,7 @@ command could be:
 maybe make it so that u hafta hold the specific spawn egg and all the spawn eggs in that current stack will be binded to the cmd-
 also make it a special priv or smt- we dont want random players spawning them to kill everything XD
 -
-also wat if u can seperate the mob names with a comma , so u can do multiple than one mob to whitelist or blacklist XD 
+also wat if u can seperate the mob names with a comma , so u can do multiple than one mob to whitelist or blacklist XD
 ]]
 
 mcl_mobs.register_mob(":magikacia:adminite", {
@@ -629,7 +768,7 @@ minetest.register_chatcommand("adminite", {
 
             local attack_specific = {}
             local owner = ""
-            
+
             local subcmd = params[1]
             local extraparams = #params > 1 and table.unpack(params, 2) or {}
 
@@ -646,10 +785,10 @@ minetest.register_chatcommand("adminite", {
                     table.insert(attack_specific, mob_name)
                 end
             else
-                minetest.chat_send_player(name, "Invalid subcommand: \"" .. subcmd .. "\". Valid subcommands are \"only\" and \"except\".")
+                minetest.chat_send_player(name,
+                    "Invalid subcommand: \"" .. subcmd .. "\". Valid subcommands are \"only\" and \"except\".")
                 return
             end
-            
         end
     end
 })
