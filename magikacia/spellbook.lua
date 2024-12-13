@@ -36,16 +36,123 @@ magikacia.inv = {
         local meta = itemstack:get_meta()
         local invmetastring = meta:get_string("magikacia_inv_content")
         if invmetastring ~= "" then
-            local t = assert(minetest.deserialize(invmetastring)[listname])
-
+            local invtable = assert(minetest.deserialize(invmetastring))
+            local t = invtable[listname]
+            if not t then return nil end
             for i, v in pairs(t) do
                 if v.name == itemname then return true end
             end
         end
         return false
     end,
-}
+    create_bag_inv = function(itemstack, player, width, height, invname, allow_bag_input, playername, meta, listname)
+        meta:set_int("magikacia_width_" .. listname, width)
+        meta:set_int("magikacia_height_" .. listname, height)
+        local inv = minetest.create_detached_inventory(invname .. "_" .. listname, {
+            allow_put = function(inv, _listname, index, stack, player)
+                if allow_bag_input then
+                    if minetest.get_item_group(stack:get_name(), "bag_bag") > 0 then
+                        return 0
+                    end
+                else
+                    if minetest.get_item_group(stack:get_name(), "bag") > 0 then
+                        return 0
+                    end
+                end
+                return stack:get_count()
+            end,
+            on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
+                magikacia.inv.save_bag_inv(inv, player, listname)
+            end,
+            on_put = function(inv, listname, index, stack, player)
+                magikacia.inv.save_bag_inv(inv, player, listname)
+            end,
+            on_take = function(inv, takelistname, index, stack, player)
+                local _takelistname = inv:get_location().name
+                local size = inv:get_size(takelistname)
+                for i = 1, size, 1 do
+                    local invstack = inv:get_stack(takelistname, i)
+                    local remove_stack = false
+                    if allow_bag_input then
+                        if minetest.get_item_group(invstack:get_name(), "bag_bag") > 0 then
+                            remove_stack = true
+                        end
+                    else
+                        if minetest.get_item_group(invstack:get_name(), "bag") > 0 then
+                            remove_stack = true
+                        end
+                    end
+                    if remove_stack == true then
+                        inv:set_stack(takelistname, i, "")
+                        local playerinv = player:get_inventory()
+                        if playerinv:room_for_item("main", invstack) then
+                            playerinv:add_item("main", invstack)
+                        else
+                            minetest.item_drop(magikacia.inv.save_bag_inv_itemstack(inv, invstack), player,
+                                player:get_pos())
+                            minetest.close_formspec(player:get_player_name(), inv:get_location().name)
+                        end
+                    end
+                end
+                minetest.log(minetest.serialize(magikacia.inv.inv_to_table(inv)))
+                magikacia.inv.save_bag_inv(inv, player, _takelistname)
+            end,
+        }, playername)
+        inv:set_size("main", width * height)
+        local invmetastring = meta:get_string("magikacia_inv_content")
+        if invmetastring ~= "" then
+            magikacia.inv.table_to_inv(inv, minetest.deserialize(invmetastring))
 
+            itemstack, inv, user = magikacia.on_open_bag(itemstack, inv, user)
+            magikacia.inv.save_bag_inv_itemstack(inv, itemstack)
+        end
+        return itemstack, inv, user
+    end,
+    save_bag_inv_itemstack = function(inv, stack, listname)
+        stack, inv = magikacia.on_change_bag_inv(stack, inv)
+        local meta = stack:get_meta()
+        local ser = minetest.serialize(magikacia.inv.inv_to_table(inv))
+        meta:set_string("magikacia_inv_content", ser)
+        return stack
+    end,
+    save_bag_inv = function(inv, player, _)
+        local playerinv = player:get_inventory()
+        local bag_id = inv:get_location().name:gsub("_main", "")
+        local playerlistname = "main"
+        local size = playerinv:get_size(playerlistname)
+        for i = 1, size, 1 do
+            local stack = playerinv:get_stack(playerlistname, i)
+            local meta = stack:get_meta()
+            local stack_id = meta:get_string("magikacia_bag_identity")
+            if stack_id == bag_id then
+                stack = magikacia.inv.save_bag_inv_itemstack(inv, stack)
+                playerinv:set_stack(playerlistname, i, stack)
+            end
+        end
+        return inv
+    end,
+    inv_to_table = function(inv)
+        local t = {}
+        for _listname, list in pairs(inv:get_lists()) do
+            local size = inv:get_size(_listname)
+            if size then
+                t[_listname] = {}
+                for i = 1, size, 1 do
+                    t[_listname][i] = inv:get_stack(_listname, i):to_table()
+                end
+            end
+        end
+        return t
+    end,
+
+    table_to_inv = function(inv, t)
+        for _listname, list in pairs(t) do
+            for i, stack in pairs(list) do
+                inv:set_stack(_listname, i, stack)
+            end
+        end
+    end,
+}
 
 
 local function get_formspec(name, width, height)
@@ -53,15 +160,15 @@ local function get_formspec(name, width, height)
         "formspec_version[4]",
         "size[11.75,10.425]",
 
-        "label[3.125,0.375;" .. F(C(mcl_formspec.label_color, S("Modifier"))) .. "]",
+        "label[2.125,0.375;" .. F(C(mcl_formspec.label_color, S("Modifier"))) .. "]",
 
-        mcl_formspec.get_itemslot_bg_v4(3.125, 0.75, 1, 1),
-        "list[detached:" .. name .. ";modifiers;3.125,0.75;" .. 1 .. "," .. 1 .. ";]",
+        mcl_formspec.get_itemslot_bg_v4(2.125, 0.75, 1, 1),
+        "list[detached:" .. name .. "_modifiers;main;2.125,0.75;" .. 1 .. "," .. 1 .. ";]",
 
         "label[4.125,0.375;" .. F(C(mcl_formspec.label_color, S("Magic Inventory"))) .. "]",
 
         mcl_formspec.get_itemslot_bg_v4(4.125, 0.75, width, height),
-        "list[detached:" .. name .. ";main;4.125,0.75;" .. width .. "," .. height .. ";]",
+        "list[detached:" .. name .. "_main;main;4.125,0.75;" .. width .. "," .. height .. ";]",
 
         "label[0.375,4.7;" .. F(C(mcl_formspec.label_color, S("Inventory"))) .. "]",
 
@@ -72,32 +179,13 @@ local function get_formspec(name, width, height)
         "list[current_player;main;0.375,9.05;9,1;]",
 
         "listring[current_player;main]",
-        "listring[detached:" .. name .. ";main]",
+        "listring[detached:" .. name .. "_main;main]",
+        -- "listring[current_player;main]",
+        "listring[detached:" .. name .. "_modifiers;main]",
     })
     return spellbook_inv_formspec
 end
 
-local function inv_to_table(inv)
-    local t = {}
-    for listname, list in pairs(inv:get_lists()) do
-        local size = inv:get_size(listname)
-        if size then
-            t[listname] = {}
-            for i = 1, size, 1 do
-                t[listname][i] = inv:get_stack(listname, i):to_table()
-            end
-        end
-    end
-    return t
-end
-
-local function table_to_inv(inv, t)
-    for listname, list in pairs(t) do
-        for i, stack in pairs(list) do
-            inv:set_stack(listname, i, stack)
-        end
-    end
-end
 
 
 local function has_in_spellbook_inv_main(itemstack, player, itemname)
@@ -152,33 +240,13 @@ function magikacia.on_drop_bag(itemstack, dropper, pos)
     return itemstack, dropper, pos
 end
 
-local function save_bag_inv_itemstack(inv, stack)
-    stack, inv = magikacia.on_change_bag_inv(stack, inv)
-    local meta = stack:get_meta()
-    meta:set_string("magikacia_inv_content", minetest.serialize(inv_to_table(inv)))
-    return stack
-end
-
-local function save_bag_inv(inv, player, listname)
-    local playerinv = minetest.get_inventory { type = "player", name = player:get_player_name() }
-    local bag_id = inv:get_location().name
-    listname = listname or "main"
-    local size = playerinv:get_size(listname)
-    for i = 1, size, 1 do
-        local stack = playerinv:get_stack(listname, i)
-        local meta = stack:get_meta()
-        if meta:get_string("magikacia_bag_identity") == bag_id then
-            stack = save_bag_inv_itemstack(inv, stack)
-            playerinv:set_stack(listname, i, stack)
-        end
-    end
-end
-
 local mod_storage = {}
+magikacia.rand = PcgRandom(213123)
 local function create_invname(itemstack)
-    local counter = mod_storage["counter"] or 0
-    counter = counter + 1
-    mod_storage["counter"] = counter
+    -- local counter = mod_storage["counter"] or 0
+    -- counter = counter + 1
+    -- mod_storage["counter"] = counter
+    counter = magikacia.rand:next(0, 2147483647)
     return itemstack:get_name() .. "_C_" .. counter
 end
 
@@ -203,75 +271,21 @@ local function open_bag(itemstack, user, width, height, sound)
 
 
     if invname == "" then
-        local item_count = itemstack:get_count()
+        --[[local item_count = itemstack:get_count()
         if item_count > 1 then
             local newitemstack = itemstack:take_item(item_count - 1)
             minetest.after(0.01, stack_to_player_inv, newitemstack, user)
-        end
+        end]]
         invname = create_invname(itemstack)
         meta:set_string("magikacia_bag_identity", invname)
     end
 
-    meta:set_int("magikacia_width", width)
-    meta:set_int("magikacia_height", height)
-    meta:set_int("magikacia_width_modifiers", width)
-    meta:set_int("magikacia_height_modifiers", height)
 
-    local inv = minetest.create_detached_inventory(invname, {
-        allow_put = function(inv, listname, index, stack, player)
-            if allow_bag_input then
-                if minetest.get_item_group(stack:get_name(), "bag_bag") > 0 then
-                    return 0
-                end
-            else
-                if minetest.get_item_group(stack:get_name(), "bag") > 0 then
-                    return 0
-                end
-            end
-            return stack:get_count()
-        end,
-        on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
-            save_bag_inv(inv, player)
-        end,
-        on_put = function(inv, listname, index, stack, player)
-            save_bag_inv(inv, player)
-        end,
-        on_take = function(inv, listname, index, stack, player)
-            local size = inv:get_size(listname)
-            for i = 1, size, 1 do
-                local stack = inv:get_stack(listname, i)
-                local remove_stack = false
-                if allow_bag_input then
-                    if minetest.get_item_group(stack:get_name(), "bag_bag") > 0 then
-                        remove_stack = true
-                    end
-                else
-                    if minetest.get_item_group(stack:get_name(), "bag") > 0 then
-                        remove_stack = true
-                    end
-                end
-                if remove_stack == true then
-                    inv:set_stack(listname, i, "")
-                    local playerinv = player:get_inventory()
-                    if playerinv:room_for_item("main", stack) then
-                        playerinv:add_item("main", stack)
-                    else
-                        minetest.item_drop(save_bag_inv_itemstack(inv, stack), player, player:get_pos())
-                        minetest.close_formspec(player:get_player_name(), inv:get_location().name)
-                    end
-                end
-            end
-            save_bag_inv(inv, player)
-        end,
-    }, playername)
-    inv:set_size("main", width * height)
-    local invmetastring = meta:get_string("magikacia_inv_content")
-    if invmetastring ~= "" then
-        table_to_inv(inv, minetest.deserialize(invmetastring))
+    itemstack, inv, user = magikacia.inv.create_bag_inv(itemstack, user, width, height, invname, allow_bag_input,
+        playername, meta, "main")
+    itemstack, inv, user = magikacia.inv.create_bag_inv(itemstack, user, 1, 1, invname, allow_bag_input, playername, meta,
+        "modifiers")
 
-        itemstack, inv, user = magikacia.on_open_bag(itemstack, inv, user)
-        save_bag_inv_itemstack(inv, itemstack)
-    end
 
     if sound then
         minetest.sound_play(sound, { gain = 0.8, object = user, max_hear_distance = 5 })
@@ -279,7 +293,7 @@ local function open_bag(itemstack, user, width, height, sound)
     minetest.show_formspec(playername, invname, get_formspec(invname, width, height))
     return itemstack
 end
-
+--[[
 function magikacia.bag_inv_add_item(bagstack, itemstack)
     local meta = bagstack:get_meta()
     local invname = meta:get_string("magikacia_bag_identity")
@@ -325,6 +339,7 @@ function magikacia.bag_inv_remove_item(bagstack, itemstack)
     end
     return false
 end
+--]]
 
 local function get_visual_size(obj)
     if not obj then return nil end
