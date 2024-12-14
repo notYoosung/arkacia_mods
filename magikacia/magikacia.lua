@@ -120,7 +120,7 @@ minetest.register_craftitem(":" .. modname .. ":writable_book", {
 
 magikacia.runes = {
     {
-        name = "earth",
+        name = "Earth",
         description = "",
         spell_descriptions = {
             left = "",
@@ -129,7 +129,7 @@ magikacia.runes = {
         }
     },
     {
-        name = "electric",
+        name = "Electric",
         description = "",
         spell_descriptions = {
             left = "Taser - Click to create a shocking burst! Burst range: 2 blocks",
@@ -138,7 +138,7 @@ magikacia.runes = {
         }
     },
     {
-        name = "fire",
+        name = "Fire",
         description = "",
         spell_descriptions = {
             left = "",
@@ -147,7 +147,7 @@ magikacia.runes = {
         }
     },
     {
-        name = "ice",
+        name = "Ice",
         description = "",
         spell_descriptions = {
             left = "",
@@ -156,7 +156,7 @@ magikacia.runes = {
         }
     },
     {
-        name = "telepathic",
+        name = "Telepathic",
         description = "",
         spell_descriptions = {
             left = "Teleport - Teleport to where you click!",
@@ -166,7 +166,7 @@ magikacia.runes = {
         }
     },
     {
-        name = "void",
+        name = "Void",
         description = "",
         spell_descriptions = {
             left = "",
@@ -175,7 +175,7 @@ magikacia.runes = {
         }
     },
     {
-        name = "water",
+        name = "Water",
         description = "",
         spell_descriptions = {
             left = "",
@@ -184,7 +184,7 @@ magikacia.runes = {
         }
     },
     {
-        name = "wind",
+        name = "Wind",
         description = "",
         spell_descriptions = {
             left = "Burst - Push mobs/players away! Range: 8 Blocks",
@@ -193,17 +193,17 @@ magikacia.runes = {
         }
     },
     {
-        name = "disguise",
+        name = "Disguise",
         description = "Warning: Complicated use!",
         spell_descriptions = {
-        left =
+            left =
             "Save an mob/player's or node's look! Click on the same material to clear the save!\n    If a look is saved and you click on an mob/player, it be disguised with the look!",
             left_sneak = "Same as left click!",
             right = "If a look is saved, disguise yourself! If not, save your current look!",
         }
     },
     {
-        name = "resize",
+        name = "Resize",
         description = "",
         spell_descriptions = {
             left = "Growth - If looking at a mob/player, make it bigger! If not, then make yourself bigger!",
@@ -212,7 +212,7 @@ magikacia.runes = {
         }
     },
     {
-        name = "poison",
+        name = "Poison",
         description = "",
         spell_descriptions = {
             left = "Silent But Deadly - Release a toxic cloud where you click! Range: 3 Blocks",
@@ -221,7 +221,7 @@ magikacia.runes = {
         }
     },
     {
-        name = "healing",
+        name = "Healing",
         description = "",
         spell_descriptions = {
             left = "",
@@ -230,7 +230,7 @@ magikacia.runes = {
         }
     },
     {
-        name = "summoning",
+        name = "Summoning",
         description = "",
         spell_descriptions = {
             left = "",
@@ -239,7 +239,7 @@ magikacia.runes = {
         }
     },
     {
-        name = "shield",
+        name = "Shield",
         description = "",
         spell_descriptions = {
             left = "",
@@ -247,7 +247,6 @@ magikacia.runes = {
             right = "",
         }
     },
-    ""
 }
 local color_list = {
     mcl_colors.DARK_GREEN,
@@ -258,16 +257,16 @@ local function c(color_id, text)
     return minetest.colorize(color_list[color_id], text)
 end
 for _, v in ipairs(magikacia.runes) do
-    minetest.register_craftitem(":" .. modname .. ":rune_" .. v.name, {
+    minetest.register_craftitem(":" .. modname .. ":rune_" .. v.name:lower(), {
         description = table.concat({
-            c(1, "Rune: " .. v.name),
+            c(1, c(3, v.name .. " Rune")),
             c(1, "Description: ") .. c(3, v.description),
-            c(1, "Left Click: ") .. C(3, v.spell_descriptions.left),
-            c(1, "Left Click + Sneak: ") .. C(3, v.spell_descriptions.left_sneak),
-            c(1, "Right Click: ") .. C(3, v.spell_descriptions.right),
-            c(1, "Right Click + Sneak: ") .. c(3, "Open Spellbook Inventory"),
+            c(1, "Left Click: ") .. c(3, v.spell_descriptions.left),
+            c(1, "Sneak + Left Click: ") .. c(3, v.spell_descriptions.left_sneak),
+            c(1, "Right Click: ") .. c(3, v.spell_descriptions.right),
+            c(1, "Sneak + Right Click: ") .. c(3, "Open Spellbook Inventory"),
         }, "\n"),
-        inventory_image = magikacia.textures["rune_" .. v.name] or nil,
+        inventory_image = magikacia.textures["rune_" .. v.name:lower()] or nil,
     })
 end
 
