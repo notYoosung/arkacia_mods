@@ -661,31 +661,10 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and inv_runes[modname .. ":rune_absolute_solver"] then
-        for i = 10, -30, -3 do
-            local pos = vector.offset(use_pos_above, 0, i, 0)
-            --[[Values in info:
-            drop_chance - If specified becomes the drop chance of all nodes in the
-                        explosion (default: 1.0 / strength)
-            max_blast_resistance - If specified the explosion will treat all
-                                non-indestructible nodes as having a blast resistance
-                                of no more than this value
-            sound - If true, the explosion will play a sound (default: true)
-            particles - If true, the explosion will create particles (default: true)
-            fire - If true, 1/3 nodes become fire (default: false)
-            griefing - If true, the explosion will destroy nodes (default: true)
-            grief_protected - If true, the explosion will also destroy nodes which have
-                            been protected (default: false)]]
-            magikacia.explode(pos, 6, {
-                drop_chance = 0,
-                particles = false,
-                fire = false,
-                sound = false,
-            }, placer, placer, "absolute_solver_primary", false)
-        end
         magikacia.spawn_effect_anim({
-            pos = use_pos_self,
+            pos = use_pos_above,
             texture = "effect_absolute_solver_primary",
-            size = 10,
+            size = 20,
         })
         use_success = true
         use_at_place_above = true
@@ -955,6 +934,21 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     end
 
     if inv_runes[modname .. ":rune_absolute_solver"] then
+        for i = 0, -30, -6 do
+            local pos = vector.offset(use_pos_above, 0, i, 0)
+            if not minetest.is_protected(pos, placer:get_player_name()) then
+                magikacia.explode(pos, 3, {
+                    drop_chance = 0,
+                    particles = false,
+                    fire = false,
+                    sound = false,
+                }, placer, placer, "absolute_solver_secondary", false)
+            else
+                magikacia.radius_effect_func(pos, 3, placer, function(obj)
+                    magikacia.deal_spell_damage(obj, 20, "absolute_solver_secondary", placer)
+                end)
+            end
+        end
         magikacia.spawn_effect_anim({
             pos = use_pos_self,
             texture = "effect_absolute_solver_secondary",

@@ -120,7 +120,7 @@ local function trace_explode(pos, strength, raydirs, radius, info, direct, sourc
             local rdir_x = raydirs[i].x
             local rdir_y = raydirs[i].y
             local rdir_z = raydirs[i].z
-            local rstr = (0.7 + math.random() * 0.6) * strength
+            -- local rstr = (0.7 + math.random() * 0.6) * strength
 
             for _ = 0, math.ceil(radius * (1.0 / STEP_LENGTH)) do
                 local npos_x = math.floor(rpos_x + 0.5)
@@ -142,11 +142,11 @@ local function trace_explode(pos, strength, raydirs, radius, info, direct, sourc
                 rpos_y = rpos_y + STEP_LENGTH * rdir_y
                 rpos_z = rpos_z + STEP_LENGTH * rdir_z
 
-                rstr = rstr - 0.75 * STEP_LENGTH - (br + 0.3) * STEP_LENGTH
+                -- rstr = rstr - 0.75 * STEP_LENGTH - (br + 0.3) * STEP_LENGTH
 
-                if rstr <= 0 then
-                    break
-                end
+                -- if rstr <= 0 then
+                --     break
+                -- end
 
                 if cid ~= minetest.CONTENT_AIR then
                     if not minetest.is_protected(npos, "") or grief_protected then
@@ -163,7 +163,7 @@ local function trace_explode(pos, strength, raydirs, radius, info, direct, sourc
         local ent = obj:get_luaentity()
 
         if ((obj:is_player() and not (not do_owner_damage and source and source:is_player() and obj:get_player_name() == source:get_player_name())) or (ent and ent.name ~= "__builtin.item")) and obj:get_hp() > 0 then
-            local opos = obj:get_pos()
+            --[[local opos = obj:get_pos()
             local collisionbox = obj:get_properties().collisionbox
 
             if collisionbox then
@@ -223,14 +223,14 @@ local function trace_explode(pos, strength, raydirs, radius, info, direct, sourc
                 if impact < 0 then
                     impact = 0
                 end
-                local damage = math.floor((impact * impact + impact) * 7 * strength + 1)
+                local damage = math.floor((impact * impact + impact) * 7 * strength + 1)]]
 
-                magikacia.deal_spell_damage(obj, damage, typename, source)
+            magikacia.deal_spell_damage(obj, --[[damage]] 20, typename, source)
 
-                if obj:is_player() or ent.tnt_knockback then
+            --[[if obj:is_player() or ent.tnt_knockback then
                     obj:add_velocity(vector.multiply(punch_dir, impact * 20))
-                end
-            end
+                end]]
+            --[[end]]
         end
 
         if ent and ent.name == "mcl_end:crystal" then
@@ -288,14 +288,14 @@ local function trace_explode(pos, strength, raydirs, radius, info, direct, sourc
     if #fires > 0 then
         minetest.bulk_set_node(fires, { name = "magikacia:temp_fire" })
     end
-    for a = 1, #airs do
+    --[[for a = 1, #airs do
         local p = airs[a]
         minetest.check_for_falling(vector.offset(p, 0, 1, 0))
     end
     for f = 1, #fires do
         local p = fires[f]
         minetest.check_for_falling(vector.offset(p, 0, 1, 0))
-    end
+    end]]
 end
 
 -- Create an explosion with strength at pos.

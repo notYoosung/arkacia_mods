@@ -115,7 +115,7 @@ magikacia.register_attack("absolute_solver_primary", {
     title = "the Absolute Solver",
 })
 magikacia.register_attack("absolute_solver_secondary", {
-    title = "the Absolute Solver",
+    title = "[NULL]",
 })
 
 function magikacia.deal_spell_damage(obj, damage, typename, source)
