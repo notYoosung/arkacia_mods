@@ -1,6 +1,6 @@
 local modname = "magikacia"
-local vector = vector
-local minetest = minetest
+-- local vector = vector
+--local minetest = minetest
 local magikacia = magikacia
 
 local S = minetest.get_translator(minetest.get_current_modname())
@@ -109,6 +109,13 @@ magikacia.register_attack("wind_primary", {
 })
 magikacia.register_attack("wind_secondary", {
     title = "a wind ___ spell",
+})
+
+magikacia.register_attack("absolute_solver_primary", {
+    title = "the Absolute Solver",
+})
+magikacia.register_attack("absolute_solver_secondary", {
+    title = "the Absolute Solver",
 })
 
 function magikacia.deal_spell_damage(obj, damage, typename, source)
@@ -278,7 +285,7 @@ local mod_target = minetest.get_modpath("mcl_target")
 function magikacia.spawn_linger_particles(pos, d, texture, extradefs)
     extradefs = extradefs or {}
     minetest.add_particlespawner({
-        amount = extradefs.amount or (10 * d * d),
+        amount = extradefs.amount or (10 * d * d * d),
         time = extradefs.time or 3,
         minpos = { x = pos.x - d, y = pos.y - 0.5, z = pos.z - d },
         maxpos = { x = pos.x + d, y = pos.y + 0.5, z = pos.z + d },
@@ -556,4 +563,52 @@ magikacia.tase = function(user, obj)
             return true
         end
     end
+end
+
+
+minetest.register_entity(":magikacia:effect_entity", {
+    initial_properties = {
+        visual = "wielditem",
+        visual_size = { x = 0.3, y = 0.3 },
+        physical = false,
+        pointable = false,
+        textures = { "blank.png" },
+        static_save = false,
+    }
+})
+local base_props = {
+    visual = "wielditem",
+    visual_size = { x = 0.3, y = 0.3 },
+    physical = false,
+    pointable = false,
+    textures = { "blank.png" },
+}
+
+local map_props = {
+    visual = "upright_sprite",
+    visual_size = { x = 1, y = 1 },
+    collide_with_objects = false,
+    textures = { "blank.png" },
+    _mcl_pistons_unmovable = true
+}
+
+
+magikacia.tpl_entity = {
+    initial_properties = base_props,
+    _mcl_fishing_hookable = true,
+    _mcl_fishing_reelable = false,
+    _mcl_pistons_unmovable = true,
+}
+function magikacia.tpl_entity:set_def(def)
+    self.object:set_pos(def.pos)
+    self.object:set_rotation(vector.dir_to_rotation(def.dir))
+
+    self.object:set_properties(table.merge(base_props, {
+        wield_item = self._item,
+        visual_size = { x = def.size, y = def.size },
+    }, def.object_properties or {}))
+end
+
+function magikacia.spawn_effect_entity(def)
+
 end

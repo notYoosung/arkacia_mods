@@ -45,60 +45,40 @@ magikacia.inv = {
         end
         return false
     end,
-    create_bag_inv = function(itemstack, player, width, height, invname, allow_bag_input, playername, meta, listname)
-        meta:set_int("magikacia_width_" .. listname, width)
-        meta:set_int("magikacia_height_" .. listname, height)
-        local inv = minetest.create_detached_inventory(invname .. "_" .. listname, {
-            allow_put = function(inv, _listname, index, stack, player)
-                if allow_bag_input then
-                    if minetest.get_item_group(stack:get_name(), "bag_bag") > 0 then
-                        return 0
-                    end
-                else
-                    if minetest.get_item_group(stack:get_name(), "bag") > 0 then
-                        return 0
-                    end
-                end
-                return stack:get_count()
-            end,
-            on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
-                magikacia.inv.save_bag_inv(inv, player, listname)
-            end,
-            on_put = function(inv, listname, index, stack, player)
-                magikacia.inv.save_bag_inv(inv, player, listname)
-            end,
-            on_take = function(inv, takelistname, index, stack, player)
-                local _takelistname = inv:get_location().name
-                local size = inv:get_size(takelistname)
-                for i = 1, size, 1 do
-                    local invstack = inv:get_stack(takelistname, i)
-                    local remove_stack = false
-                    if allow_bag_input then
-                        if minetest.get_item_group(invstack:get_name(), "bag_bag") > 0 then
-                            remove_stack = true
-                        end
-                    else
-                        if minetest.get_item_group(invstack:get_name(), "bag") > 0 then
-                            remove_stack = true
-                        end
-                    end
-                    if remove_stack == true then
-                        inv:set_stack(takelistname, i, "")
-                        local playerinv = player:get_inventory()
-                        if playerinv:room_for_item("main", invstack) then
-                            playerinv:add_item("main", invstack)
-                        else
-                            minetest.item_drop(magikacia.inv.save_bag_inv_itemstack(inv, invstack), player,
-                                player:get_pos())
-                            minetest.close_formspec(player:get_player_name(), inv:get_location().name)
-                        end
-                    end
-                end
-                minetest.log(minetest.serialize(magikacia.inv.inv_to_table(inv)))
-                magikacia.inv.save_bag_inv(inv, player, _takelistname)
-            end,
-        }, playername)
-        inv:set_size("main", width * height)
+    get_in = function(itemstack, player, listname)
+        if not player or not itemstack then return nil end
+        local meta = itemstack:get_meta()
+        local invmetastring = meta:get_string("magikacia_inv_content")
+        if invmetastring ~= "" then
+            local invtable = assert(minetest.deserialize(invmetastring))
+            local t = invtable[listname]
+            if not t then return {} end
+            return t
+        else
+            return {}
+        end
+    end,
+    get_in_reversed_key_value = function(itemstack, player, listname)
+        if not player or not itemstack then return nil end
+        local meta = itemstack:get_meta()
+        local invmetastring = meta:get_string("magikacia_inv_content")
+        if invmetastring ~= "" then
+            local invtable = minetest.deserialize(invmetastring)
+            if not invtable then return {} end
+            local t = invtable[listname]
+            if not t then return {} end
+            local t2 = {}
+            for _, v in ipairs(t) do
+                t2[v.name] = true
+            end
+            return t2
+        else
+            return {}
+        end
+    end,
+    create_bag_inv = function(itemstack, player, width, height, invname, allow_bag_input, playername, meta, inv)
+        --[[meta:set_int("magikacia_width_" .. listname, width)
+        meta:set_int("magikacia_height_" .. listname, height)]]
         local invmetastring = meta:get_string("magikacia_inv_content")
         if invmetastring ~= "" then
             magikacia.inv.table_to_inv(inv, minetest.deserialize(invmetastring))
@@ -117,7 +97,7 @@ magikacia.inv = {
     end,
     save_bag_inv = function(inv, player, _)
         local playerinv = player:get_inventory()
-        local bag_id = inv:get_location().name:gsub("_main", "")
+        local bag_id = inv:get_location().name
         local playerlistname = "main"
         local size = playerinv:get_size(playerlistname)
         for i = 1, size, 1 do
@@ -156,20 +136,20 @@ magikacia.inv = {
 
 
 local function get_formspec(name, width, height)
+    --4.125
+    local magic_inventory_x = 11.75 / 2 - width / 2
     local spellbook_inv_formspec = table.concat({
         "formspec_version[4]",
         "size[11.75,10.425]",
 
-        "label[2.125,0.375;" .. F(C(mcl_formspec.label_color, S("Modifier"))) .. "]",
+        "label[0.375,0.375;" .. F(C(mcl_formspec.label_color, S("Modifier"))) .. "]",
 
-        mcl_formspec.get_itemslot_bg_v4(2.125, 0.75, 1, 1),
-        "list[detached:" .. name .. "_modifiers;main;2.125,0.75;" .. 1 .. "," .. 1 .. ";]",
+        mcl_formspec.get_itemslot_bg_v4(0.375, 0.75, 1, 1),
+        "list[detached:" .. name .. ";modifiers;0.375,0.75;" .. 1 .. "," .. 1 .. ";]",
 
-        "label[4.125,0.375;" .. F(C(mcl_formspec.label_color, S("Magic Inventory"))) .. "]",
-
-        mcl_formspec.get_itemslot_bg_v4(4.125, 0.75, width, height),
-        "list[detached:" .. name .. "_main;main;4.125,0.75;" .. width .. "," .. height .. ";]",
-
+        "label[" .. magic_inventory_x .. ",0.375;" .. F(C(mcl_formspec.label_color, S("Magic Inventory"))) .. "]",
+        mcl_formspec.get_itemslot_bg_v4(magic_inventory_x, 0.75, width, height),
+        "list[detached:" .. name .. ";main;" .. magic_inventory_x .. ",0.75;" .. width .. "," .. height .. ";]",
         "label[0.375,4.7;" .. F(C(mcl_formspec.label_color, S("Inventory"))) .. "]",
 
         mcl_formspec.get_itemslot_bg_v4(0.375, 5.1, 9, 3),
@@ -179,21 +159,25 @@ local function get_formspec(name, width, height)
         "list[current_player;main;0.375,9.05;9,1;]",
 
         "listring[current_player;main]",
-        "listring[detached:" .. name .. "_main;main]",
-        -- "listring[current_player;main]",
-        "listring[detached:" .. name .. "_modifiers;main]",
+        "listring[detached:" .. name .. ";main]",
+        "listring[current_player;main]",
+        "listring[detached:" .. name .. ";modifiers]",
     })
     return spellbook_inv_formspec
 end
 
 
 
-local function has_in_spellbook_inv_main(itemstack, player, itemname)
+function magikacia.has_in_spellbook_inv_main(itemstack, player, itemname)
     return magikacia.inv.has_in(itemstack, player, itemname, "main")
 end
-local function has_in_spellbook_inv_modifiers(itemstack, player, itemname)
+
+local has_in_spellbook_inv_main = magikacia.has_in_spellbook_inv_main
+function magikacia.has_in_spellbook_inv_modifiers(itemstack, player, itemname)
     return magikacia.inv.has_in(itemstack, player, itemname, "modifiers")
 end
+
+local has_in_spellbook_inv_modifiers = magikacia.has_in_spellbook_inv_modifiers
 
 
 local formspec_ender_chest = table.concat({
@@ -240,12 +224,12 @@ function magikacia.on_drop_bag(itemstack, dropper, pos)
     return itemstack, dropper, pos
 end
 
-local mod_storage = {}
+--[[local mod_storage = {}]]
 magikacia.rand = PcgRandom(213123)
 local function create_invname(itemstack)
-    -- local counter = mod_storage["counter"] or 0
-    -- counter = counter + 1
-    -- mod_storage["counter"] = counter
+    --[[local counter = mod_storage["counter"] or 0
+    counter = counter + 1
+    mod_storage["counter"] = counter]]
     counter = magikacia.rand:next(0, 2147483647)
     return itemstack:get_name() .. "_C_" .. counter
 end
@@ -271,20 +255,65 @@ local function open_bag(itemstack, user, width, height, sound)
 
 
     if invname == "" then
-        --[[local item_count = itemstack:get_count()
-        if item_count > 1 then
-            local newitemstack = itemstack:take_item(item_count - 1)
-            minetest.after(0.01, stack_to_player_inv, newitemstack, user)
-        end]]
         invname = create_invname(itemstack)
         meta:set_string("magikacia_bag_identity", invname)
     end
 
+    local inv = minetest.create_detached_inventory(invname, {
+        allow_put = function(inv, _listname, index, stack, player)
+            if allow_bag_input then
+                if minetest.get_item_group(stack:get_name(), "bag_bag") > 0 then
+                    return 0
+                end
+            else
+                if minetest.get_item_group(stack:get_name(), "bag") > 0 then
+                    return 0
+                end
+            end
+            return stack:get_count()
+        end,
+        on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
+            magikacia.inv.save_bag_inv(inv, player, listname)
+        end,
+        on_put = function(inv, listname, index, stack, player)
+            magikacia.inv.save_bag_inv(inv, player, listname)
+        end,
+        on_take = function(inv, takelistname, index, stack, player)
+            local _takelistname = inv:get_location().name
+            local size = inv:get_size(takelistname)
+            for i = 1, size, 1 do
+                local invstack = inv:get_stack(takelistname, i)
+                local remove_stack = false
+                if allow_bag_input then
+                    if minetest.get_item_group(invstack:get_name(), "bag_bag") > 0 then
+                        remove_stack = true
+                    end
+                else
+                    if minetest.get_item_group(invstack:get_name(), "bag") > 0 then
+                        remove_stack = true
+                    end
+                end
+                if remove_stack == true then
+                    inv:set_stack(takelistname, i, "")
+                    local playerinv = player:get_inventory()
+                    if playerinv:room_for_item("main", invstack) then
+                        playerinv:add_item("main", invstack)
+                    else
+                        minetest.item_drop(magikacia.inv.save_bag_inv_itemstack(inv, invstack), player,
+                            player:get_pos())
+                        minetest.close_formspec(player:get_player_name(), inv:get_location().name)
+                    end
+                end
+            end
+            magikacia.inv.inv_to_table(inv)
+            magikacia.inv.save_bag_inv(inv, player, _takelistname)
+        end,
+    }, playername)
 
+    inv:set_size("main", width * height)
+    inv:set_size("modifiers", 1)
     itemstack, inv, user = magikacia.inv.create_bag_inv(itemstack, user, width, height, invname, allow_bag_input,
-        playername, meta, "main")
-    itemstack, inv, user = magikacia.inv.create_bag_inv(itemstack, user, 1, 1, invname, allow_bag_input, playername, meta,
-        "modifiers")
+        playername, meta, inv)
 
 
     if sound then
@@ -360,7 +389,7 @@ local function get_visual_size(obj)
     return vs
 end
 
-function spellbook_use_primary(itemstack, placer, pointed_thing)
+local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if not placer then return nil end
     local use_pos_self = placer:get_pos()
     local meta = placer:get_meta()
@@ -382,7 +411,24 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
     local itemname = itemstack:get_name()
     local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
 
-    local core_type = magikacia.get_core
+    local inv_modifiers = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "modifiers")
+    local modifier = {
+        damage = 1,
+
+    }
+    if inv_modifiers and #inv_modifiers ~= 0 then
+        if inv_modifiers.pacifist then
+            modifier.damage = modifier.damage * 0
+        end
+        if inv_modifiers.hyper_hostile then
+            modifier.damage = modifier.damage * 2
+        end
+        --[[if inv_modifiers.]]
+    end
+
+    local inv_runes = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
+
+
 
     local is_placer_sneaking = false
     if placer:is_player() then
@@ -393,7 +439,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
 
-    if has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_earth") then
+    if inv_runes[modname .. ":rune_earth"] then
         local offset = placer:get_look_dir()
         for i = 1, 5 do
             local pos = vector.add(vector.offset(use_pos_self, 0, placer:get_properties().eye_height * 0.7, 0),
@@ -414,7 +460,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_self = true
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_electric") then
+    if use_pos_above and inv_runes[modname .. ":rune_electric"] then
         local electric_primary_success = false
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             if magikacia.tase(placer, obj) then
@@ -431,7 +477,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         end
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_fire") then
+    if use_pos_above and inv_runes[modname .. ":rune_fire"] then
         for _, k in ipairs(around_plus_pos_list) do
             magikacia.safe_replace({ x = use_pos_above.x + k[1], y = use_pos_above.y, z = use_pos_above.z + k[2] },
                 "magikacia:fire_temp",
@@ -446,7 +492,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_ice") then
+    if use_pos_above and inv_runes[modname .. ":rune_ice"] then
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             mcl_potions.swiftness_func(obj, -1, 3)
             mcl_potions.leaping_func(obj, -1, 3)
@@ -459,7 +505,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_telepathic") then
+    if use_pos_above and inv_runes[modname .. ":rune_telepathic"] then
         if is_placer_sneaking then
             if pointed_obj then
                 local pself = placer:get_pos()
@@ -487,7 +533,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_water") then
+    if use_pos_above and inv_runes[modname .. ":rune_water"] then
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
                 magikacia.deal_spell_damage(obj, 5, "water_primary", placer)
@@ -512,7 +558,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_void") then
+    if use_pos_above and inv_runes[modname .. ":rune_void"] then
         magikacia.radius_effect_func(use_pos_above, 2, placer, function(obj)
             magikacia.deal_spell_damage(obj, 20, "void_primary", placer)
         end)
@@ -526,7 +572,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_wind") then
+    if use_pos_above and inv_runes[modname .. ":rune_wind"] then
         magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
             local newvel = vector.offset(
                 vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
@@ -540,7 +586,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if entity_modifier and use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_disguise") then
+    if entity_modifier and use_pos_above and inv_runes[modname .. ":rune_disguise"] then
         entity_modifier.disguise_tool_primary(itemstack, placer, pointed_thing)
         magikacia.spawn_effect_anim({
             pos = use_pos_above,
@@ -550,7 +596,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if entity_modifier and use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_resize") then
+    if entity_modifier and use_pos_above and inv_runes[modname .. ":rune_resize"] then
         if pointed_obj then
             local vs = get_visual_size(pointed_obj) * 1.1
             if vs and vs <= resize_max_size then
@@ -590,7 +636,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         end
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_poison") then
+    if use_pos_above and inv_runes[modname .. ":rune_poison"] then
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj, obj_is_player)
             if obj_is_player then
                 mcl_potions.poison_func(obj, 1, 3)
@@ -601,7 +647,7 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_healing") then
+    if use_pos_above and inv_runes[modname .. ":rune_healing"] then
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             mcl_potions.regeneration_func(obj, 1, 3)
             mcl_potions.healing_func(obj, 6)
@@ -614,13 +660,47 @@ function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_nature") then
+    if use_pos_above and inv_runes[modname .. ":rune_absolute_solver"] then
+        for i = 10, -30, -3 do
+            local pos = vector.offset(use_pos_above, 0, i, 0)
+            --[[Values in info:
+            drop_chance - If specified becomes the drop chance of all nodes in the
+                        explosion (default: 1.0 / strength)
+            max_blast_resistance - If specified the explosion will treat all
+                                non-indestructible nodes as having a blast resistance
+                                of no more than this value
+            sound - If true, the explosion will play a sound (default: true)
+            particles - If true, the explosion will create particles (default: true)
+            fire - If true, 1/3 nodes become fire (default: false)
+            griefing - If true, the explosion will destroy nodes (default: true)
+            grief_protected - If true, the explosion will also destroy nodes which have
+                            been protected (default: false)]]
+            magikacia.explode(pos, 6, {
+                drop_chance = 0,
+                particles = false,
+                fire = false,
+                sound = false,
+            }, placer, placer, "absolute_solver_primary", false)
+        end
+        magikacia.spawn_effect_anim({
+            pos = use_pos_self,
+            texture = "effect_absolute_solver_primary",
+            size = 10,
+        })
+        use_success = true
+        use_at_place_above = true
+    end
+
+
+
+
+    if use_pos_above and inv_runes[modname .. ":rune_nature"] then
         magikacia.bone_meal(itemstack, placer, pointed_thing)
         use_success = true
         use_at_place_above = true
     end
 
-    if use_pos_under and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_protection") then
+    if use_pos_under and inv_runes[modname .. ":rune_protection"] then
         minetest.registered_chatcommands["area_pos1"].func(placer:get_player_name(),
             use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z)
         use_success = true
@@ -653,7 +733,25 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     local use_at_place_above = false
     local use_at_place_under = false
     local use_at_self = false
+    local itemname = itemstack:get_name()
+    local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
 
+    local inv_modifiers = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "modifiers")
+    local modifier = {
+        damage = 1,
+
+    }
+    if inv_modifiers and #inv_modifiers ~= 0 then
+        if inv_modifiers.pacifist then
+            modifier.damage = modifier.damage * 0
+        end
+        if inv_modifiers.hyper_hostile then
+            modifier.damage = modifier.damage * 2
+        end
+        --[[if inv_modifiers.]]
+    end
+
+    local inv_runes = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
 
     if placer:is_player() then
         local placer_name = placer:get_player_name()
@@ -664,7 +762,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
 
 
     local spell_earth_time_active = meta:get_float("magikacia:spell_earth_time_active")
-    if has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_earth") and spell_earth_time_active == 0 then
+    if inv_runes[modname .. ":rune_earth"] and spell_earth_time_active == 0 then
         meta:set_float("magikacia:spell_earth_time_active", spell_earth_time_active + 1)
         placer:add_velocity({ x = 0, y = 15, z = 0 })
         magikacia.spawn_effect_anim({
@@ -675,7 +773,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_self = true
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_electric") then
+    if use_pos_above and inv_runes[modname .. ":rune_electric"] then
         magikacia.lightning_strike(vector.offset(use_pos_above, 0, -1, 0), placer)
         magikacia.spawn_effect_anim({
             pos = use_pos_above,
@@ -685,20 +783,20 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_place_above = true
     end
 
-    if has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_fire") then
+    if inv_runes[modname .. ":rune_fire"] then
         mcl_potions.fire_resistance_func(placer, nil, 10)
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_fire_secondary_entity")(
             ItemStack("magikacia:throwable_attack_fire_secondary", 64), placer, pointed_thing)
         use_success = true
     end
 
-    if has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_ice") then
+    if inv_runes[modname .. ":rune_ice"] then
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_ice_secondary_entity")(
             ItemStack("magikacia:throwable_attack_ice_secondary", 64), placer, pointed_thing)
         use_success = true
     end
 
-    if has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_telepathic") then
+    if inv_runes[modname .. ":rune_telepathic"] then
         --[[minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(), formspec_ender_chest)]]
         magikacia.random_teleport_obj(placer)
         magikacia.spawn_effect_anim({
@@ -709,7 +807,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_self = true
     end
 
-    if has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_water") then
+    if inv_runes[modname .. ":rune_water"] then
         magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
                 magikacia.deal_spell_damage(obj, 10, "water_secondary", placer)
@@ -736,7 +834,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_self = true
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_void") then
+    if use_pos_above and inv_runes[modname .. ":rune_void"] then
         local function suck(time, victim)
             if victim then
                 minetest.after(0.1, function(t, obj)
@@ -767,7 +865,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_success = true
         use_at_place_above = true
     end
-    if has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_water") then
+    if inv_runes[modname .. ":rune_water"] then
         magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
                 magikacia.deal_spell_damage(obj, 10, "water_secondary", placer)
@@ -792,9 +890,10 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_self = true
     end
 
-    if use_pos_above and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_wind") then
+    if use_pos_above and inv_runes[modname .. ":rune_wind"] then
         magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
-            local newvel = vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), vector.offset(use_pos_above, 0, -0.5, 0))), -10)
+            local newvel = vector.multiply(
+                vector.normalize(vector.subtract(obj:get_pos(), vector.offset(use_pos_above, 0, -0.5, 0))), -10)
             obj:add_velocity(newvel)
         end, true)
         magikacia.spawn_effect_anim({
@@ -805,7 +904,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_place_above = true
     end
 
-    if entity_modifier and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_disguise") then
+    if entity_modifier and inv_runes[modname .. ":rune_disguise"] then
         entity_modifier.disguise_tool_secondary(itemstack, placer, pointed_thing)
         magikacia.spawn_effect_anim({
             pos = use_pos_above or use_pos_self,
@@ -815,7 +914,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         --[[use_at_place_above = true]]
     end
 
-    if entity_modifier and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_resize") then
+    if entity_modifier and inv_runes[modname .. ":rune_resize"] then
         if pointed_obj then
             local vs = get_visual_size(pointed_obj) / 1.1
             if vs and vs >= 0.1 then
@@ -855,10 +954,20 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         end
     end
 
-    if entity_modifier and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_summoning") then
+    if inv_runes[modname .. ":rune_absolute_solver"] then
+        magikacia.spawn_effect_anim({
+            pos = use_pos_self,
+            texture = "effect_absolute_solver_secondary",
+            size = 10,
+        })
+        use_success = true
+        use_at_place_above = true
     end
 
-    if use_pos_under and has_in_spellbook_inv_main(itemstack, placer, modname .. ":rune_protection") then
+    if inv_runes[modname .. ":rune_summoning"] then
+    end
+
+    if use_pos_under and inv_runes[modname .. ":rune_protection"] then
         minetest.registered_chatcommands["area_pos"].func(placer:get_player_name(),
             use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z)
         magikacia.spawn_effect_anim({
@@ -919,59 +1028,53 @@ function magikacia.register_bag(name, bagtable)
     end
 end
 
-magikacia.register_bag("magikacia:spellbook_leather", {
-    description = "Leather Magikacia Spellbook",
-    inventory_image = magikacia.textures.spellbook_leather_inv,
+function magikacia.wrapper_register_spellbook(def)
+    local namelower = def.name:lower()
+    magikacia.register_bag("magikacia:spellbook_" .. namelower, {
+        description = def.name .. " Magikacia Spellbook",
+        inventory_image = magikacia.textures["spellbook_" .. namelower .. "_inv"],
+        width = def.width,
+        height = def.height,
+        sound_open = "magikacia_open_bag",
+        sound_close = "magikacia_close_bag",
+        range = def.range,
+    })
+end
+
+magikacia.wrapper_register_spellbook({
+    name = "Leather",
     width = 1,
     height = 1,
-    sound_open = "magikacia_open_bag",
-    sound_close = "magikacia_close_bag",
-    range = 8,
+    range = 4,
 })
-magikacia.register_bag("magikacia:spellbook_iron", {
-    description = "Iron Magikacia Spellbook",
-    inventory_image = magikacia.textures.spellbook_iron_inv,
+magikacia.wrapper_register_spellbook({
+    name = "Iron",
     width = 2,
     height = 1,
-    sound_open = "magikacia_open_bag",
-    sound_close = "magikacia_close_bag",
     range = 8,
 })
-
-magikacia.register_bag("magikacia:spellbook_gold", {
-    description = "Gold Magikacia Spellbook",
-    inventory_image = magikacia.textures.spellbook_gold_inv,
+magikacia.wrapper_register_spellbook({
+    name = "Gold",
     width = 3,
     height = 1,
-    sound_open = "magikacia_open_bag",
-    sound_close = "magikacia_close_bag",
     range = 16,
 })
-
-magikacia.register_bag("magikacia:spellbook_diamond", {
-    description = "Diamond Magikacia Spellbook",
-    inventory_image = magikacia.textures.spellbook_diamond_inv,
+magikacia.wrapper_register_spellbook({
+    name = "Diamond",
     width = 5,
     height = 1,
-    sound_open = "magikacia_open_bag",
-    sound_close = "magikacia_close_bag",
     range = 32,
 })
-
-magikacia.register_bag("magikacia:spellbook_netherite", {
-    description = "Netherite Magikacia Spellbook",
-    inventory_image = magikacia.textures.spellbook_netherite_inv,
+magikacia.wrapper_register_spellbook({
+    name = "Netherite",
     width = 5,
     height = 2,
-    sound_open = "magikacia_open_bag",
-    sound_close = "magikacia_close_bag",
     range = 64,
 })
-
 magikacia.register_bag("magikacia:gauntlet", {
-    description = "Magikacia Gauntlet",
+    description = "Magikacia Admin Gauntlet",
     inventory_image = magikacia.textures.gauntlet_netherite_inv,
-    width = 5,
+    width = 7,
     height = 3,
     sound_open = "magikacia_open_bag",
     sound_close = "magikacia_close_bag",

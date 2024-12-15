@@ -247,6 +247,15 @@ magikacia.runes = {
             right = "",
         }
     },
+    {
+        name = "Absolute Solver",
+        description = "The Solver of the Absolute Fabric. The Void. The Exponential End.",
+        spell_descriptions = {
+            left = "",
+            left_sneak = "",
+            right = "",
+        }
+    },
 }
 local color_list = {
     mcl_colors.DARK_GREEN,
@@ -257,7 +266,9 @@ local function c(color_id, text)
     return minetest.colorize(color_list[color_id], text)
 end
 for _, v in ipairs(magikacia.runes) do
-    minetest.register_craftitem(":" .. modname .. ":rune_" .. v.name:lower(), {
+    local formattedname = v.name:lower():gsub(" ", "_")
+    minetest.log("formattedname: " .. formattedname)
+    minetest.register_craftitem(":" .. modname .. ":rune_" .. formattedname, {
         description = table.concat({
             c(1, c(3, v.name .. " Rune")),
             c(1, "Description: ") .. c(3, v.description),
@@ -266,7 +277,7 @@ for _, v in ipairs(magikacia.runes) do
             c(1, "Right Click: ") .. c(3, v.spell_descriptions.right),
             c(1, "Sneak + Right Click: ") .. c(3, "Open Spellbook Inventory"),
         }, "\n"),
-        inventory_image = magikacia.textures["rune_" .. v.name:lower()] or nil,
+        inventory_image = magikacia.textures["rune_" .. formattedname] or nil,
     })
 end
 
@@ -837,3 +848,8 @@ minetest.register_node(":magikacia:fire_temp", {
         end
     end,
 })
+
+
+
+
+
