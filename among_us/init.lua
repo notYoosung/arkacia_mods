@@ -11,7 +11,7 @@ auhud.store = {}
 auhud.p_stats = {}
 
 
-minetest.log("action", "[oretracker-auhud] Detected game "..auhud.gamemode..".")
+-- minetest.log("action", "[oretracker-auhud] Detected game "..auhud.gamemode..".")
 
 -- Form a container to track what ores we want to follow
 auhud.ores = {}

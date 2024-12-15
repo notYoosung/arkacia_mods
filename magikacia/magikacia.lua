@@ -189,7 +189,7 @@ magikacia.runes = {
         spell_descriptions = {
             left = "Burst - Push mobs/players away! Range: 8 Blocks",
             left_sneak = "Gravity Well - Pull mobs/players in! Range: 8 Blocks",
-            right = "",
+            right = "Gust - ",
         }
     },
     {

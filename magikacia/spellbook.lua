@@ -444,8 +444,8 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         for i = 1, 5 do
             local pos = vector.add(vector.offset(use_pos_self, 0, placer:get_properties().eye_height * 0.7, 0),
                 vector.multiply(offset, i))
-            if use_pos_above then
-                magikacia.radius_effect_func(use_pos_above, 2, placer, function(obj)
+            if pos then
+                magikacia.radius_effect_func(pos, 2, placer, function(obj)
                     magikacia.deal_spell_damage(obj, 3, "earth_primary", placer)
                 end)
             end
@@ -584,11 +584,19 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_above and inv_runes[modname .. ":rune_wind"] then
-        magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
-            local newvel = vector.offset(
-                vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
-            obj:add_velocity(newvel)
-        end, true)
+        if not is_placer_sneaking then
+            magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
+                local newvel = vector.offset(
+                    vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
+                obj:add_velocity(newvel)
+            end, true)
+        else
+            magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
+                local newvel = vector.multiply(
+                    vector.normalize(vector.subtract(obj:get_pos(), vector.offset(use_pos_above, 0, -0.5, 0))), -10)
+                obj:add_velocity(newvel)
+            end, true)
+        end
         magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_vortex_blue",
@@ -861,17 +869,26 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     end
 
     if use_pos_above and inv_runes[modname .. ":rune_wind"] then
-        magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
-            local newvel = vector.multiply(
-                vector.normalize(vector.subtract(obj:get_pos(), vector.offset(use_pos_above, 0, -0.5, 0))), -10)
-            obj:add_velocity(newvel)
-        end, true)
-        magikacia.spawn_effect_anim({
-            pos = use_pos_above,
-            texture = "effect_vortex_blue",
-        })
+        local offset = placer:get_look_dir()
+        for i = 1, 6, 2 do
+            local pos = vector.add(vector.offset(use_pos_self, 0, placer:get_properties().eye_height * 0.7, 0),
+                vector.multiply(offset, i))
+            if pos then
+                magikacia.radius_effect_func(pos, 4, placer, function(obj)
+                    magikacia.deal_spell_damage(obj, 3, "wind_secondary", placer)
+                    local newvel = vector.offset(
+                        vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), pos)), 10), 0, 15, 0)
+                    obj:add_velocity(newvel)
+                end)
+            end
+            magikacia.spawn_effect_anim({
+                pos = pos,
+                texture = "effect_vortex_blue",
+                duration_total = 0.4,
+                duration_anim = 0.4,
+            })
+        end
         use_success = true
-        use_at_place_above = true
     end
 
     if entity_modifier and inv_runes[modname .. ":rune_disguise"] then
