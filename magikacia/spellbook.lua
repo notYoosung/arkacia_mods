@@ -462,19 +462,30 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
 
     if use_pos_above and inv_runes[modname .. ":rune_electric"] then
         local electric_primary_success = false
-        magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
+        magikacia.radius_effect_func(use_pos_above, 3.5, placer, function(obj)
             if magikacia.tase(placer, obj) then
                 electric_primary_success = true
             end
         end)
         if electric_primary_success then
-            magikacia.spawn_effect_anim({
-                pos = use_pos_above,
-                texture = "effect_electric_primary",
-            })
             use_success = true
             use_at_place_above = true
         end
+        local spd = 3 / 0.25
+        magikacia.spawn_effect_anim_spawner({
+            time = 0.01,
+            pos = use_pos_above,
+            amount = 50,
+            minsize = 1,
+            maxsize = 5,
+            minexptime = 0.0,
+            maxexptime = 0.25,
+            minvel = { x = -spd, y = -spd, z = -spd },
+            maxvel = { x = spd, y = spd, z = spd },
+            minacc = { x = 0, y = 0, z = 0 },
+            maxacc = { x = 0, y = 0, z = 0 },
+            texture = "effect_electric_primary",
+        })
     end
 
     if use_pos_above and inv_runes[modname .. ":rune_fire"] then
@@ -786,32 +797,6 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_self = true
     end
 
-    if inv_runes[modname .. ":rune_water"] then
-        magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
-            if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
-                magikacia.deal_spell_damage(obj, 10, "water_secondary", placer)
-            end
-            mcl_burning.extinguish(obj)
-        end, true)
-        local node = minetest.get_node(vector.offset(use_pos_self, 0, 0.5, 0))
-        if minetest.get_item_group(node.name, "water") > 0 or (mcl_weather.rain.raining and mcl_weather.is_outdoor(use_pos_self) and mcl_weather.has_rain(use_pos_self)) then
-            placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30))
-        end
-
-        local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_self, -3, -3, -3),
-            vector.offset(use_pos_self, 3, 3, 3), "group:fire", true)
-        if nodes then
-            minetest.bulk_set_node(nodes, { name = "air" })
-        end
-
-        magikacia.spawn_effect_anim({
-            pos = use_pos_self,
-            texture = "effect_water_secondary",
-            attached = placer
-        })
-        use_success = true
-        use_at_self = true
-    end
 
     if use_pos_above and inv_runes[modname .. ":rune_void"] then
         local function suck(time, victim)
@@ -844,29 +829,36 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_success = true
         use_at_place_above = true
     end
-    if inv_runes[modname .. ":rune_water"] then
-        magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
-            if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
-                magikacia.deal_spell_damage(obj, 10, "water_secondary", placer)
+    if use_pos_self and inv_runes[modname .. ":rune_water"] then
+        local node = minetest.get_node(use_pos_self)
+        if node and minetest.get_item_group(node.name, "water") > 0 or (mcl_weather.rain.raining and mcl_weather.is_outdoor(use_pos_self) and mcl_weather.has_rain(use_pos_self)) then
+            magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
+                if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
+                    magikacia.deal_spell_damage(obj, 10, "water_secondary", placer)
+                end
+                mcl_burning.extinguish(obj)
+            end, true)
+            placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30))
+            mcl_potions.water_breathing_func(placer, nil, 10)
+
+            local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_self, -3, -3, -3),
+                vector.offset(use_pos_self, 3, 3, 3), "group:fire", true)
+            if nodes then
+                minetest.bulk_set_node(nodes, { name = "air" })
             end
-            mcl_burning.extinguish(obj)
-        end, true)
-        placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30))
-        mcl_potions.water_breathing_func(placer, nil, 10)
 
-        local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_self, -3, -3, -3),
-            vector.offset(use_pos_self, 3, 3, 3), "group:fire", true)
-        if nodes then
-            minetest.bulk_set_node(nodes, { name = "air" })
+            magikacia.spawn_effect_anim({
+                pos = use_pos_self,
+                texture = "effect_water_secondary",
+                attached = placer
+            })
+            use_success = true
+            use_at_self = true
+        else
+            mcl_throwing.get_player_throw_function("magikacia:throwable_attack_water_secondary_entity")(
+                ItemStack("magikacia:throwable_attack_water_secondary", 64), placer, pointed_thing)
+            use_success = true
         end
-
-        magikacia.spawn_effect_anim({
-            pos = use_pos_self,
-            texture = "effect_water_secondary",
-            attached = placer
-        })
-        use_success = true
-        use_at_self = true
     end
 
     if use_pos_above and inv_runes[modname .. ":rune_wind"] then

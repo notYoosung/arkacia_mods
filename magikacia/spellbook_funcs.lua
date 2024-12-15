@@ -256,10 +256,11 @@ local around_plus_pos_list = {
 }
 function magikacia.spawn_effect_anim(def)
     if not def.pos then return end
-    minetest.add_particle({
+    local pdef = {
+        amount = def.amount or 1,
         pos = def.pos,
-        velocity = { x = 0, y = 0, z = 0 },
-        acceleration = { x = 0, y = 0, z = 0 },
+        velocity = def.velocity or { x = 0, y = 0, z = 0 },
+        acceleration = def.acceleration or { x = 0, y = 0, z = 0 },
         expirationtime = def.duration_total or 2,
         size = def.size or 25,
         collisiondetection = false,
@@ -277,6 +278,35 @@ function magikacia.spawn_effect_anim(def)
         },
         glow = (def.glow ~= nil and def.glow) or 14,
         attached = def.attached or nil
+    }
+    minetest.add_particle(pdef)
+end
+
+function magikacia.spawn_effect_anim_spawner(def)
+    minetest.add_particlespawner({
+        amount = def.amount or 50,
+        time = def.time or 1,
+        minpos = def.minpos or def.pos,
+        maxpos = def.maxpos or def.pos,
+        minvel = def.minvel or { x = 0, y = 5, z = 0 },
+        maxvel = def.maxvel or { x = 0, y = 10, z = 0 },
+        minacc = def.minacc or { x = 0, y = -13, z = 0 },
+        maxacc = def.maxacc or { x = 0, y = -13, z = 0 },
+        minexptime = def.minexptime or 0.1,
+        maxexptime = def.maxexptime or 1,
+        minsize = def.minsize or 1,
+        maxsize = def.maxsize or 3,
+        collisiondetection = def.collisiondetection or false,
+        attached = def.attached or nil,
+        vertical = def.vertical or false,
+        node = def.node or nil,
+        texture = magikacia.textures[def.texture] or "blank.png",
+        animation = {
+            type = "vertical_frames",
+            aspect_w = 32,
+            aspect_h = 32,
+            length = def.duration_anim or 0.25,
+        },
     })
 end
 
@@ -310,10 +340,10 @@ function magikacia.check_object_hit(self, pos, dmg)
             if object:is_player() and self._thrower == object:get_player_name() then
                 self.object:remove()
                 return true, nil
-            elseif (entity.is_mob == true or entity._hittable_by_projectile or object:is_player() and self._thrower ~= object:get_player_name()) then
+            elseif (entity.is_mob == true or entity._hittable_by_projectile or (object:is_player() and self._thrower ~= object:get_player_name())) then
                 local pl = self._thrower and
                     (type(self._thrower) == "string" and minetest.get_player_by_name(self._thrower) or self._thrower)
-                magikacia.deal_spell_damage(object, dmg, "projectile", pl)
+                magikacia.deal_spell_damage(object, dmg or 10, self.typename or "projectile", pl)
                 return true, object
             end
         end
@@ -373,6 +403,7 @@ function magikacia.register_projectile(def)
                 return
             end
         end
+        self.typename = def.typename
         local did_hit, obj_hit = magikacia.check_object_hit(self, pos, def.damage)
         if did_hit then
             if def.do_custom_hit ~= nil then
@@ -414,6 +445,27 @@ magikacia.register_projectile({
     name = "attack_ice_secondary",
     damage = 10,
     texture = magikacia.textures.effect_ice_secondary,
+    typename = "ice_secondary",
+})
+magikacia.register_projectile({
+    name = "attack_water_secondary",
+    damage = 10,
+    texture = magikacia.textures.effect_water_secondary,
+    typename = "water_secondary",
+    do_custom_hit = function(thrower, object, pos)
+        if object then
+            mcl_burning.extinguish(object)
+        end
+        if pos then
+            for _, k in ipairs(around_plus_pos_list) do
+                local p = { x = pos.x + k[1], y = pos.y, z = pos.z + k[2] }
+                local n = minetest.get_node(p)
+                if n and n.name and minetest.get_item_group(n.name, "fire") then
+                    minetest.swap_node(p, { name = "air" })
+                end
+            end
+        end
+    end
 })
 magikacia.register_projectile({
     name = "attack_fire_secondary",
@@ -434,6 +486,12 @@ magikacia.register_projectile({
             end
         end
     end
+})
+magikacia.register_projectile({
+    name = "attack_wind_secondary",
+    damage = 10,
+    texture = magikacia.textures.effect_ice_secondary,
+    typename = "wind_secondary",
 })
 
 

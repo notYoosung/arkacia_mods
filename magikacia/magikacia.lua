@@ -256,6 +256,15 @@ magikacia.runes = {
             right = "[NULL]",
         }
     },
+    {
+        name = "Protection",
+        description = "After selecting an area, do \"/protect (area name)\" to protect it!",
+        spell_descriptions = {
+            left = "Position 1 - Select the first position!",
+            left_sneak = "Same as left click!",
+            right = "Position 2 - Select the second position!",
+        }
+    },
 }
 local color_list = {
     mcl_colors.DARK_GREEN,
