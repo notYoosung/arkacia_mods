@@ -936,17 +936,17 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     if inv_runes[modname .. ":rune_absolute_solver"] then
         local base_pos = use_pos_above or use_pos_self
         if base_pos then
-            for i = 0, -30, -6 do
+            for i = 0, -50, -5 do
                 local pos = vector.offset(base_pos, 0, i, 0)
                 if not minetest.is_protected(pos, placer:get_player_name()) then
-                    magikacia.explode(pos, 3, {
+                    magikacia.explode(pos, 2, {
                         drop_chance = 0,
                         particles = false,
                         fire = false,
                         sound = false,
-                    }, placer, placer, "absolute_solver_secondary", false)
+                    }, placer, placer, "absolute_solver_secondary", not false)
                 else
-                    magikacia.radius_effect_func(pos, 3, placer, function(obj)
+                    magikacia.radius_effect_func(pos, 2, placer, function(obj)
                         magikacia.deal_spell_damage(obj, 20, "absolute_solver_secondary", placer)
                     end)
                 end
@@ -964,15 +964,21 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     if inv_runes[modname .. ":rune_summoning"] then
     end
 
-    if use_pos_under and inv_runes[modname .. ":rune_protection"] then
-        minetest.registered_chatcommands["area_pos"].func(placer:get_player_name(),
-            use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z)
-        magikacia.spawn_effect_anim({
-            pos = use_pos_under,
-            texture = "effect_vortex_blue",
-        })
-        use_success = true
-        use_at_place_under = true
+    if inv_runes[modname .. ":rune_protection"] then
+        local base_pos = use_pos_under or use_pos_self
+        if base_pos then
+            minetest.registered_chatcommands["area_pos"].func(placer:get_player_name(), base_pos.x .. " " .. base_pos.y .. " " .. base_pos.z)
+            magikacia.spawn_effect_anim({
+                pos = base_pos,
+                texture = "effect_vortex_blue",
+            })
+            use_success = true
+            if base_pos == use_pos_under then
+                use_at_place_under = true
+            else
+                use_at_place_self = true
+            end
+        end
     end
 
     if use_success then

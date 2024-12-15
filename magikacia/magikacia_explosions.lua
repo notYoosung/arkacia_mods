@@ -7,7 +7,7 @@ local node_blastres = {}
 local node_on_blast = {}
 local node_walkable = {}
 
-local STEP_LENGTH = 0.5
+local STEP_LENGTH = 1
 
 local N_EXPOSURE_RAYS = 15
 
@@ -283,7 +283,7 @@ local function trace_explode(pos, strength, raydirs, radius, info, direct, sourc
         end
     end
     if #airs > 0 then
-        minetest.bulk_set_node(airs, { name = "air" })
+        minetest.bulk_set_node(airs, { name = "magikacia:null_space" })
     end
     if #fires > 0 then
         minetest.bulk_set_node(fires, { name = "magikacia:temp_fire" })
@@ -319,6 +319,18 @@ end
 -- griefing - If true, the explosion will destroy nodes (default: true)
 -- grief_protected - If true, the explosion will also destroy nodes which have
 --                   been protected (default: false)
+minetest.register_node(":magikacia:null_space", {
+    description = "Null Space",
+    drawtype = "airlike",
+    paramtype = "light",
+    walkable = false,
+    light_source = 0,
+    buildable_to = true,
+    node_placement_prediction = "",
+    -- sunlight_propagates = true,
+    is_ground_content = false,
+    pointable = false,
+})
 function magikacia.explode(pos, strength, info, direct, source, typename, do_owner_damage)
     if info == nil then
         info = {}
