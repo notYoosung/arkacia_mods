@@ -934,28 +934,31 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     end
 
     if inv_runes[modname .. ":rune_absolute_solver"] then
-        for i = 0, -30, -6 do
-            local pos = vector.offset(use_pos_above, 0, i, 0)
-            if not minetest.is_protected(pos, placer:get_player_name()) then
-                magikacia.explode(pos, 3, {
-                    drop_chance = 0,
-                    particles = false,
-                    fire = false,
-                    sound = false,
-                }, placer, placer, "absolute_solver_secondary", false)
-            else
-                magikacia.radius_effect_func(pos, 3, placer, function(obj)
-                    magikacia.deal_spell_damage(obj, 20, "absolute_solver_secondary", placer)
-                end)
+        local base_pos = use_pos_above or use_pos_self
+        if base_pos then
+            for i = 0, -30, -6 do
+                local pos = vector.offset(base_pos, 0, i, 0)
+                if not minetest.is_protected(pos, placer:get_player_name()) then
+                    magikacia.explode(pos, 3, {
+                        drop_chance = 0,
+                        particles = false,
+                        fire = false,
+                        sound = false,
+                    }, placer, placer, "absolute_solver_secondary", false)
+                else
+                    magikacia.radius_effect_func(pos, 3, placer, function(obj)
+                        magikacia.deal_spell_damage(obj, 20, "absolute_solver_secondary", placer)
+                    end)
+                end
             end
+            magikacia.spawn_effect_anim({
+                pos = base_pos,
+                texture = "effect_absolute_solver_secondary",
+                size = 30,
+            })
+            use_success = true
+            use_at_place_above = true
         end
-        magikacia.spawn_effect_anim({
-            pos = use_pos_self,
-            texture = "effect_absolute_solver_secondary",
-            size = 10,
-        })
-        use_success = true
-        use_at_place_above = true
     end
 
     if inv_runes[modname .. ":rune_summoning"] then
