@@ -1039,10 +1039,21 @@ function magikacia.register_bag(name, bagtable)
     end
 end
 
+local color_list = {
+    mcl_colors.DARK_GREEN,
+    mcl_colors.RED,
+    mcl_colors.AQUA,
+}
+local function c(color_id, text)
+    return minetest.colorize(color_list[color_id], text)
+end
 function magikacia.wrapper_register_spellbook(def)
     local namelower = def.name:lower()
     magikacia.register_bag("magikacia:spellbook_" .. namelower, {
-        description = def.name .. " Magikacia Spellbook",
+        description = table.concat({
+            c(3, def.name .. " Magikacia Spellbook"),
+            c(1, "Range: ") .. c(3, def.range .. " blocks"),
+        }, "\n"),
         inventory_image = magikacia.textures["spellbook_" .. namelower .. "_inv"],
         width = def.width,
         height = def.height,
