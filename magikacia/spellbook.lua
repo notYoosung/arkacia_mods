@@ -797,7 +797,6 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_self = true
     end
 
-
     if use_pos_above and inv_runes[modname .. ":rune_void"] then
         local function suck(time, victim)
             if victim then
@@ -838,7 +837,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                 end
                 mcl_burning.extinguish(obj)
             end, true)
-            placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30))
+            placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 50))
             mcl_potions.water_breathing_func(placer, nil, 10)
 
             local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_self, -3, -3, -3),
