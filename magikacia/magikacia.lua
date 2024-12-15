@@ -253,7 +253,7 @@ magikacia.runes = {
         spell_descriptions = {
             left = "",
             left_sneak = "",
-            right = "",
+            right = "[NULL]",
         }
     },
 }
