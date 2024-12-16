@@ -1,7 +1,7 @@
 local modname = "magikacia"
-local vector = vector
+--[[local vector = vector
 local minetest = minetest
-local magikacia = magikacia
+local magikacia = magikacia]]
 
 local S = minetest.get_translator(minetest.get_current_modname())
 local F = minetest.formspec_escape
@@ -311,7 +311,7 @@ local function open_bag(itemstack, user, width_main, height_main, sound, width_c
     }, playername)
 
     inv:set_size("main", width_main * height_main)
-    inv:set_size("cores", 1)
+    inv:set_size("cores", width_cores * height_cores)
     itemstack, inv, user = magikacia.inv.create_bag_inv(itemstack, user, width_main, height_main, invname, allow_bag_input,
         playername, meta, inv)
 
@@ -389,6 +389,28 @@ local function get_visual_size(obj)
     return vs
 end
 
+magikacia.get_core_multipliers = function(inv_cores)
+    local core_multipliers = {
+        damage = 1,
+        physical_effect = 1,
+        cooldown = 1,
+        energy_cost = 1,
+    }
+    for _, item_core in pairs(inv_cores) do
+        local item_core_name = item_core.name
+        local itemdef = minetest.registered_items[item_core_name]
+        if itemdef then
+            local itemdef_modifiers = itemdef._magikacia_modifiers
+            if itemdef_modifiers then
+                for modifier_name, modifier_value in pairs(itemdef_modifiers) do
+                    core_multipliers[modifier_name] = (core_multipliers[modifier_name] or 1) * modifier_value
+                end
+            end
+        end
+    end
+    return core_multipliers
+end
+
 local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if not placer then return nil end
     local use_pos_self = placer:get_pos()
@@ -411,24 +433,10 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     local itemname = itemstack:get_name()
     local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
 
-    local inv_cores = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "cores") or {}
-    local core = {
-        damage = 1,
-        physical_effect = 1,
-        cooldown = 1,
-        energy_cost = 1,
-    }
-    for _, item_core in ipairs(inv_cores) do
-    end
-    if inv_cores and #inv_cores ~= 0 then
-        if inv_cores.pacifist then
-            core.damage = core.damage * 0
-        end
-        if inv_cores.hyper_hostile then
-            core.damage = core.damage * 2
-        end
-        --[[if inv_cores.]]
-    end
+    local inv_cores_contains = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "cores") or {}
+    local inv_cores = magikacia.inv.get_in(itemstack, placer, "cores") or {}
+    local cores_multipliers = magikacia.get_core_multipliers(inv_cores)
+    
 
     local inv_runes = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
 
@@ -450,7 +458,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                 vector.multiply(offset, i))
             if pos then
                 magikacia.radius_effect_func(pos, 2, placer, function(obj)
-                    magikacia.deal_spell_damage(obj, 3, "earth_primary", placer)
+                    magikacia.deal_spell_damage(obj, 3 * cores_multipliers.damage, "earth_primary", placer)
                 end)
             end
             magikacia.spawn_effect_anim({
@@ -509,8 +517,8 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
 
     if use_pos_above and inv_runes[modname .. ":rune_ice"] then
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
-            mcl_potions.swiftness_func(obj, -1, 3)
-            mcl_potions.leaping_func(obj, -1, 3)
+            mcl_potions.swiftness_func(obj, -1, 3 * cores_multipliers.physical_effect)
+            mcl_potions.leaping_func(obj, -1, 3 * cores_multipliers.physical_effect)
         end)
         magikacia.spawn_effect_anim({
             pos = use_pos_above,
@@ -551,7 +559,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if use_pos_above and inv_runes[modname .. ":rune_water"] then
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
-                magikacia.deal_spell_damage(obj, 5, "water_primary", placer)
+                magikacia.deal_spell_damage(obj, 5 * cores_multipliers.damage, "water_primary", placer)
             end
             mcl_burning.extinguish(obj)
         end, true)
@@ -575,7 +583,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
 
     if use_pos_above and inv_runes[modname .. ":rune_void"] then
         magikacia.radius_effect_func(use_pos_above, 2, placer, function(obj)
-            magikacia.deal_spell_damage(obj, 20, "void_primary", placer)
+            magikacia.deal_spell_damage(obj, 20 * cores_multipliers.damage, "void_primary", placer)
         end)
         magikacia.spawn_effect_anim({
             pos = use_pos_above,
@@ -591,13 +599,13 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         if not is_placer_sneaking then
             magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
                 local newvel = vector.offset(
-                    vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10), 0, 15, 0)
+                    vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10 * cores_multipliers.physical_effect), 0, 15, 0)
                 obj:add_velocity(newvel)
             end, true)
         else
             magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
                 local newvel = vector.multiply(
-                    vector.normalize(vector.subtract(obj:get_pos(), vector.offset(use_pos_above, 0, -0.5, 0))), -10)
+                    vector.normalize(vector.subtract(obj:get_pos(), vector.offset(use_pos_above, 0, -0.5, 0))), -10 * cores_multipliers.physical_effect)
                 obj:add_velocity(newvel)
             end, true)
         end
@@ -621,7 +629,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
 
     if entity_modifier and use_pos_above and inv_runes[modname .. ":rune_resize"] then
         if pointed_obj then
-            local vs = get_visual_size(pointed_obj) * 1.1
+            local vs = get_visual_size(pointed_obj) * 1 + 0.1 * cores_multipliers.physical_effect
             if vs and vs <= resize_max_size then
                 entity_modifier.resize(
                     pointed_obj,
@@ -640,7 +648,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
             end
             use_success = true
         else
-            local vs = get_visual_size(placer) * 1.1
+            local vs = get_visual_size(placer) * 1 + 0.1 * cores_multipliers.physical_effect
             if vs and (is_gauntlet_admin or vs <= resize_max_size) then
                 entity_modifier.resize_player(
                     placer,
@@ -662,7 +670,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if use_pos_above and inv_runes[modname .. ":rune_poison"] then
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj, obj_is_player)
             if obj_is_player then
-                mcl_potions.poison_func(obj, 1, 3)
+                mcl_potions.poison_func(obj, 1 * cores_multipliers.damage, 3 * cores_multipliers.physical_effect)
             end
         end)
         magikacia.spawn_linger_particles(use_pos_above, 3, magikacia.textures.effect_poison_particles)
@@ -672,8 +680,8 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
 
     if use_pos_above and inv_runes[modname .. ":rune_healing"] then
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
-            mcl_potions.regeneration_func(obj, 1, 3)
-            mcl_potions.healing_func(obj, 6)
+            mcl_potions.regeneration_func(obj, 1, 3 * cores_multipliers.physical_effect)
+            mcl_potions.healing_func(obj, 6 * cores_multipliers.physical_effect)
         end, true)
         magikacia.spawn_effect_anim({
             pos = use_pos_above,
@@ -697,7 +705,17 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
 
 
     if use_pos_above and inv_runes[modname .. ":rune_nature"] then
-        magikacia.bone_meal(itemstack, placer, pointed_thing)
+        for i = 5, 5 * cores_multipliers.physical_effect, 5 do
+            for ii = 0, math.pi * 2 - 0.01, math.pi / 3 do
+                local above_posi = {
+                    x = math.round(use_pos_above.x + math.cos(ii) * i),
+                    y = use_pos_above.y,
+                    z = math.round(use_pos_above.z + math.sin(ii) * i),
+                }
+                local under_posi = { x = above_posi.x, y = above_posi.y - 1, z = above_posi.z }
+                magikacia.bone_meal(itemstack, placer, { type = "node", under = under_posi, above = above_posi })
+            end
+        end
         use_success = true
         use_at_place_above = true
     end
@@ -738,20 +756,9 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     local itemname = itemstack:get_name()
     local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
 
-    local inv_cores = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "cores")
-    local core = {
-        damage = 1,
-
-    }
-    if inv_cores and #inv_cores ~= 0 then
-        if inv_cores.pacifist then
-            core.damage = core.damage * 0
-        end
-        if inv_cores.hyper_hostile then
-            core.damage = core.damage * 2
-        end
-        --[[if inv_cores.]]
-    end
+    local inv_cores_contains = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "cores") or {}
+    local inv_cores = magikacia.inv.get_in(itemstack, placer, "cores") or {}
+    local cores_multipliers = magikacia.get_core_multipliers(inv_cores)
 
     local inv_runes = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
 
@@ -820,7 +827,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                                 obj:set_pos(vector.offset(pobj, 0, -1.1, 0))
                                 suck(t - 0.1, obj)
                             else
-                                magikacia.deal_spell_damage(obj, 20, "void_secondary", placer)
+                                magikacia.deal_spell_damage(obj, 20 * cores_multipliers.damage, "void_secondary", placer)
                             end
                         end
                     end
@@ -845,11 +852,11 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         if node and minetest.get_item_group(node.name, "water") > 0 or (mcl_weather.rain.raining and mcl_weather.is_outdoor(use_pos_self) and mcl_weather.has_rain(use_pos_self)) then
             magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
                 if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
-                    magikacia.deal_spell_damage(obj, 10, "water_secondary", placer)
+                    magikacia.deal_spell_damage(obj, 10 * cores_multipliers.damage, "water_secondary", placer)
                 end
                 mcl_burning.extinguish(obj)
             end, true)
-            placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 50))
+            placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 50 * cores_multipliers.damage))
             mcl_potions.water_breathing_func(placer, nil, 10)
 
             local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_self, -3, -3, -3),
@@ -879,7 +886,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                 vector.multiply(offset, i))
             if pos then
                 magikacia.radius_effect_func(pos, 4, placer, function(obj)
-                    magikacia.deal_spell_damage(obj, 3, "wind_secondary", placer)
+                    magikacia.deal_spell_damage(obj, 3 * cores_multipliers.damage, "wind_secondary", placer)
                     local newvel = vector.offset(
                         vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), pos)), 10), 0, 15, 0)
                     obj:add_velocity(newvel)
@@ -959,7 +966,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                     }, placer, placer, "absolute_solver_secondary", not false)
                 else
                     magikacia.radius_effect_func(pos, 2, placer, function(obj)
-                        magikacia.deal_spell_damage(obj, 20, "absolute_solver_secondary", placer)
+                        magikacia.deal_spell_damage(obj, 20 * cores_multipliers.damage, "absolute_solver_secondary", placer)
                     end)
                 end
             end

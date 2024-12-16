@@ -1,7 +1,7 @@
 local modname = "magikacia"
--- local vector = vector
---local minetest = minetest
-local magikacia = magikacia
+--[[local vector = vector
+local minetest = minetest
+local magikacia = magikacia]]
 
 local S = minetest.get_translator(minetest.get_current_modname())
 local F = minetest.formspec_escape

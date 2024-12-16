@@ -265,6 +265,15 @@ magikacia.runes = {
             right = "Position 2 - Select the second position!",
         }
     },
+    {
+        name = "Nature",
+        description = "",
+        spell_descriptions = {
+            left = "Green Thumb - Bonemeal nearby blocks!",
+            left_sneak = "Same as left click!",
+            right = "",
+        }
+    },
 }
 local color_list = {
     mcl_colors.DARK_GREEN,
@@ -335,31 +344,31 @@ magikacia.cores = {
     },
     {
         name = "Absolutely Solved",
-        description = "Attacks cause no direct damage! Oerfect for pranks or games!\n - Warning: Also cancels out damage from other cores!",
+        description = "Attacks cause no direct damage! Perfect for pranks or games!\n - Warning: Also cancels out damage from other cores!",
         modifiers = {
-            damage = 0,
-            physical_effect = 1,
-            cooldown = 1,
-            energy_cost = 1,
+            damage = 100,
+            physical_effect = 100,
+            cooldown = 0,
+            energy_cost = 0,
         },
     },
 }
 
 local modifier_descriptions = {
     damage = "Damage: ",
-    physical_effect = "Physical Effect",
+    physical_effect = "Physical Effect (knockback, potion effects, etc.)",
     cooldown = "Cooldown (not added yet)",
     energy_cost = "Energy Cost (not added yet)",
 }
-for _, v in ipairs(magikacia.runes) do
+for _, v in ipairs(magikacia.cores) do
     local formattedname = v.name:lower():gsub(" ", "_")
     local def = {
         description = table.concat({
             c(1, c(3, v.name .. " Core")),
-            c(1, "Damage: ") .. c(3, v.spell_descriptions.left),
             c(1, "Description: ") .. c(3, v.description),
             c(1, "Modifiers (multiplies original stats):"),
         }, "\n"),
+        _magikacia_modifiers = v.modifiers,
     }
     local tex = magikacia.textures["core_" .. formattedname]
     if tex then
@@ -367,10 +376,12 @@ for _, v in ipairs(magikacia.runes) do
     end
     for _md, modifier_description in pairs(modifier_descriptions) do
         local modval = v.modifiers[_md]
-        if modval < 1 and modval > 0 then
-            def.description = def.description .. " - " .. c(1, modifier_description .. ": ÷ ") .. c(3, 1 / v.modifiers[_md])
-        else
-            def.description = def.description .. " - " .. c(1, modifier_description .. ": × ") .. c(3, v.modifiers[_md])
+        if modval then
+            if modval < 1 and modval > 0 then
+                def.description = def.description .. "\n - " .. c(1, modifier_description .. ": ") .. c(3, "÷" .. tostring(1 / v.modifiers[_md]))
+            elseif modval ~= 1 then
+                def.description = def.description .. "\n - " .. c(1, modifier_description .. ": ") .. c(3, "×" .. tostring(v.modifiers[_md]))
+            end
         end
     end
     minetest.register_craftitem(":" .. modname .. ":core_" .. formattedname, def)
