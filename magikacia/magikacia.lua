@@ -276,8 +276,7 @@ local function c(color_id, text)
 end
 for _, v in ipairs(magikacia.runes) do
     local formattedname = v.name:lower():gsub(" ", "_")
-    minetest.log("formattedname: " .. formattedname)
-    minetest.register_craftitem(":" .. modname .. ":rune_" .. formattedname, {
+    local def = {
         description = table.concat({
             c(1, c(3, v.name .. " Rune")),
             c(1, "Description: ") .. c(3, v.description),
@@ -286,13 +285,96 @@ for _, v in ipairs(magikacia.runes) do
             c(1, "Right Click: ") .. c(3, v.spell_descriptions.right),
             c(1, "Sneak + Right Click: ") .. c(3, "Open Spellbook Inventory"),
         }, "\n"),
-        inventory_image = magikacia.textures["rune_" .. formattedname] or nil,
-    })
+    }
+    local tex = magikacia.textures["rune_" .. formattedname]
+    if tex then
+        def.inventory_image = tex
+    end
+    minetest.register_craftitem(":" .. modname .. ":rune_" .. formattedname, def)
 end
 
 
+magikacia.cores = {
+    {
+        name = "Pacifist",
+        description = "Attacks cause no direct damage! Oerfect for pranks or games!\n - Warning: Also cancels out damage from other cores!",
+        modifiers = {
+            damage = 0,
+            physical_effect = 1,
+            cooldown = 1,
+            energy_cost = 1,
+        },
+    },
+    {
+        name = "Damage",
+        description = "Deal more damage!",
+        modifiers = {
+            damage = 1.5,
+            physical_effect = 1,
+            cooldown = 1,
+            energy_cost = 1,
+        },
+    },
+    {
+        name = "Behemoth",
+        description = "Insane damage and effects, but long cooldown and high energy cost!",
+        modifiers = {
+            damage = 2,
+            physical_effect = 2,
+            cooldown = 2,
+            energy_cost = 2,
+        },
+    },
+    {
+        name = "Jester",
+        description = "Make bigger effects for a show, but takes more energy!",
+        modifiers = {
+            physical_effect = 3,
+            energy_cost = 2,
+        },
+    },
+    {
+        name = "Absolutely Solved",
+        description = "Attacks cause no direct damage! Oerfect for pranks or games!\n - Warning: Also cancels out damage from other cores!",
+        modifiers = {
+            damage = 0,
+            physical_effect = 1,
+            cooldown = 1,
+            energy_cost = 1,
+        },
+    },
+}
 
-
+local modifier_descriptions = {
+    damage = "Damage: ",
+    physical_effect = "Physical Effect",
+    cooldown = "Cooldown (not added yet)",
+    energy_cost = "Energy Cost (not added yet)",
+}
+for _, v in ipairs(magikacia.runes) do
+    local formattedname = v.name:lower():gsub(" ", "_")
+    local def = {
+        description = table.concat({
+            c(1, c(3, v.name .. " Core")),
+            c(1, "Damage: ") .. c(3, v.spell_descriptions.left),
+            c(1, "Description: ") .. c(3, v.description),
+            c(1, "Modifiers (multiplies original stats):"),
+        }, "\n"),
+    }
+    local tex = magikacia.textures["core_" .. formattedname]
+    if tex then
+        def.inventory_image = tex
+    end
+    for _md, modifier_description in pairs(modifier_descriptions) do
+        local modval = v.modifiers[_md]
+        if modval < 1 and modval > 0 then
+            def.description = def.description .. " - " .. c(1, modifier_description .. ": ÷ ") .. c(3, 1 / v.modifiers[_md])
+        else
+            def.description = def.description .. " - " .. c(1, modifier_description .. ": × ") .. c(3, v.modifiers[_md])
+        end
+    end
+    minetest.register_craftitem(":" .. modname .. ":core_" .. formattedname, def)
+end
 
 
 
