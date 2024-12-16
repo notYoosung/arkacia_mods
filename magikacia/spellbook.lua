@@ -856,7 +856,8 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                 end
                 mcl_burning.extinguish(obj)
             end, true)
-            placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 50 * cores_multipliers.damage))
+
+            placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 50 * cores_multipliers.physical_effect))
             mcl_potions.water_breathing_func(placer, nil, 10)
 
             local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_self, -3, -3, -3),
@@ -879,26 +880,19 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         end
     end
 
-    if use_pos_above and inv_runes[modname .. ":rune_wind"] then
-        local offset = placer:get_look_dir()
-        for i = 1, 6, 2 do
-            local pos = vector.add(vector.offset(use_pos_self, 0, placer:get_properties().eye_height * 0.7, 0),
-                vector.multiply(offset, i))
-            if pos then
-                magikacia.radius_effect_func(pos, 4, placer, function(obj)
-                    magikacia.deal_spell_damage(obj, 3 * cores_multipliers.damage, "wind_secondary", placer)
-                    local newvel = vector.offset(
-                        vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), pos)), 10), 0, 15, 0)
-                    obj:add_velocity(newvel)
-                end)
-            end
-            magikacia.spawn_effect_anim({
-                pos = pos,
-                texture = "effect_vortex_blue",
-                duration_total = 0.4,
-                duration_anim = 0.4,
-            })
-        end
+    if use_pos_self and inv_runes[modname .. ":rune_wind"] then
+        magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
+            magikacia.deal_spell_damage(obj, 10 * cores_multipliers.damage, "wind_secondary", placer)
+        end)
+
+        placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30 * cores_multipliers.physical_effect))
+        
+        magikacia.spawn_effect_anim({
+            pos = use_pos_self,
+            texture = "effect_vortex_blue",
+            duration_total = 0.4,
+            duration_anim = 0.4,
+        })
         use_success = true
     end
 
