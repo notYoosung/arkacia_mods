@@ -145,7 +145,7 @@ local function get_formspec(name, width, height)
         "label[0.375,0.375;" .. F(C(mcl_formspec.label_color, S("Modifier"))) .. "]",
 
         mcl_formspec.get_itemslot_bg_v4(0.375, 0.75, 1, 1),
-        "list[detached:" .. name .. ";modifiers;0.375,0.75;" .. 1 .. "," .. 1 .. ";]",
+        "list[detached:" .. name .. ";cores;0.375,0.75;" .. 1 .. "," .. 1 .. ";]",
 
         "label[" .. magic_inventory_x .. ",0.375;" .. F(C(mcl_formspec.label_color, S("Magic Inventory"))) .. "]",
         mcl_formspec.get_itemslot_bg_v4(magic_inventory_x, 0.75, width, height),
@@ -161,7 +161,7 @@ local function get_formspec(name, width, height)
         "listring[current_player;main]",
         "listring[detached:" .. name .. ";main]",
         "listring[current_player;main]",
-        "listring[detached:" .. name .. ";modifiers]",
+        "listring[detached:" .. name .. ";cores]",
     })
     return spellbook_inv_formspec
 end
@@ -173,11 +173,11 @@ function magikacia.has_in_spellbook_inv_main(itemstack, player, itemname)
 end
 
 local has_in_spellbook_inv_main = magikacia.has_in_spellbook_inv_main
-function magikacia.has_in_spellbook_inv_modifiers(itemstack, player, itemname)
-    return magikacia.inv.has_in(itemstack, player, itemname, "modifiers")
+function magikacia.has_in_spellbook_inv_cores(itemstack, player, itemname)
+    return magikacia.inv.has_in(itemstack, player, itemname, "cores")
 end
 
-local has_in_spellbook_inv_modifiers = magikacia.has_in_spellbook_inv_modifiers
+local has_in_spellbook_inv_cores = magikacia.has_in_spellbook_inv_cores
 
 
 local formspec_ender_chest = table.concat({
@@ -311,7 +311,7 @@ local function open_bag(itemstack, user, width, height, sound)
     }, playername)
 
     inv:set_size("main", width * height)
-    inv:set_size("modifiers", 1)
+    inv:set_size("cores", 1)
     itemstack, inv, user = magikacia.inv.create_bag_inv(itemstack, user, width, height, invname, allow_bag_input,
         playername, meta, inv)
 
@@ -411,19 +411,19 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     local itemname = itemstack:get_name()
     local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
 
-    local inv_modifiers = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "modifiers")
-    local modifier = {
+    local inv_cores = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "cores")
+    local core = {
         damage = 1,
 
     }
-    if inv_modifiers and #inv_modifiers ~= 0 then
-        if inv_modifiers.pacifist then
-            modifier.damage = modifier.damage * 0
+    if inv_cores and #inv_cores ~= 0 then
+        if inv_cores.pacifist then
+            core.damage = core.damage * 0
         end
-        if inv_modifiers.hyper_hostile then
-            modifier.damage = modifier.damage * 2
+        if inv_cores.hyper_hostile then
+            core.damage = core.damage * 2
         end
-        --[[if inv_modifiers.]]
+        --[[if inv_cores.]]
     end
 
     local inv_runes = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
@@ -734,19 +734,19 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     local itemname = itemstack:get_name()
     local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
 
-    local inv_modifiers = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "modifiers")
-    local modifier = {
+    local inv_cores = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "cores")
+    local core = {
         damage = 1,
 
     }
-    if inv_modifiers and #inv_modifiers ~= 0 then
-        if inv_modifiers.pacifist then
-            modifier.damage = modifier.damage * 0
+    if inv_cores and #inv_cores ~= 0 then
+        if inv_cores.pacifist then
+            core.damage = core.damage * 0
         end
-        if inv_modifiers.hyper_hostile then
-            modifier.damage = modifier.damage * 2
+        if inv_cores.hyper_hostile then
+            core.damage = core.damage * 2
         end
-        --[[if inv_modifiers.]]
+        --[[if inv_cores.]]
     end
 
     local inv_runes = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
