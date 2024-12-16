@@ -144,8 +144,8 @@ local function get_formspec(name, width_main, height_main, width_cores, height_c
 
         "label[0.375,0.375;" .. F(C(mcl_formspec.label_color, S("Cores"))) .. "]",
 
-        mcl_formspec.get_itemslot_bg_v4(0.375, 0.75, width_cores, height_cores),
-        "list[detached:" .. name .. ";cores;0.375,0.75;" .. width_cores .. "," .. height_cores .. ";]",
+        width_cores and mcl_formspec.get_itemslot_bg_v4(0.375, 0.75, width_cores, height_cores) or "",
+        width_cores and "list[detached:" .. name .. ";cores;0.375,0.75;" .. width_cores .. "," .. height_cores .. ";]" or "",
 
         "label[" .. magic_inventory_x .. ",0.375;" .. F(C(mcl_formspec.label_color, S("Magic Inventory"))) .. "]",
         mcl_formspec.get_itemslot_bg_v4(magic_inventory_x, 0.75, width_main, height_main),
@@ -1072,8 +1072,8 @@ magikacia.wrapper_register_spellbook({
     width_main = 1,
     height_main = 1,
     range = 4,
-    width_cores = 1,
-    height_cores = 1,
+    width_cores = 0,
+    height_cores = 0,
 })
 magikacia.wrapper_register_spellbook({
     name = "Iron",
