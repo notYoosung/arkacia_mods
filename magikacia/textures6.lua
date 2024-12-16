@@ -11,3 +11,4 @@ for k, v in pairs(textures) do
 end
 table.update(magikacia.textures, textures)
 
+magikacia.textures.rune_absolute_solver = magikacia.textures.effect_absolute_solver_primary

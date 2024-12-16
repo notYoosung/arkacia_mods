@@ -34,7 +34,7 @@ minetest.register_node(":arkacia:fake_grass2", {
 	groups = {
 		handy=1, shovely=1, dirt=2, grass_block=1, grass_block_no_snow=1,
 		soil=1, soil_sapling=2, soil_sugarcane=1, soil_bamboo=1, soil_fungus=1, cultivatable=2,
-		spreading_dirt_type=1, enderman_takable=1, building_block=1,
+		--[[spreading_dirt_type=1, enderman_takable=1,]] building_block=1,
 		compostability=30, biomecolor=1, converts_to_moss=1, dig_immediate=3,
 	},
 	sounds = mcl_sounds.node_sound_dirt_defaults({

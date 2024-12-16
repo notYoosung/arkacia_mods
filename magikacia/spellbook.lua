@@ -1059,6 +1059,7 @@ function magikacia.wrapper_register_spellbook(def)
             c(1, "Range: ") .. c(3, def.range .. " blocks"),
             c(1, "Inventory Spaces - Main: ") .. c(3, def.width_main * def.height_main),
             c(1, "Inventory Spaces - Cores: ") .. c(3, def.width_cores * def.height_cores),
+            c(2, "WARNING: Still in development! Items inside may dissapear or be corrupted!"),
         }, "\n"),
         inventory_image = magikacia.textures["spellbook_" .. namelower .. "_inv"],
         width_main = def.width_main,
@@ -1112,7 +1113,11 @@ magikacia.wrapper_register_spellbook({
     height_cores = 2,
 })
 magikacia.register_bag("magikacia:gauntlet", {
-    description = "Magikacia Admin Gauntlet",
+    description = table.concat({
+        c(3, "Magikacia Admin Gauntlet"),
+        c(1, "Range: ") .. c(3, "128 blocks"),
+        c(2, "WARNING: Still in development! Items inside may dissapear or be corrupted!"),
+    }, "\n"),
     inventory_image = magikacia.textures.gauntlet_netherite_inv,
     width_main = 7,
     height_main = 3,

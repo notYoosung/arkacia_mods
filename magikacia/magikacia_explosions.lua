@@ -120,7 +120,7 @@ local function trace_explode(pos, strength, raydirs, radius, info, direct, sourc
             local rdir_x = raydirs[i].x
             local rdir_y = raydirs[i].y
             local rdir_z = raydirs[i].z
-            -- local rstr = (0.7 + math.random() * 0.6) * strength
+            --[[local rstr = (0.7 + math.random() * 0.6) * strength]]
 
             for _ = 0, math.ceil(radius * (1.0 / STEP_LENGTH)) do
                 local npos_x = math.floor(rpos_x + 0.5)
@@ -142,11 +142,11 @@ local function trace_explode(pos, strength, raydirs, radius, info, direct, sourc
                 rpos_y = rpos_y + STEP_LENGTH * rdir_y
                 rpos_z = rpos_z + STEP_LENGTH * rdir_z
 
-                -- rstr = rstr - 0.75 * STEP_LENGTH - (br + 0.3) * STEP_LENGTH
+                --[[rstr = rstr - 0.75 * STEP_LENGTH - (br + 0.3) * STEP_LENGTH
 
-                -- if rstr <= 0 then
-                --     break
-                -- end
+                if rstr <= 0 then
+                    break
+                end]]
 
                 if cid ~= minetest.CONTENT_AIR then
                     if not minetest.is_protected(npos, "") or grief_protected then
@@ -298,27 +298,27 @@ local function trace_explode(pos, strength, raydirs, radius, info, direct, sourc
     end]]
 end
 
--- Create an explosion with strength at pos.
---
--- Parameters:
--- pos - The position where the explosion originates from
--- strength - The blast strength of the explosion (a TNT explosion uses 4)
--- info - Table containing information about explosion
--- direct - direct source object of the damage (optional)
--- source - indirect source object of the damage (optional)
---
--- Values in info:
--- drop_chance - If specified becomes the drop chance of all nodes in the
---               explosion (default: 1.0 / strength)
--- max_blast_resistance - If specified the explosion will treat all
---                        non-indestructible nodes as having a blast resistance
---                        of no more than this value
--- sound - If true, the explosion will play a sound (default: true)
--- particles - If true, the explosion will create particles (default: true)
--- fire - If true, 1/3 nodes become fire (default: false)
--- griefing - If true, the explosion will destroy nodes (default: true)
--- grief_protected - If true, the explosion will also destroy nodes which have
---                   been protected (default: false)
+--[[Create an explosion with strength at pos.
+
+Parameters:
+pos - The position where the explosion originates from
+strength - The blast strength of the explosion (a TNT explosion uses 4)
+info - Table containing information about explosion
+direct - direct source object of the damage (optional)
+source - indirect source object of the damage (optional)
+
+Values in info:
+drop_chance - If specified becomes the drop chance of all nodes in the
+              explosion (default: 1.0 / strength)
+max_blast_resistance - If specified the explosion will treat all
+                       non-indestructible nodes as having a blast resistance
+                       of no more than this value
+sound - If true, the explosion will play a sound (default: true)
+particles - If true, the explosion will create particles (default: true)
+fire - If true, 1/3 nodes become fire (default: false)
+griefing - If true, the explosion will destroy nodes (default: true)
+grief_protected - If true, the explosion will also destroy nodes which have
+                  been protected (default: false)]]
 minetest.register_node(":magikacia:null_space", {
     description = "Null Space",
     drawtype = "airlike",
@@ -327,7 +327,7 @@ minetest.register_node(":magikacia:null_space", {
     light_source = 0,
     buildable_to = true,
     node_placement_prediction = "",
-    -- sunlight_propagates = true,
+    --[[sunlight_propagates = true,]]
     is_ground_content = false,
     pointable = false,
 })
