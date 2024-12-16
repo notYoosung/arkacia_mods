@@ -411,11 +411,15 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     local itemname = itemstack:get_name()
     local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
 
-    local inv_cores = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "cores")
+    local inv_cores = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "cores") or {}
     local core = {
         damage = 1,
-
+        physical_effect = 1,
+        cooldown = 1,
+        energy_cost = 1,
     }
+    for _, item_core in ipairs(inv_cores) do
+    end
     if inv_cores and #inv_cores ~= 0 then
         if inv_cores.pacifist then
             core.damage = core.damage * 0
