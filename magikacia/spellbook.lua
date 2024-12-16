@@ -135,21 +135,21 @@ magikacia.inv = {
 }
 
 
-local function get_formspec(name, width, height)
-    --4.125
-    local magic_inventory_x = 11.75 / 2 - width / 2
+local function get_formspec(name, width_main, height_main, width_cores, height_cores)
+    --[[4.125]]
+    local magic_inventory_x = 11.75 / 2 - width_main / 2
     local spellbook_inv_formspec = table.concat({
         "formspec_version[4]",
         "size[11.75,10.425]",
 
-        "label[0.375,0.375;" .. F(C(mcl_formspec.label_color, S("Modifier"))) .. "]",
+        "label[0.375,0.375;" .. F(C(mcl_formspec.label_color, S("Cores"))) .. "]",
 
-        mcl_formspec.get_itemslot_bg_v4(0.375, 0.75, 1, 1),
-        "list[detached:" .. name .. ";cores;0.375,0.75;" .. 1 .. "," .. 1 .. ";]",
+        mcl_formspec.get_itemslot_bg_v4(0.375, 0.75, width_cores, height_cores),
+        "list[detached:" .. name .. ";cores;0.375,0.75;" .. width_cores .. "," .. height_cores .. ";]",
 
         "label[" .. magic_inventory_x .. ",0.375;" .. F(C(mcl_formspec.label_color, S("Magic Inventory"))) .. "]",
-        mcl_formspec.get_itemslot_bg_v4(magic_inventory_x, 0.75, width, height),
-        "list[detached:" .. name .. ";main;" .. magic_inventory_x .. ",0.75;" .. width .. "," .. height .. ";]",
+        mcl_formspec.get_itemslot_bg_v4(magic_inventory_x, 0.75, width_main, height_main),
+        "list[detached:" .. name .. ";main;" .. magic_inventory_x .. ",0.75;" .. width_main .. "," .. height_main .. ";]",
         "label[0.375,4.7;" .. F(C(mcl_formspec.label_color, S("Inventory"))) .. "]",
 
         mcl_formspec.get_itemslot_bg_v4(0.375, 5.1, 9, 3),
@@ -243,8 +243,8 @@ local function stack_to_player_inv(stack, player)
     end
 end
 
-local function open_bag(itemstack, user, width, height, sound)
-    itemstack, user, width, height, sound = magikacia.before_open_bag(itemstack, user, width, height, sound)
+local function open_bag(itemstack, user, width_main, height_main, sound, width_cores, height_cores)
+    itemstack, user, width_main, height_main, sound = magikacia.before_open_bag(itemstack, user, width_main, height_main, sound)
     local allow_bag_input = false
     if minetest.get_item_group(itemstack:get_name(), "bag_bag") > 0 then
         allow_bag_input = true
@@ -310,16 +310,16 @@ local function open_bag(itemstack, user, width, height, sound)
         end,
     }, playername)
 
-    inv:set_size("main", width * height)
+    inv:set_size("main", width_main * height_main)
     inv:set_size("cores", 1)
-    itemstack, inv, user = magikacia.inv.create_bag_inv(itemstack, user, width, height, invname, allow_bag_input,
+    itemstack, inv, user = magikacia.inv.create_bag_inv(itemstack, user, width_main, height_main, invname, allow_bag_input,
         playername, meta, inv)
 
 
     if sound then
         minetest.sound_play(sound, { gain = 0.8, object = user, max_hear_distance = 5 })
     end
-    minetest.show_formspec(playername, invname, get_formspec(invname, width, height))
+    minetest.show_formspec(playername, invname, get_formspec(invname, width_main, height_main, width_cores, height_cores))
     return itemstack
 end
 --[[
@@ -754,7 +754,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     if placer:is_player() then
         local placer_name = placer:get_player_name()
         if controls.players[placer_name].sneak[1] then
-            return open_bag(itemstack, placer, bagtable.width, bagtable.height, bagtable.sound_open)
+            return open_bag(itemstack, placer, bagtable.width_main, bagtable.height_main, bagtable.sound_open, bagtable.width_cores, bagtable.height_cores)
         end
     end
 
@@ -1053,54 +1053,70 @@ function magikacia.wrapper_register_spellbook(def)
         description = table.concat({
             c(3, def.name .. " Magikacia Spellbook"),
             c(1, "Range: ") .. c(3, def.range .. " blocks"),
+            c(1, "Inventory Spaces - Main: ") .. c(3, def.width_main * def.height_main),
+            c(1, "Inventory Spaces - Cores: ") .. c(3, def.width_cores * def.height_cores),
         }, "\n"),
         inventory_image = magikacia.textures["spellbook_" .. namelower .. "_inv"],
-        width = def.width,
-        height = def.height,
+        width_main = def.width_main,
+        height_main = def.height_main,
         sound_open = "magikacia_open_bag",
         sound_close = "magikacia_close_bag",
         range = def.range,
+        width_cores = def.width_cores,
+        height_cores = def.height_cores,
     })
 end
 
 magikacia.wrapper_register_spellbook({
     name = "Leather",
-    width = 1,
-    height = 1,
+    width_main = 1,
+    height_main = 1,
     range = 4,
+    width_cores = 1,
+    height_cores = 1,
 })
 magikacia.wrapper_register_spellbook({
     name = "Iron",
-    width = 2,
-    height = 1,
+    width_main = 2,
+    height_main = 1,
     range = 8,
+    width_cores = 1,
+    height_cores = 1,
 })
 magikacia.wrapper_register_spellbook({
     name = "Gold",
-    width = 3,
-    height = 1,
+    width_main = 3,
+    height_main = 1,
     range = 16,
+    width_cores = 1,
+    height_cores = 1,
 })
 magikacia.wrapper_register_spellbook({
     name = "Diamond",
-    width = 5,
-    height = 1,
+    width_main = 5,
+    height_main = 1,
     range = 32,
+    width_cores = 1,
+    height_cores = 2,
 })
 magikacia.wrapper_register_spellbook({
     name = "Netherite",
-    width = 5,
-    height = 2,
+    width_main = 5,
+    height_main = 2,
     range = 64,
+    width_cores = 1,
+    height_cores = 2,
 })
 magikacia.register_bag("magikacia:gauntlet", {
     description = "Magikacia Admin Gauntlet",
     inventory_image = magikacia.textures.gauntlet_netherite_inv,
-    width = 7,
-    height = 3,
+    width_main = 7,
+    height_main = 3,
     sound_open = "magikacia_open_bag",
     sound_close = "magikacia_close_bag",
     range = 128,
+    width_cores = 1,
+    height_cores = 3,
 })
 
 minetest.register_tool(":magikacia:spellbook_transporting_bag", {
