@@ -13,9 +13,7 @@ auhud.store = {}
 auhud.p_stats = {}
 
 
--- minetest.log("action", "[oretracker-auhud] Detected game "..auhud.gamemode..".")
 
--- Form a container to track what ores we want to follow
 auhud.ores = {}
 
 
@@ -42,16 +40,15 @@ minetest.register_on_leaveplayer(function(player, timeout)
     end
 end)
 
--- A priv for those to use this power
 minetest.register_privilege("auhud", {
     description = "Oretracker auhud Priv",
-    give_to_singleplayer = true -- Also given to those with server priv
+    give_to_singleplayer = true
 })
 
 minetest.register_chatcommand("auhud", {
     privs = {
         shout = true,
-        auhud = true -- Require our own priv
+        auhud = true
     },
     func = function(name, param)
         if auhud.p_stats[name] then
@@ -68,7 +65,7 @@ minetest.register_chatcommand("auhud", {
                     position = {x = 0.9, y = 0.87},
                     offset = {x = 0.0, y = 0.0},
                     text = "auhud",
-                    number = 0x00e100, -- 0, 225, 0 (RGB)
+                    number = 0x00e100,
                     alignment = {x = 0.0, y = 0.0},
                     scale = {x = 100.0, y = 100.0}
                 })
@@ -79,10 +76,9 @@ minetest.register_chatcommand("auhud", {
 
 
 
--- Adds a waypoint to the given player's HUD, given title and color
 auhud.add_pos = function(pname, player, pos, title, color)
     if not title then
-        title = ""--minetest.pos_to_string(pos)
+        title = ""--[[minetest.pos_to_string(pos)]]
     end
     local wps = auhud.store[pname] or {}
     if not color then
@@ -94,13 +90,12 @@ auhud.add_pos = function(pname, player, pos, title, color)
             name = title,
             text = "m",
             number = color,
-            world_pos = pos
+            world_pos = pos,
         })
     )
     auhud.store[pname] = wps
 end
 
--- Clears all waypoints from the given player's HUD
 auhud.clear_pos = function(pname, player)
     local wps = auhud.store[pname] or {}
     for i, v in ipairs(wps) do
@@ -121,7 +116,7 @@ end
 
 local pos_list = {
     { name = "Cafeteria", title = "Caf", pos = vector.new(0, 0, 0), color = 0xffffff },
-    -- { name = "", title = "", pos = vector.new(0, 0, 0), color = 0xffffff },
+    --[[{ name = "", title = "", pos = vector.new(0, 0, 0), color = 0xffffff },]]
 }
 
 local function toggle_hud(pname, player)
@@ -130,19 +125,21 @@ local function toggle_hud(pname, player)
         for _, v in ipairs(pos_list) do
             auhud.add_pos(pname, player, v.pos, v.title, v.color)
         end
+        minetest.chat_send_player(pname, "All waypoints shown!")
     else
         auhud.clear_pos(pname, player)
+        minetest.chat_send_player(pname, "All waypoints hidden!")
     end
 end
 local function tool_hud_primary(itemstack, player, pointed_thing)
-    local pname = player:get_player_name()
+    --[[local pname = player:get_player_name()
     local wps = auhud.store[pname] or {}
     if #wps == 0 then
-    else
         for _, v in ipairs(pos_list) do
             auhud.add_pos(pname, player, v.pos, v.name, v.color)
         end
-    end
+    else
+    end]]
 end
 local function tool_hud_secondary(itemstack, player, pointed_thing)
     local pname = player:get_player_name()
@@ -150,38 +147,105 @@ local function tool_hud_secondary(itemstack, player, pointed_thing)
 
 end
 minetest.register_craftitem(":arkacia_among_us:tool_hud", {
-    description = "HUD Tool\nLeft click to change waypoint format.\nRight click to turn waypoints on/off.",
+    description = "HUD Tool\nRight-click to turn waypoints on/off\n[EXPERIMENTAL/FOR TESTING]",
     groups = {},
     on_use = tool_hud_primary,
     on_secondary_use = tool_hud_secondary,
     on_place = tool_hud_secondary,
 })
 
-minetest.register_node(":arkacia_among_us:waypoint_node", {
-    description = "Waypoint Node",
-    groups = { },
-    on_construct = function(pos)
-        minetest.get_node_timer(pos):start(10)
-    end,
-    on_timer = function(pos)
-        local meta = minetest.get_meta(pos)
-        local data = minetest.deserialize(meta:get_string("arkacia_among_us:data")) or {}
-        for _, player in mcl_util.connected_players(pos, 128) do
-            if player then
-                local pname = player:get_player_name()
-                local pmeta = player:get_meta()
-                local pdata = pmeta:get_string("arkacia_among_us:data")
-                if pdata ~= "" then
-                    pdata = minetest.deserialize(pdata) or {}
-                    local pwps = pdata.arkacia_among_us_wps or {}
-                    if pwps[pdata.name] then
-                        minetest.log()
+
+local function update_waypoint_node(pos)
+    local meta = minetest.get_meta(pos)
+    local data = minetest.deserialize(meta:get_string("arkacia_among_us:data")) or {}
+    local wpdata = {
+        name = data.name or "",
+        title = data.title or data.name or "",
+        pos = vector.offset(pos, tonumber(data.offsetx or 0), tonumber(data.offsety or 0), tonumber(data.offsetz or 0)),
+        color = 0xffffff
+    }
+    local id = tostring(pos) .. "_" .. wpdata.name
+    for _, player in mcl_util.connected_players(pos, 128) do
+        if player then
+            local pname = player:get_player_name()
+            local player_wps = auhud.store[pname] or {}
+            local active_wp_names = {}
+            for _, hud_id in ipairs(player_wps) do
+                local hud = player:hud_get(hud_id)
+                if hud then
+                    active_wp_names[hud.name] = hud_id
+                end
+            end
+            --[[local pmeta = player:get_meta()
+            local pdata = pmeta:get_string("arkacia_among_us:data")]]
+            --[[if pdata ~= "" then
+                pdata = minetest.deserialize(pdata) or {}
+                local pwps = pdata.arkacia_among_us_wps or {}
+                if pwps[pdata.name] then
+                    minetest.log()
+                end
+            end]]
+            --{ name = "Cafeteria", title = "Caf", pos = vector.new(0, 0, 0), color = 0xffffff },
+            local wpid = data.name
+            for _, v in ipairs(pos_list) do
+                local vname = tostring(v.name)
+                if vname == wpid then
+                    if active_wp_names[vname] == nil or active_wp_names[vname] == false then
+                        auhud.add_pos(pname, player, v.pos, v.title, v.color)
+                    else
+                        local remove_indx
+                        for ihud_id, hud_id in ipairs(player_wps) do
+                            local hud_elem = player:hud_get(hud_id)
+                            if hud_elem and hud_elem.name == vname then
+                                remove_indx = ihud_id
+                                break
+                            end
+                        end
+                        if remove_indx and player_wps[remove_indx] then
+                            player:hud_remove(player_wps[remove_indx])
+                        end
                     end
                 end
             end
         end
-        local serdata = minetest.serialize(data)
-        meta:set_string("arkacia_among_us:data", serdata)
+    end
+    local serdata = minetest.serialize(data)
+    meta:set_string("arkacia_among_us:data", serdata)
+end
+
+
+local function update_waypoint_node_fs(pos, player)
+    local meta = minetest.get_meta(pos)
+    local data = minetest.deserialize(meta:get_string("arkacia_among_us:data")) or {}
+    local fs = table.concat({
+        "formspec_version[6]",
+        "size[9,5]",
+        "label[       4.00,0.375;Waypoint Node]",
+        "label[        0.375,1.0;Name]",
+        "field[      0.375,1.175; 8.25,0.5;name;;" .. (data.name or "") .. "]",
+        "label[      0.375,2.275;Pos Offset]",
+        "field[       0.37,2.675; 2.75,0.5;offsetx;X;" .. (data.offsetx or 0) .. "]",
+        "field[       3.12,2.675; 2.75,0.5;offsety;Y;" .. (data.offsety or 0) .. "]",
+        "field[       5.87,2.675; 2.75,0.5;offsetz;Z;" .. (data.offsetz or 0) .. "]",
+        "button_exit[0.375,3.675; 4,1;save;Save]",
+        "button_exit[4.375,3.675; 4,1;cancel;Cancel]",
+    }, "")
+    meta:set_string("formspec", fs)
+end
+minetest.register_node(":arkacia_among_us:waypoint_node", {
+    description = "Waypoint Node",
+    groups = { },
+	after_place_node = function(pos, placer)
+        update_waypoint_node_fs(pos, placer)
+    end,
+    on_construct = function(pos)
+        minetest.get_node_timer(pos):start(10)
+        update_waypoint_node(pos)
+    end,
+    on_timer = function(pos)
+        local timer = minetest.get_node_timer(pos)
+        timer:start(10)
+        update_waypoint_node(pos)
         return true
     end,
     on_punch = function(pos, node, puncher, pointed_thing)
@@ -190,7 +254,6 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
             if minetest.is_protected(pos, pname) then
                 minetest.record_protection_violation(pos, pname)
             else
-                -- show a minetest formspec confirming whether to break the block or not
                 local formspec = table.concat({
                     "formspec_version[3]",
                     "size[7,4]",
@@ -202,20 +265,56 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
                 minetest.show_formspec(pname, "arkacia_among_us:waypoint_node_confirm_break", formspec)
             end
         end
+    end,
+    on_receive_fields = function(pos, formname, fields, player)
+        update_waypoint_node_fs(pos, player)
+        local pname = player:get_player_name()
+        if minetest.is_protected(pos, pname) then
+            return
+        end
+
+        if fields.save then
+
+        end
+
+        if fields.save then
+            local meta = minetest.get_meta(pos)
+            local data = minetest.deserialize(meta:get_string("arkacia_among_us:data")) or {}
+            data.name = fields.name
+            data.title = fields.name
+            data.offsetx = tonumber(fields.offsetx) or 0
+            data.offsety = tonumber(fields.offsety) or 0
+            data.offsetz = tonumber(fields.offsetz) or 0
+            meta:set_string("arkacia_among_us:data", minetest.serialize(data))
+            update_waypoint_node(pos)
+            update_waypoint_node_fs(pos, player)
+        end
+
     end
 })
 
+if not mcl_util._arkacia_among_us_init then
+    minetest.register_lbm({
+        name = ":arkacia_among_us:update_waypoint_nodes",
+        nodenames = {
+            "arkacia_among_us:waypoint_node",
+        },
+        run_at_every_load = true,
+        action = function(pos)
+            core.get_node_timer(pos):start(10)
+            update_waypoint_node(pos)
+        end,
+    })
+end
 
 
 local function tool_wps_primary(itemstack, player, pointed_thing)
 end
---scroll_container[<X>,<Y>;<W>,<H>;<scrollbar name>;<orientation>;<scroll factor>;<content padding>]
 local buttonheight = 0.25
 for iwps = 0, 100 do
-    table.insert(pos_list, { name = iwps, title = iwps, pos = vector.multiply(vector.random_direction(), 100), color = math.random(0x000, 0xffffff) })
+    table.insert(pos_list, { name = iwps, title = iwps, pos = vector.multiply(vector.random_direction(), math.random() * 1000), color = math.random(0x000, 0xffffff) })
 end
 local function tool_wps_secondary(itemstack, player, pointed_thing)
-    -- show formspec listing among us task locations with buttons to toggle waypoint visibility
     local pname = player:get_player_name()
     local buttons = {}
     for ibutton = 0, 100 do
@@ -238,7 +337,7 @@ local function tool_wps_secondary(itemstack, player, pointed_thing)
 
 end
 minetest.register_craftitem(":arkacia_among_us:tool_wps", {
-    description = "Waypoint Tool",
+    description = "Waypoint Tool\nRight-click to manage waypoint visibility\n[EXPERIMENTAL/FOR TESTING]",
     groups = {},
     on_use = tool_wps_primary,
     on_secondary_use = tool_wps_secondary,
@@ -251,7 +350,6 @@ if not mcl_util._arkacia_among_us_init then
     minetest.register_on_player_receive_fields(function(player, formname, fields)
         if formname == "arkacia_among_us:waypoint_node_confirm_break" and fields["break"] then
             local pname = player:get_player_name()
-            minetest.log(minetest.serialize(fields))
             local indx = ""
             for ifields, _fields in pairs(fields) do
                 if ifields:find("%(") then
@@ -270,11 +368,8 @@ if not mcl_util._arkacia_among_us_init then
                     end
                 end
             end
-        end
-        if formname == "arkacia_among_us:waypoint_tool_selection" then
+        elseif formname == "arkacia_among_us:waypoint_tool_selection" then
             local pname = player:get_player_name()
-            
-            -- minetest.log(minetest.serialize(fields))
             local player_wps = auhud.store[pname] or {}
             local active_wp_names = {}
             for _, hud_id in ipairs(player_wps) do
@@ -283,29 +378,27 @@ if not mcl_util._arkacia_among_us_init then
                     active_wp_names[hud.name] = hud_id
                 end
             end
-            minetest.log("player_wps: " .. minetest.serialize(player_wps))
-            minetest.log("active_wp_names: " .. minetest.serialize(active_wp_names))
             for ifields, _fields in pairs(fields) do
+                if ifields == "toggle" then
+                    toggle_hud(pname, player)
+                end
                 if ifields:find("waypoint_selection_button_") then
                     local wpid = ifields:gsub("^waypoint_selection_button_", "")
-                    minetest.log("[arkacia_among_us] " .. pname .. " selected waypoint " .. wpid .. ".")
                     for _, v in ipairs(pos_list) do
-                        if tostring(v.name) == wpid then
-                            minetest.log("v.name: " .. tostring(v.name))
-                            minetest.log("wpid: " .. wpid)
-                            minetest.log("active_wp_names[tostring(v.name)]: " .. tostring(active_wp_names[tostring(v.name)]))
-                            if active_wp_names[tostring(v.name)] == nil or active_wp_names[tostring(v.name)] == false then
+                        local vname = tostring(v.name)
+                        if vname == wpid then
+                            if active_wp_names[vname] == nil or active_wp_names[vname] == false then
                                 auhud.add_pos(pname, player, v.pos, v.title, v.color)
                             else
                                 local remove_indx
-                                for _, hud_id in ipairs(player_wps) do
-                                    if player:hud_get(hud_id).name == v.name then
-                                        remove_indx = hud_id
+                                for ihud_id, hud_id in ipairs(player_wps) do
+                                    local hud_elem = player:hud_get(hud_id)
+                                    if hud_elem and hud_elem.name == vname then
+                                        remove_indx = ihud_id
                                         break
                                     end
                                 end
-                                if remove_indx then
-                                    minetest.log("remove_indx: " .. remove_indx)
+                                if remove_indx and player_wps[remove_indx] then
                                     player:hud_remove(player_wps[remove_indx])
                                 end
                             end
@@ -313,7 +406,6 @@ if not mcl_util._arkacia_among_us_init then
                     end
                 end
             end
-            
         end
     end)
 end
