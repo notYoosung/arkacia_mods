@@ -356,7 +356,7 @@ magikacia.cores = {
 
 local modifier_descriptions = {
     damage = "Damage: ",
-    physical_effect = "Physical Effect (knockback, potion effects, etc.)",
+    physical_effect = "Physical Effects (knockback, potion effects, etc.)",
     cooldown = "Cooldown (not added yet)",
     energy_cost = "Energy Cost (not added yet)",
 }

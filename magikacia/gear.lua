@@ -23,7 +23,7 @@ for k, v in pairs(textures_helmet) do
         goto continue
     end
     local ksub = k:gsub("_helmet", "")
-    minetest.register_tool(":magikacia:" .. ksub .. "_helmet", {
+    minetest.register_tool(":magikacia:armor_" .. ksub .. "_helmet", {
         description = minetest.colorize(mcl_colors.DARK_GREEN, "Helmet: " .. ksub),
         inventory_image = textures_helmet[k .. "_inv"] or v,
 
@@ -56,7 +56,7 @@ for k, v in pairs(textures_helmet) do
     ::continue::
 end
 
-minetest.register_alias("magikacia:helmet_test", "magikacia:earth_helmet")
+minetest.register_alias("magikacia:helmet_test", "magikacia:armor_earth_helmet")
 
 
 
@@ -72,7 +72,7 @@ for k, v in pairs(textures_chestplate) do
         goto continue
     end
     local ksub = k:gsub("_chestplate", "")
-    minetest.register_tool(":magikacia:" .. ksub .. "_chestplate", {
+    minetest.register_tool(":magikacia:armor_" .. ksub .. "_chestplate", {
         description = minetest.colorize(mcl_colors.DARK_GREEN, "Chestplate: " .. ksub),
         inventory_image = textures_helmet[k .. "_inv"] or v,
 
