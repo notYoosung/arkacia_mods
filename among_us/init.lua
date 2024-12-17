@@ -124,7 +124,7 @@ local pos_list = {
 
 local function toggle_hud(pname, player)
     local wps = auhud.store[pname] or {}
-    if table.getn(wps) == 0 then
+    if #wps == 0 then
         for _, v in ipairs(pos_list) do
             auhud.add_pos(pname, player, v.pos, v.title, v.color)
         end
@@ -135,7 +135,7 @@ end
 local function tool_hud_primary(itemstack, player, pointed_thing)
     local pname = player:get_player_name()
     local wps = auhud.store[pname] or {}
-    if table.getn(wps) == 0 then
+    if #wps == 0 then
     else
         for _, v in ipairs(pos_list) do
             auhud.add_pos(pname, player, v.pos, v.name, v.color)
