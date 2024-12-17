@@ -119,7 +119,7 @@ end
 
 local pos_list = {
     { name = "Cafeteria", title = "Caf", pos = vector.new(0, 0, 0), color = 0xffffff },
-    { name = "", title = "", pos = vector.new(0, 0, 0), color = 0xffffff },
+    -- { name = "", title = "", pos = vector.new(0, 0, 0), color = 0xffffff },
 }
 
 local function toggle_hud(pname, player)
@@ -147,13 +147,35 @@ local function tool_hud_secondary(itemstack, player, pointed_thing)
     toggle_hud(pname, player)
 
 end
-minetest.register_craftitem("among_us:tool_hud", {
+minetest.register_craftitem(":arkacia_among_us:tool_hud", {
     description = "HUD Tool\nLeft click to change waypoint format.\nRight click to turn waypoints on/off.",
-    inventory_image = nil,
     groups = {},
     on_use = tool_hud_primary,
     on_secondary_use = tool_hud_secondary,
     on_place = tool_hud_secondary,
 })
 
+minetest.register_node(":arkacia_among_us:waypoint_node", {
+    description = "Waypoint Node",
+    groups = { dig_immediate = 3 },
+    on_construct = function(pos)
+        minetest.get_node_timer(pos):start(10)
+    end,
+    on_timer = function(pos)
+        local meta = minetest.get_meta(pos)
+        local data = minetest.deserialize(meta:get_string("arkacia_among_us:data"))
+        for _, player in mcl_util.connected_players(pos, 128) do
+            local pname = player:get_player_name()
+            local pmeta = player:get_meta()
+            local pdata = pmeta:get_string("arkacia_among_us:data")
+            if pdata ~= "" then
+                pdata = minetest.deserialize(pdata) or {}
+                local pwps = pdata.arkacia_among_us_wps or {}
+                
+            end
+            
+        end
+        return true
+    end,
+})
 
