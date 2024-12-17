@@ -1113,7 +1113,7 @@ magikacia.wrapper_register_spellbook({
     width_cores = 1,
     height_cores = 2,
 })
-magikacia.register_bag("magikacia:gauntlet", {
+magikacia.register_bag("magikacia:gauntlet_admin", {
     description = table.concat({
         c(3, "Magikacia Admin Gauntlet"),
         c(1, "Range: ") .. c(3, "128 blocks"),
@@ -1128,6 +1128,7 @@ magikacia.register_bag("magikacia:gauntlet", {
     width_cores = 1,
     height_cores = 3,
 })
+minetest.register_alias("magikacia:gauntlet", "magikacia:gauntlet_admin")
 
 minetest.register_tool(":magikacia:spellbook_transporting_bag", {
     description = "Spellbook Transporting Bag",

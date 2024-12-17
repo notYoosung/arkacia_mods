@@ -81,14 +81,14 @@ for k, v in pairs(textures_chestplate) do
 
 
 
-        groups = { armor = 1, non_combat_armor = 1, armor_head = 1, mcl_armor_uses = -1 },
+        groups = { armor = 1, non_combat_armor = 1, armor_torso = 1, mcl_armor_uses = -1 },
         sounds = {
             _mcl_armor_equip = "mcl_armor_equip_leather",
             _mcl_armor_unequip = "mcl_armor_unequip_leather",
         },
         on_place = mcl_armor.equip_on_use,
         on_secondary_use = mcl_armor.equip_on_use,
-        _mcl_armor_element = "head",
+        _mcl_armor_element = "torso",
 
 
 

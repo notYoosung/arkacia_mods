@@ -44,8 +44,8 @@ minetest.register_node(":arkacia:fake_grass2", {
 		local node = minetest.get_node(pos)
 		if node.param2 == 0 then
 			local new_node = mcl_core.get_grass_block_type(pos)
-			if new_node.param2 ~= 0 or new_node.name ~= "mcl_core:dirt_with_grass" then
-				minetest.set_node(pos, new_node)
+			if new_node.param2 ~= 0 or new_node.name ~= "arkacia:fake_grass2" then
+				minetest.set_node(pos, { name = "arkacia:fake_grass2", param2 = mcl_core.get_grass_palette_index(pos) })
 			end
 		end
 		return mcl_core.on_snowable_construct(pos)
