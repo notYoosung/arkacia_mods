@@ -536,6 +536,8 @@ end
 
 entity_modifier.resize = function(obj, size, minsize, max_size)
     if not obj then return end
+    if max_size == true then max_size = 1000 end
+    minetest.log(tostring(max_size))
     if obj:is_player() then
         return entity_modifier.resize_player(obj, size, minsize, max_size)
     end
