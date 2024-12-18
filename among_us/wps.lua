@@ -339,17 +339,19 @@ if not mcl_util._arkacia_among_us_init then
     })
     mcl_player.register_globalstep_slow(function(player, dtime)
         local pname = player:get_player_name()
-        local ppos = tostring(player:get_pos())
-        for node_pos, pdata in pairs(auhud.node_storage) do
+        local ppos = player:get_pos()
+        for node_pos_str, pdata in pairs(auhud.node_storage) do
             if pdata then
-                local pos = minetest.string_to_pos(node_pos)
+                local pos = minetest.string_to_pos(node_pos_str)
                 if pos and ppos then
                     if (pos.x - ppos.x) * (pos.x - ppos.x) + (pos.y - ppos.y) * (pos.y - ppos.y) + (pos.z - ppos.z) * (pos.z - ppos.z) > 256 * 256 then
                         local ns = pdata[pname]
                         if ns then
                             safe_hud_remove(player, ns.hud_id)
-                            auhud.node_storage[node_pos][pname] = nil
+                            auhud.node_storage[node_pos_str][pname] = nil
                         end
+                    else
+                        update_waypoint_node(pos)
                     end
                 end
             end
