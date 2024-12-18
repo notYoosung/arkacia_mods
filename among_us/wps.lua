@@ -19,7 +19,11 @@ auhud.ores = auhud.ores or {}
 
 
 
-
+local function safe_hud_remove(player, id)
+    if player and id and player:get_hud(id) then
+        player:hud_remove(id)
+    end
+end
 
 minetest.register_on_joinplayer(function(player, laston)
     auhud.p_stats[player:get_player_name()] = nil
@@ -36,7 +40,7 @@ minetest.register_on_leaveplayer(function(player, timeout)
         indx = indx + 1
     end
     if found then
-        player:hud_remove(auhud.p_stats(auhud.p_stats[player:get_player_name()]))
+        safe_hud_remove(player, auhud.p_stats(auhud.p_stats[player:get_player_name()]))
         table.remove(auhud.p_stats, indx)
     end
 end)
@@ -55,7 +59,7 @@ minetest.register_chatcommand("auhud", {
         if auhud.p_stats[name] then
             local p = minetest.get_player_by_name(name)
             if p ~= nil then
-                p:hud_remove(auhud.p_stats[name])
+                safe_hud_remove(p, auhud.p_stats[name])
                 auhud.p_stats[name] = nil
             end
         else
@@ -94,7 +98,7 @@ auhud.add_pos = function(pname, player, pos, title, color, precision)
         text = "m",
         number = color,
         world_pos = pos,
-        precision = precision,
+        precision = math.abs(precision),
     })
     table.insert(wps,elem_id)
     auhud.store[pname] = wps
@@ -104,7 +108,7 @@ end
 auhud.clear_pos = function(pname, player)
     local wps = auhud.store[pname] or {}
     for i, v in ipairs(wps) do
-        player:hud_remove(v)
+        safe_hud_remove(player, v)
     end
     auhud.store[pname] = {}
 end
@@ -168,7 +172,8 @@ local function update_waypoint_node(pos)
         name = data.name or "",
         title = data.title or data.name or "",
         pos = vector.offset(pos, tonumber(data.offsetx or 0), tonumber(data.offsety or 0), tonumber(data.offsetz or 0)),
-        color = data.color ~= nil and tonumber(data.color, 16) or 0xfff
+        color = data.color ~= nil and tonumber(data.color, 16) or 0xfff,
+        precision = data.precision
     }
     wpdata.id = tostring(pos)
     local has_id = false
@@ -195,7 +200,7 @@ local function update_waypoint_node(pos)
                 local pname = player:get_player_name()
                 local pstorage = storage[pname] or {}
                 if pstorage.hud_id == nil then
-                    pstorage.hud_id = auhud.add_pos(player:get_player_name(), player, wpdata.pos, wpdata.name, wpdata.color, wpdata.precision)
+                    pstorage.hud_id = auhud.add_pos(player:get_player_name(), player, wpdata.pos, wpdata.name, wpdata.color, math.abs(wpdata.precision or 0))
                 else
                     player:hud_change(pstorage.hud_id, "name", wpdata.name)
                     player:hud_change(pstorage.hud_id, "number", wpdata.color)
@@ -215,7 +220,10 @@ end
 
 local function update_waypoint_node_fs(pos, player)
     local meta = minetest.get_meta(pos)
-    local data = minetest.deserialize(meta:get_string("arkacia_among_us:data")) or {}
+    local datastring = meta:get_string("arkacia_among_us:data")
+    local data = minetest.deserialize(datastring) or {}
+    local pnum = data.precision ~= 0 and math.log(data.precision or 10, 10) or 0
+
     local fs = table.concat({
         "formspec_version[6]",
         "size[9,10]",
@@ -230,10 +238,11 @@ local function update_waypoint_node_fs(pos, player)
         "field[       5.87,2.275; 2.75,0.5;offsetz;Z;" .. (data.offsetz or 0) .. "]",
 
         "label[        0.375,3.0;Color (HEX) (#ffffff or ffffff)]",
-        "field[      0.375,3.175; 8.25,0.5;color;;#" .. (data.color or "") .. "]",
+        "field[      0.375,3.175; 8.25,0.5;color;;#" .. (data.color or "ffffff") .. "]",
 
-        "checkbox[4.5,4;show_distance;Show Distance;" .. (data.precision ~= 0 and "true" or "false") .. "]",
-
+        "label[        0.375,4.0;Distance Decimal Precision (0 to disable)]",
+        "field[      0.375,4.175; 8.25,0.5;precision;;" .. (pnum or "0") .. "]",
+        
         "button_exit[0.375,8.675; 4,1;save;Save]",
         "button_exit[4.375,8.675; 4,1;cancel;Cancel]",
     }, "")
@@ -255,9 +264,7 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
         if ns ~= nil then
             for _, v in ipairs(ns) do
                 local player = minetest.get_player_by_name(v)
-                if player then
-                    player:hud_remove(v.hud_id)
-                end
+                safe_hud_remove(player, v.hud_id)
             end
         end
         auhud.node_storage[tostring(pos)] = nil
@@ -299,13 +306,15 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
 
         if fields.save then
             local meta = minetest.get_meta(pos)
-            local data = minetest.deserialize(meta:get_string("arkacia_among_us:data")) or {}
+            datastring = meta:get_string("arkacia_among_us:data")
+            local data = minetest.deserialize(datastring) or {}
             data.name = fields.name
             data.title = fields.name
             data.offsetx = tonumber(fields.offsetx) or 0
             data.offsety = tonumber(fields.offsety) or 0
             data.offsetz = tonumber(fields.offsetz) or 0
-            data.precision = fields.precision ~= nil and 1 or 0
+            local pnum = fields.precision and tonumber(fields.precision) or 0
+            data.precision = pnum ~= 0 and math.pow(10, pnum) or 0
             data.color = fields.color and fields.color:gsub("#", "") or "ffffff"
             meta:set_string("arkacia_among_us:data", minetest.serialize(data))
             update_waypoint_node(pos)
@@ -390,9 +399,7 @@ if not mcl_util._arkacia_among_us_init then
                         if ns ~= nil then
                             for nspname, v in pairs(ns) do
                                 local nsplayer = minetest.get_player_by_name(nspname)
-                                if nsplayer then
-                                    nsplayer:hud_remove(v.hud_id)
-                                end
+                                safe_hud_remove(nsplayer, v.hud_id)
                             end
                         end
                         auhud.node_storage[tostring(pos)] = nil
@@ -431,7 +438,7 @@ if not mcl_util._arkacia_among_us_init then
                                     end
                                 end
                                 if remove_indx and player_wps[remove_indx] then
-                                    player:hud_remove(player_wps[remove_indx])
+                                    safe_hud_remove(player, player_wps[remove_indx])
                                 end
                             end
                         end
