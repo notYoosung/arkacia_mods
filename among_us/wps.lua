@@ -25,15 +25,25 @@ auhud.node_store = auhud.node_store or {}
 
 
 
+
+auhud.players = {}
+
+
+
+
+
+
 auhud.ores = auhud.ores or {}
 
 
 
 local function safe_hud_remove(player, id)
     pcall(function()
+        local pname = player:get_player_name()
         if player and id and player:get_hud(id) then
             player:hud_remove(id)
         end
+        auhud.players[pname] = {}
     end)
 end
 
@@ -41,11 +51,13 @@ minetest.register_on_joinplayer(function(player, laston)
     auhud.p_stats[player:get_player_name()] = nil
 end)
 
+
 minetest.register_on_leaveplayer(function(player, timeout)
+    local pname = player:get_player_name()
     local indx = 0
     local found = false
-    for pname, val in ipairs(auhud.p_stats) do
-        if pname == player:get_player_name() then
+    for p_stats_pname, val in ipairs(auhud.p_stats) do
+        if p_stats_pname == pname then
             found = true
             break
         end
@@ -54,6 +66,9 @@ minetest.register_on_leaveplayer(function(player, timeout)
     if found then
         safe_hud_remove(player, auhud.p_stats(auhud.p_stats[player:get_player_name()]))
         table.remove(auhud.p_stats, indx)
+    end
+    if auhud.players[pname] then
+        auhud.players[pname] = nil
     end
 end)
 
@@ -78,7 +93,7 @@ minetest.register_chatcommand("auhud", {
             local p = minetest.get_player_by_name(name)
             if p ~= nil then
                 auhud.p_stats[name] = p:hud_add({
-                    hud_elem_type = "text",
+                    type = "text",
                     position = { x = 0.9, y = 0.87 },
                     offset = { x = 0.0, y = 0.0 },
                     text = "auhud",
@@ -93,7 +108,7 @@ minetest.register_chatcommand("auhud", {
 
 
 
-auhud.add_pos = function(pname, player, pos, title, color, precision)
+auhud.add_pos = function(pname, player, pos, title, color, precision, id)
     if not title then
         title = "" --[[minetest.pos_to_string(pos)]]
     end
@@ -107,7 +122,7 @@ auhud.add_pos = function(pname, player, pos, title, color, precision)
     local elem_id = player:hud_add({
         hud_elem_type = "waypoint",
         name = title,
-        text = "m",
+        text = id or "m",
         number = color,
         world_pos = pos,
         precision = math.abs(precision),
@@ -132,7 +147,28 @@ end
 
 
 
-
+local function add_wp(player, data)
+    local pname = player:get_player_name()
+    if not auhud.players[pname] then
+        auhud.players[pname] = {}
+    end
+    auhud.players[pname][data.id] = player:hud_add({
+        hud_elem_type = "waypoint",
+        name = data.title or "",
+        text = data.id or "m",
+        number = data.color or 0xffffff,
+        world_pos = data.pos or vector.new(0, 0, 0),
+        precision = (data.precision ~= nil) and data.precision or 1,
+    })
+end
+local function remove_wp(player, id)
+    local pname = player:get_player_name()
+    local player_data = auhud.players[pname]
+    if player_data and auhud.players[pname][id] then
+        safe_hud_remove(player, auhud.players[pname][id])
+        auhud.players[pname][id] = nil
+    end
+end
 
 
 auhud.pos_list = auhud.pos_list or {
@@ -264,17 +300,17 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
     groups = {},
     after_place_node = function(pos, placer)
         update_waypoint_node_fs(pos, placer)
+        update_waypoint_node(pos)
     end,
     on_construct = function(pos)
-        minetest.get_node_timer(pos):start(10)
-        auhud.node_storage[tostring(pos)] = {}
-        update_waypoint_node(pos)
+        --[[minetest.get_node_timer(pos):start(10)
+        auhud.node_storage[tostring(pos)] = {}]]
     end,
     on_timer = function(pos)
-        local timer = minetest.get_node_timer(pos)
+        --[[local timer = minetest.get_node_timer(pos)
         timer:start(10)
         update_waypoint_node(pos)
-        return true
+        return true]]
     end,
     on_punch = function(pos, node, puncher, pointed_thing)
         if puncher then
@@ -332,7 +368,6 @@ if not mcl_util._arkacia_among_us_init then
         },
         run_at_every_load = true,
         action = function(pos)
-            core.get_node_timer(pos):start(10)
             update_waypoint_node(pos)
             update_waypoint_node_fs(pos)
         end,
@@ -473,6 +508,16 @@ if not mcl_util._arkacia_among_us_init then
         end
     end)
 end
+
+minetest.register_tool(":arkaica_among_us:debug_tool", {
+    description = "Debug Tool\n[EXPERIMENTAL/FOR TESTING]",
+    on_use = function()
+        minetest.chat_send_all("[HUD Debug Tool] auhud.node_store: " .. dump(auhud.node_store))
+        minetest.chat_send_all("[HUD Debug Tool] auhud.players: " .. dump(auhud.players))
+        minetest.chat_send_all("[HUD Debug Tool] auhud.store: " .. dump(auhud.store))
+        minetest.chat_send_all("[HUD Debug Tool] auhud.p_stats: " .. dump(auhud.p_stats))
+    end
+})
 
 
 
