@@ -303,8 +303,8 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
         update_waypoint_node(pos)
     end,
     on_construct = function(pos)
-        --[[minetest.get_node_timer(pos):start(10)
-        auhud.node_storage[tostring(pos)] = {}]]
+        --[[minetest.get_node_timer(pos):start(10)]]
+        auhud.node_storage[tostring(pos)] = {}
     end,
     on_timer = function(pos)
         --[[local timer = minetest.get_node_timer(pos)
@@ -357,7 +357,7 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
             update_waypoint_node(pos)
             update_waypoint_node_fs(pos, player)
         end
-    end
+    end,
 })
 
 if not mcl_util._arkacia_among_us_init then
@@ -375,6 +375,7 @@ if not mcl_util._arkacia_among_us_init then
     mcl_player.register_globalstep_slow(function(player, dtime)
         local pname = player:get_player_name()
         local ppos = player:get_pos()
+        minetest.log("gs")
         for node_pos_str, pdata in pairs(auhud.node_storage) do
             if pdata then
                 local pos = minetest.string_to_pos(node_pos_str)
@@ -392,7 +393,7 @@ if not mcl_util._arkacia_among_us_init then
             end
         end
     end)
-    minetest.log(#mcl_player.registered_globalsteps_slow)
+    minetest.log("globalsteps: " .. #mcl_player.registered_globalsteps_slow)
 end
 
 
