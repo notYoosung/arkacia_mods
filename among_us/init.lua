@@ -32,7 +32,7 @@ minetest.register_on_mods_loaded(function()
 	]]
 
 	local files = {
-		"wps"
+		"wpnodes"
 	}
 	for _, v in ipairs(files) do
 		dofile(modpath .. "/" .. v .. ".lua")
