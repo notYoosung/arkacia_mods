@@ -171,17 +171,17 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
     groups = {},
     after_place_node = function(pos, placer)
         update_waypoint_node_fs(pos, placer)
-        --[[update_waypoint_node(pos)]]
+        for k, v in pairs(minetest.get_connected_players()) do
+            if v and v:get_pos() then
+                update_waypoint_node(pos, v, v:get_player_name())
+            else
+                minetest.log("k err")
+            end
+        end
     end,
     on_construct = function(pos)
         --[[minetest.get_node_timer(pos):start(10)]]
         auhud.node_storage[vector.to_string(pos)] = {}
-    end,
-    on_timer = function(pos)
-        --[[local timer = minetest.get_node_timer(pos)
-        timer:start(10)
-        update_waypoint_node(pos)
-        return true]]
     end,
     on_punch = function(pos, node, puncher, pointed_thing)
         if puncher then
@@ -195,7 +195,7 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
                     "label[0.375,0.375;Are you sure you want to break this block?]",
                     "button_exit[1,1;5,1;break;Break]",
                     "button_exit[1,2;5,1;cancel;Cancel]",
-                    "textarea[0,0;0,0;", vector.tostring(pos), ";;]",
+                    "textarea[0,0;0,0;", vector.to_string(pos), ";;]",
                 }, "")
                 minetest.show_formspec(pname, "arkacia_among_us:waypoint_node_confirm_break", formspec)
             end
@@ -206,10 +206,6 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
         local pname = player:get_player_name()
         if minetest.is_protected(pos, pname) then
             return
-        end
-
-        if fields.save then
-
         end
 
         if fields.save then
@@ -226,7 +222,13 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
             data.color = fields.color and fields.color:gsub("#", "") or "ffffff"
             data.pos = pos
             meta:set_string("arkacia_among_us:data", minetest.serialize(data))
-            --[[update_waypoint_node(pos)]]
+            for k, v in pairs(minetest.get_connected_players()) do
+                if v and v:get_pos() then
+                    update_waypoint_node(pos, v, v:get_player_name())
+                else
+                    minetest.log("k err")
+                end
+            end
             update_waypoint_node_fs(pos, player)
         end
     end,
