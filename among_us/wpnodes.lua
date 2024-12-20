@@ -40,9 +40,12 @@ minetest.register_on_leaveplayer(function(player, timeout)
 end)
 
 
-local function safe_to_number(n, default)
+local function safe_to_number(n, default, base)
+    if base == nil then
+        base = 10
+    end
     if n ~= nil then
-        local tn = tonumber(n)
+        local tn = tonumber(n, base)
         if tn ~= nil then
             return tn
         end
@@ -60,14 +63,14 @@ local function add_wp(player, data)
     end
     if data.pos then
         local pos_str = vector.to_string(data.pos)
-        local ncolor = safe_to_number(data.color, 0xffffff)
+        local ncolor = safe_to_number(data.color, 0xffffff, 16)
         local nprecision = safe_to_number(data.precision, 1)
         auhud.players[pname][pos_str] = player:hud_add({
             hud_elem_type = "waypoint",
             name = data.title or "",
             text = data.id or "m",
             number = ncolor,
-            world_pos = data.pos or vector.new(0, 0, 0),
+            world_pos = vector.offset(data.pos, data.offsetx, data.offsety, data.offsetz) or vector.new(0, 0, 0),
             precision = nprecision,
         })
     end
@@ -84,12 +87,12 @@ local function update_wp(player, data)
         if id_ and tonumber(id_) ~= nil then
             local id = tonumber(id_)
             if id ~= nil and player:hud_get(id) then
-                local ncolor = safe_to_number(data.color, 0xffffff)
+                local ncolor = safe_to_number(data.color, 0xffffff, 16)
                 local nprecision = safe_to_number(data.precision, 1)
                 player:hud_change(id, "name", data.title or "")
                 player:hud_change(id, "text", data.id or "m")
                 player:hud_change(id, "number", ncolor)
-                player:hud_change(id, "world_pos", data.pos or vector.new(0, 0, 0))
+                player:hud_change(id, "world_pos", vector.offset(data.pos, data.offsetx, data.offsety, data.offsetz) or vector.new(0, 0, 0))
                 player:hud_change(id, "precision", nprecision)
             end
         else
@@ -192,7 +195,7 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
                     "label[0.375,0.375;Are you sure you want to break this block?]",
                     "button_exit[1,1;5,1;break;Break]",
                     "button_exit[1,2;5,1;cancel;Cancel]",
-                    "textarea[0,0;0,0;", minetest.pos_to_string(pos), ";;]",
+                    "textarea[0,0;0,0;", vector.tostring(pos), ";;]",
                 }, "")
                 minetest.show_formspec(pname, "arkacia_among_us:waypoint_node_confirm_break", formspec)
             end
@@ -215,9 +218,9 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
             local data = minetest.deserialize(datastring) or {}
             data.name = fields.name
             data.title = fields.name
-            data.offsetx = tonumber(fields.offsetx) or 0
-            data.offsety = tonumber(fields.offsety) or 0
-            data.offsetz = tonumber(fields.offsetz) or 0
+            data.offsetx = safe_to_number(fields.offsetx, 0)
+            data.offsety = safe_to_number(fields.offsety, 0)
+            data.offsetz = safe_to_number(fields.offsetz, 0)
             local pprecision = safe_to_number(fields.precision, 0)
             data.precision = pprecision ~= 0 and math.pow(10, pprecision) or 0
             data.color = fields.color and fields.color:gsub("#", "") or "ffffff"
@@ -237,44 +240,42 @@ minetest.register_node(":arkacia_among_us:waypoint_node", {
 if not mcl_util._arkacia_among_us_init then
     minetest.register_on_player_receive_fields(function(player, formname, fields)
         if formname == "arkacia_among_us:waypoint_node_confirm_break" and fields["break"] then
-            pcall(function()
-                local pname = player:get_player_name()
-                local pos_str = ""
-                for ifields, _fields in pairs(fields) do
-                    if ifields:find("%(") then
-                        pos_str = ifields
-                        break
-                    end
+            local pname = player:get_player_name()
+            local pos_str = ""
+            for ifields, _fields in pairs(fields) do
+                if ifields:find("%(") then
+                    pos_str = ifields
+                    break
                 end
+            end
 
-                if pos_str then
-                    local pos = minetest.string_to_pos(pos_str)
-                    if pos then
-                        if minetest.is_protected(pos, pname) then
-                            minetest.record_protection_violation(pos, pname)
-                        else
-                            local ns = auhud.node_storage[pos_str]
-                            if ns ~= nil then
-                                for nspname, v in pairs(ns) do
-                                    local nsplayer = minetest.get_player_by_name(nspname)
-                                    if nsplayer then
-                                        safe_hud_remove(nsplayer, v.hud_id)
-                                    end
+            if pos_str then
+                local pos = minetest.string_to_pos(pos_str)
+                if pos then
+                    if minetest.is_protected(pos, pname) then
+                        minetest.record_protection_violation(pos, pname)
+                    else
+                        local ns = auhud.node_storage[pos_str]
+                        if ns ~= nil then
+                            for nspname, v in pairs(ns) do
+                                local nsplayer = minetest.get_player_by_name(nspname)
+                                if nsplayer then
+                                    safe_hud_remove(nsplayer, v.hud_id)
                                 end
                             end
-                            auhud.node_storage[pos_str] = nil
-                            --[[for pnamei, pdatai in pairs(auhud.players) do
-                                for pos_stri, _i in pairs(pdatai) do
-                                    if pos_stri == pos_str then
-                                        remove_wp(minetest.get_player_by_name(pnamei), pos)
-                                    end
-                                end
-                            end]]
-                            minetest.remove_node(pos)
                         end
+                        auhud.node_storage[pos_str] = nil
+                        --[[for pnamei, pdatai in pairs(auhud.players) do
+                            for pos_stri, _i in pairs(pdatai) do
+                                if pos_stri == pos_str then
+                                    remove_wp(minetest.get_player_by_name(pnamei), pos)
+                                end
+                            end
+                        end]]
+                        minetest.remove_node(pos)
                     end
                 end
-            end)
+            end
         end
     end)
 end
@@ -306,13 +307,11 @@ if not mcl_util._arkacia_among_us_init then
         local ppos = player:get_pos()
         local pdata = auhud.players[pname]
         if pdata then
-            for node_pos_str, _ in pairs(auhud.node_storage) do
+            for node_pos_str, v in pairs(pdata) do
                 local pos = minetest.string_to_pos(node_pos_str)
                 if pos and ppos then
-                    if (pos.x - ppos.x) * (pos.x - ppos.x) + (pos.y - ppos.y) * (pos.y - ppos.y) + (pos.z - ppos.z) * (pos.z - ppos.z) > 128 * 128 then
-                        if pdata[node_pos_str] then
-                            remove_wp(player, pos)
-                        end
+                    if (pos.x - ppos.x) * (pos.x - ppos.x) + (pos.y - ppos.y) * (pos.y - ppos.y) + (pos.z - ppos.z) * (pos.z - ppos.z) > 128 * 128 or not auhud.node_storage[node_pos_str] then
+                        remove_wp(player, pos)
                     else
                         update_waypoint_node(pos, player, pname)
                     end
