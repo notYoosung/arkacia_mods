@@ -13,7 +13,8 @@
         "mesecon",
         "mcl_skins",
         "ItemStack",
-        "PcgRandom"
+        "PcgRandom",
+        "magikacia_bubbles"
     ],
     "git.postCommitCommand": "sync",
     "luahelper.format.column_limit": 1000000000

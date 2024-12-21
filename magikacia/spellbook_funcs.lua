@@ -670,3 +670,10 @@ end
 function magikacia.spawn_effect_entity(def)
 
 end
+
+
+
+
+
+
+

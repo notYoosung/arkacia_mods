@@ -9,12 +9,6 @@ local C = minetest.colorize
 
 local resize_max_size = 80
 
-local spellbook_types = {
-    "iron",
-    "gold",
-    "diamond",
-    "netherite",
-}
 
 local around_plus_pos_list = {
     { 0,  0 },
@@ -142,10 +136,10 @@ local function get_formspec(name, width_main, height_main, width_cores, height_c
         "formspec_version[4]",
         "size[11.75,10.425]",
 
-        width_cores and "label[0.375,0.375;" .. F(C(mcl_formspec.label_color, S("Cores"))) .. "]" or "",
+        width_cores and ("label[0.375,0.375;" .. F(C(mcl_formspec.label_color, S("Cores"))) .. "]") or "",
 
-        width_cores and mcl_formspec.get_itemslot_bg_v4(0.375, 0.75, width_cores, height_cores) or "",
-        width_cores and "list[detached:" .. name .. ";cores;0.375,0.75;" .. width_cores .. "," .. height_cores .. ";]" or "",
+        width_cores and (mcl_formspec.get_itemslot_bg_v4(0.375, 0.75, width_cores, height_cores)) or "",
+        width_cores and ("list[detached:" .. name .. ";cores;0.375,0.75;" .. width_cores .. "," .. height_cores .. ";]") or "",
 
         "label[" .. magic_inventory_x .. ",0.375;" .. F(C(mcl_formspec.label_color, S("Magic Inventory"))) .. "]",
         mcl_formspec.get_itemslot_bg_v4(magic_inventory_x, 0.75, width_main, height_main),
@@ -726,6 +720,26 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_under = true
     end
 
+    if inv_runes_contains[modname .. ":rune_bubble"] then
+        local add_vel = vector.multiply(placer:get_look_dir(), 20 * cores_multipliers.physical_effect)
+        local _bubble_itemstack
+        local bubble_use_pos
+        if magikacia_bubbles then
+            _bubble_itemstack, bubble_use_pos = magikacia_bubbles.bubble_blower_primary(itemstack, placer, pointed_thing)
+        end
+        if bubble_use_pos then
+            magikacia.radius_effect_func(bubble_use_pos, 3, placer, function(obj, obj_is_player)
+                if obj_is_player then
+                    mcl_potions.poison_func(obj, 1 * cores_multipliers.damage, 2 * cores_multipliers.physical_effect)
+                end
+                obj:add_velocity(add_vel)
+            end)
+            use_success = true
+            use_at_place_above = true
+        end
+    end
+
+
     if use_success then
         minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 64, gain = 0.5 }, true)
     end
@@ -991,6 +1005,15 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             end
         end
     end
+
+    if inv_runes_contains[modname .. ":rune_bubble"] then
+        if magikacia_bubbles then
+            magikacia_bubbles.bubble_blower_secondary(itemstack, placer, pointed_thing)
+            use_success = true
+            use_at_place_above = true
+        end
+    end
+
 
     if use_success then
         minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 64, gain = 0.5 }, true)

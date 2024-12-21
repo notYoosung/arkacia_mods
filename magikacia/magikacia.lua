@@ -7,7 +7,7 @@ local S = minetest.get_translator(minetest.get_current_modname())
 local F = minetest.formspec_escape
 local C = minetest.colorize
 
-local spellbook_types = {
+magikacia.spellbook_types = {
     "iron",
     "gold",
     "diamond",
@@ -274,6 +274,15 @@ magikacia.runes = {
             right = "",
         }
     },
+    {
+        name = "Bubble",
+        description = "",
+        spell_descriptions = {
+            left = "Bubble Blower - Blow a wave of powerful bubbles! (Causes poison and knockback!)",
+            left_sneak = "Same as left click!",
+            right = "Bubble Block - Create a block of bubbles! No fall damage, but breaks if you stand on it!",
+        }
+    },
 }
 local color_list = {
     mcl_colors.DARK_GREEN,
@@ -294,9 +303,10 @@ for _, v in ipairs(magikacia.runes) do
             c(1, "Right Click: ") .. c(3, v.spell_descriptions.right),
             c(1, "Sneak + Right Click: ") .. c(3, "Open Spellbook Inventory"),
         }, "\n"),
+        stack_size = 1,
     }
     local tex = magikacia.textures["rune_" .. formattedname]
-    if tex then
+    if tex and tex ~= "" then
         def.inventory_image = tex
     end
     minetest.register_craftitem(":" .. modname .. ":rune_" .. formattedname, def)
@@ -369,6 +379,7 @@ for _, v in ipairs(magikacia.cores) do
             c(1, "Modifiers (multiplies original stats):"),
         }, "\n"),
         _magikacia_modifiers = v.modifiers,
+        stack_size = 1,
     }
     local tex = magikacia.textures["core_" .. formattedname]
     if tex then
