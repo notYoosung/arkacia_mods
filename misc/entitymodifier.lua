@@ -476,7 +476,7 @@ entity_modifier.resize_player = function(player, size, minsize, max_size)
     entity_modifier.player_sizes[player_name] = size
 
 
-    if size < minsize or size > max_size then
+    if size < minsize or max_size == false or (max_size ~= true and size > max_size) then
         minetest.chat_send_player(player_name, "Invalid size: " .. size)
         return
     end
@@ -537,7 +537,6 @@ end
 entity_modifier.resize = function(obj, size, minsize, max_size)
     if not obj then return end
     if max_size == true then max_size = 1000 end
-    minetest.log(tostring(max_size))
     if obj:is_player() then
         return entity_modifier.resize_player(obj, size, minsize, max_size)
     end

@@ -955,3 +955,18 @@ minetest.register_node(":magikacia:fire_temp", {
 
 
 
+
+
+minetest.register_tool(":magikacia:wings_butterfly", {
+    description = "Butterfly Wings",
+    inventory_image = magikacia.textures.wings_butterfly_inv,
+    groups = { armor = 1, armor_torso = 1, non_combat_torso = 1, elytra = 1, enchantability = 9, rarity = 3 },
+    sounds = {
+        _mcl_armor_equip = "mcl_armor_equip_leather",
+        _mcl_armor_unequip = "mcl_armor_unequip_leather",
+    },
+    on_place = mcl_armor.equip_on_use,
+    on_secondary_use = mcl_armor.equip_on_use,
+    _mcl_armor_element = "torso",
+    _mcl_armor_texture = magikacia.textures.wings_butterfly,
+})

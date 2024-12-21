@@ -45,7 +45,8 @@ minetest.register_on_mods_loaded(function()
 		"spellbook",
 		"nodes",
 		"statue_stone",
-		"falling_bricks"
+		"falling_bricks",
+		"fireflies",
 	}
 	for _, v in ipairs(files) do
 		dofile(modpath .. "/" .. v .. ".lua")
