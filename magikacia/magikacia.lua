@@ -283,6 +283,15 @@ magikacia.runes = {
             right = "Bubble Block - Create a block of bubbles! No fall damage, but breaks if you stand on it!",
         }
     },
+    {
+        name = "Rope",
+        description = "dont do anythin weird with it- o.o-",
+        spell_descriptions = {
+            left = "",
+            left_sneak = "",
+            right = "",
+        }
+    }
 }
 local color_list = {
     mcl_colors.DARK_GREEN,

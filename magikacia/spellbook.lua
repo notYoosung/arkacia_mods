@@ -595,17 +595,21 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                     vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10 * cores_multipliers.physical_effect), 0, 15, 0)
                 obj:add_velocity(newvel)
             end, true)
+            magikacia.spawn_effect_anim({
+                pos = use_pos_above,
+                texture = "effect_wind_primary",
+            })
         else
             magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
                 local newvel = vector.multiply(
                     vector.normalize(vector.subtract(obj:get_pos(), vector.offset(use_pos_above, 0, -0.5, 0))), -10 * cores_multipliers.physical_effect)
                 obj:add_velocity(newvel)
             end, true)
+            magikacia.spawn_effect_anim({
+                pos = use_pos_above,
+                texture = "effect_wind_primary_sneak",
+            })
         end
-        magikacia.spawn_effect_anim({
-            pos = use_pos_above,
-            texture = "effect_vortex_blue",
-        })
         use_success = true
         use_at_place_above = true
     end
@@ -633,7 +637,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                 if use_pos_above then
                     magikacia.spawn_effect_anim({
                         pos = use_pos_above,
-                        texture = "effect_vortex_blue",
+                        texture = "effect_resize_primary",
                         size = 15,
                     })
                     use_at_place_above = true
@@ -651,7 +655,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                 )
                 magikacia.spawn_effect_anim({
                     pos = use_pos_self,
-                    texture = "effect_vortex_blue",
+                    texture = "effect_resize_primary",
                     size = 15,
                 })
             end
@@ -931,7 +935,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                 if use_pos_above then
                     magikacia.spawn_effect_anim({
                         pos = use_pos_above,
-                        texture = "effect_vortex_blue",
+                        texture = "effect_resize_secondary",
                         size = 15,
                     })
                     use_at_place_above = true
@@ -949,7 +953,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                 )
                 magikacia.spawn_effect_anim({
                     pos = use_pos_self,
-                    texture = "effect_vortex_blue",
+                    texture = "effect_resize_secondary",
                     size = 15,
                 })
             end
