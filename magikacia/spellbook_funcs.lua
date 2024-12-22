@@ -107,6 +107,9 @@ magikacia.register_attack("water_secondary", {
 magikacia.register_attack("wind_primary", {
     title = "a wind burst spell",
 })
+magikacia.register_attack("wind_primary_sneak", {
+    title = "a wind cyclone spell",
+})
 magikacia.register_attack("wind_secondary", {
     title = "a wind ___ spell",
 })

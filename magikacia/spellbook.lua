@@ -267,7 +267,8 @@ local function open_bag(itemstack, user, width_main, height_main, sound, width_c
             return stack:get_count()
         end,
         on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
-            magikacia.inv.save_bag_inv(inv, player, listname)
+            magikacia.inv.save_bag_inv(inv, player, from_list)
+            magikacia.inv.save_bag_inv(inv, player, to_list)
         end,
         on_put = function(inv, listname, index, stack, player)
             magikacia.inv.save_bag_inv(inv, player, listname)
@@ -404,6 +405,12 @@ magikacia.get_core_multipliers = function(inv_cores)
     end
     return core_multipliers
 end
+
+local wind_primary_sneak_pos_list = {}
+for i = 0, math.pi * 6, math.pi / 5 do
+    table.insert(wind_primary_sneak_pos_list, vector.new(math.cos(i) * i, i * 2, i * math.sin(i)))
+end
+
 
 local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if not placer then return nil end
@@ -600,14 +607,46 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                 texture = "effect_wind_primary",
             })
         else
-            magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
-                local newvel = vector.multiply(
-                    vector.normalize(vector.subtract(obj:get_pos(), vector.offset(use_pos_above, 0, -0.5, 0))), -10 * cores_multipliers.physical_effect)
-                obj:add_velocity(newvel)
-            end, true)
+            local function suck(n, victim, original_pos)
+                if victim then
+                    minetest.after(0.05, function(nsub, obj)
+                        if obj then
+                            local pobj = obj:get_pos()
+                            if pobj then
+                                nsub = nsub + 1
+                                if nsub < #wind_primary_sneak_pos_list then
+                                    obj:set_pos(vector.add(original_pos, wind_primary_sneak_pos_list[nsub]))
+                                    local v = obj:get_velocity()
+                                    if v then
+                                        obj:add_velocity({ x = v.x, y = -(v.y or 0) * 2, z = v.z })
+                                    end
+                                    suck(nsub, obj, original_pos)
+                                    --[[magikacia.deal_spell_damage(obj, 1 * cores_multipliers.damage, "wind_primary_sneak", placer)]]
+                                end
+                            end
+                        end
+                    end, n, victim)
+                end
+            end
+            magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
+                local p = obj:get_pos()
+                if p then
+                    suck(0, obj, p)
+                end
+            end)
+            for ipos, pos in ipairs(wind_primary_sneak_pos_list) do
+                minetest.after(ipos * 0.05, function()
+                    magikacia.spawn_effect_anim({
+                        pos = vector.add(use_pos_above, pos),
+                        texture = "effect_wind_primary_sneak",
+                        size = 40,
+                    })
+                end)
+            end
             magikacia.spawn_effect_anim({
                 pos = use_pos_above,
                 texture = "effect_wind_primary_sneak",
+                size = 40,
             })
         end
         use_success = true
@@ -996,7 +1035,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     if inv_runes_contains[modname .. ":rune_protection"] then
         local base_pos = use_pos_under or use_pos_self
         if base_pos then
-            minetest.registered_chatcommands["area_pos"].func(placer:get_player_name(), base_pos.x .. " " .. base_pos.y .. " " .. base_pos.z)
+            minetest.registered_chatcommands["area_pos2"].func(placer:get_player_name(), base_pos.x .. " " .. base_pos.y .. " " .. base_pos.z)
             magikacia.spawn_effect_anim({
                 pos = base_pos,
                 texture = "effect_vortex_blue",
@@ -1144,7 +1183,7 @@ magikacia.register_bag("magikacia:gauntlet_admin", {
         c(1, "Range: ") .. c(3, "128 blocks"),
         c(2, "WARNING: Still in development! Items inside may dissapear or be corrupted!"),
     }, "\n"),
-    inventory_image = magikacia.textures.gauntlet_netherite_inv,
+    inventory_image = magikacia.textures.gauntlet_netherite_inv .. mcl_enchanting.overlay,
     width_main = 7,
     height_main = 3,
     sound_open = "magikacia_open_bag",
