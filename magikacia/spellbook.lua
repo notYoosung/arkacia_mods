@@ -615,7 +615,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                             if pobj then
                                 nsub = nsub + 1
                                 if nsub < #wind_primary_sneak_pos_list then
-                                    obj:set_pos(vector.add(original_pos, wind_primary_sneak_pos_list[nsub]))
+                                    obj:move_to(vector.add(original_pos, wind_primary_sneak_pos_list[nsub]))
                                     local v = obj:get_velocity()
                                     if v then
                                         obj:add_velocity({ x = v.x, y = -(v.y or 0) * 2, z = v.z })

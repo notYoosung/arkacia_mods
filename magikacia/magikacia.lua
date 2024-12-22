@@ -7,6 +7,15 @@ local S = minetest.get_translator(minetest.get_current_modname())
 local F = minetest.formspec_escape
 local C = minetest.colorize
 
+
+function magikacia.safe_replace(pos, node_name, placer)
+    if not pos then return end
+    local node = minetest.get_node(pos)
+    if node and (node.name == "air" or minetest.registered_nodes[node.name] and minetest.registered_nodes[node.name].buildable_to == true) and not minetest.is_protected(pos, placer:get_player_name()) then
+        minetest.set_node(pos, { name = node_name })
+    end
+end
+
 magikacia.spellbook_types = {
     "iron",
     "gold",
@@ -441,15 +450,16 @@ local function sq_dist(a, b)
 end
 
 
-local bone = "Arm_Right"
-local pos = { x = 0, y = 5.5, z = 3 }
+
+local wield3d_bone = "Arm_Right"
+local wield3d_pos = { x = 0, y = 5.5, z = 3 }
 local scale = { x = 0.25, y = 0.25 }
-local rx = -90
-local rz = 90
+local wield3d_rx = -90
+local wield3d_rz = 90
 
 wield3d.location = {
-    ["default:torch"] = { bone, pos, { x = rx, y = 180, z = rz }, scale },
-    ["default:sapling"] = { bone, pos, { x = rx, y = 180, z = rz }, scale },
+    ["default:torch"] = { wield3d_bone, wield3d_pos, { x = wield3d_rx, y = 180, z = wield3d_rz }, scale },
+    ["default:sapling"] = { wield3d_bone, wield3d_pos, { x = wield3d_rx, y = 180, z = wield3d_rz }, scale },
 }
 local magic_circle_entity = {
     physical = false,
@@ -959,7 +969,7 @@ minetest.register_node(":magikacia:fire_temp", {
     end,
     drop = "",
     sounds = {},
-    on_construct = function(pos)
+    on_place = function(pos)
         local timer = minetest.get_node_timer(pos)
         timer:start(5)
     end,

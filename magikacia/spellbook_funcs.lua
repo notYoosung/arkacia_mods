@@ -36,13 +36,6 @@ function magikacia.is_obj_not_static(obj)
     end
 end
 
-function magikacia.safe_replace(pos, node_name, placer)
-    if not pos then return end
-    local node = minetest.get_node(pos)
-    if node and (node.name == "air" or minetest.registered_nodes[node.name] and minetest.registered_nodes[node.name].buildable_to == true) and not minetest.is_protected(pos, placer:get_player_name()) then
-        minetest.swap_node(pos, { name = node_name })
-    end
-end
 
 function magikacia.register_attack(name, def)
     local typename = "magikacia_spell_" .. name
@@ -355,7 +348,7 @@ function magikacia.check_object_hit(self, pos, dmg)
 end
 
 local how_to_throw = S("Use the punch key to throw.")
-function magikacia.register_projectile(def)
+function magikacia.register_projectile(proj_def)
     local function snowball_particles(pos, vel)
         local vel = vector.normalize(vector.multiply(vel, -1))
         minetest.add_particlespawner({
@@ -374,11 +367,11 @@ function magikacia.register_projectile(def)
             collisiondetection = true,
             collision_removal = true,
             object_collision = false,
-            texture = def.texture,
+            texture = proj_def.texture,
         })
     end
     local ENTITY = {
-        initial_properties = { physical = false, textures = { def.texture }, visual_size = { x = 2.5, y = 2.5 }, collisionbox = { 0, 0, 0, 0, 0, 0 }, pointable = false, },
+        initial_properties = { physical = false, textures = { proj_def.texture }, visual_size = { x = 2.5, y = 2.5 }, collisionbox = { 0, 0, 0, 0, 0, 0 }, pointable = false, },
         timer = 0,
         get_staticdata = mcl_throwing.get_staticdata,
         on_activate = mcl_throwing.on_activate,
@@ -387,31 +380,35 @@ function magikacia.register_projectile(def)
     }
     ENTITY.on_step = function(self, dtime)
         self.timer = self.timer + dtime
+        if self.timer > 60 * 2 then
+            self.object:remove()
+            return
+        end
         local pos = self.object:get_pos()
         local vel = self.object:get_velocity()
         local node = minetest.get_node(pos)
-        local def = minetest.registered_nodes[node.name]
+        local ndef = minetest.registered_nodes[node.name]
         if self._lastpos.x ~= nil then
-            if (def and def.walkable) or not def then
+            if (ndef and ndef.walkable) or not ndef then
                 minetest.sound_play("mcl_throwing_snowball_impact_hard",
                     { pos = pos, max_hear_distance = 16, gain = 0.7 }, true)
                 snowball_particles(self._lastpos, vel)
                 self.object:remove()
                 if mod_target and node.name == "mcl_target:target_off" then mcl_target.hit(vector.round(pos), 0.4) end
-                if def.do_custom_hit ~= nil then
-                    def.do_custom_hit(
+                if proj_def.do_custom_hit ~= nil then
+                    proj_def.do_custom_hit(
                         minetest.get_player_by_name(tostring(self._thrower)) or self._thrower or self.object,
                         nil, pos)
                 end
                 return
             end
         end
-        self.typename = def.typename
-        local did_hit, obj_hit = magikacia.check_object_hit(self, pos, def.damage)
+        self.typename = ndef.typename
+        local did_hit, obj_hit = magikacia.check_object_hit(self, pos, ndef.damage)
         if did_hit then
-            if def.do_custom_hit ~= nil then
-                def.do_custom_hit(minetest.get_player_by_name(tostring(self._thrower)) or self._thrower or self.object,
-                    obj_hit)
+            if proj_def.do_custom_hit ~= nil then
+                proj_def.do_custom_hit(minetest.get_player_by_name(tostring(self._thrower)) or self._thrower or self.object,
+                    obj_hit, pos)
             end
             minetest.sound_play("mcl_throwing_snowball_impact_soft", { pos = pos, max_hear_distance = 16, gain = 0.7 },
                 true)
@@ -421,26 +418,26 @@ function magikacia.register_projectile(def)
         end
         self._lastpos = { x = pos.x, y = pos.y, z = pos.z }
     end
-    minetest.register_entity(":magikacia:throwable_" .. def.name .. "_entity", ENTITY)
-    minetest.register_craftitem(":magikacia:throwable_" .. def.name,
+    minetest.register_entity(":magikacia:throwable_" .. proj_def.name .. "_entity", ENTITY)
+    minetest.register_craftitem(":magikacia:throwable_" .. proj_def.name,
         {
-            description = def.name .. minetest.colorize("#FF0", "\nDamage: " .. tostring(def.damage)),
+            description = proj_def.name .. minetest.colorize("#FF0", "\nDamage: " .. tostring(proj_def.damage)),
             _tt_help = S("Throwable"),
             _doc_items_longdesc =
-                S(def.name ..
+                S(proj_def.name ..
                     "s can be thrown or launched from a dispenser for fun. Hitting something with a it does damage."),
             _doc_items_usagehelp =
                 how_to_throw,
-            inventory_image = def.texture,
+            inventory_image = proj_def.texture,
             stack_max = 65535,
             groups = { weapon_ranged = 1 },
             on_use = mcl_throwing
-                .get_player_throw_function("magikacia:throwable_" .. def.name .. "_entity"),
+                .get_player_throw_function("magikacia:throwable_" .. proj_def.name .. "_entity"),
             _on_dispense = mcl_throwing
                 .dispense_function,
         })
-    mcl_throwing.register_throwable_object("magikacia:throwable_" .. def.name,
-        "magikacia:throwable_" .. def.name .. "_entity",
+    mcl_throwing.register_throwable_object("magikacia:throwable_" .. proj_def.name,
+        "magikacia:throwable_" .. proj_def.name .. "_entity",
         22)
 end
 
@@ -468,7 +465,7 @@ magikacia.register_projectile({
                 end
             end
         end
-    end
+    end,
 })
 magikacia.register_projectile({
     name = "attack_fire_secondary",
@@ -482,13 +479,11 @@ magikacia.register_projectile({
             end
         end
         if pos then
-            for _, k in ipairs(around_plus_pos_list) do
-                magikacia.safe_replace({ x = pos.x + k[1], y = pos.y, z = pos.z + k[2] },
-                    "magikacia:fire_temp",
-                    thrower)
-            end
+            magikacia.safe_replace(pos,
+                "magikacia:fire_temp",
+                thrower)
         end
-    end
+    end,
 })
 magikacia.register_projectile({
     name = "attack_wind_secondary",
