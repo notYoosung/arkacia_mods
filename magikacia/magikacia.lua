@@ -188,8 +188,8 @@ magikacia.runes = {
         description = "",
         spell_descriptions = {
             left = "Burst - Push mobs/players away! Range: 8 Blocks",
-            left_sneak = "Gravity Well - Pull mobs/players in! Range: 8 Blocks",
-            right = "Gust - Close- to mid-range attack!",
+            left_sneak = "Cyclone - Suck entities upward in a whirlwind!",
+            right = "Wind Riptide - Get a powerful jump in the direction you look!",
         }
     },
     {
