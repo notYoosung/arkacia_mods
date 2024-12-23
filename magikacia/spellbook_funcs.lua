@@ -336,7 +336,7 @@ function magikacia.check_object_hit(self, pos, dmg)
             if object:is_player() and self._thrower == object:get_player_name() then
                 self.object:remove()
                 return true, nil
-            elseif (entity.is_mob == true or entity._hittable_by_projectile or (object:is_player() and self._thrower ~= object:get_player_name())) then
+            elseif (entity.is_mob == true or entity._hittable_by_projectile or object:is_player()) then
                 local pl = self._thrower and
                     (type(self._thrower) == "string" and minetest.get_player_by_name(self._thrower) or self._thrower)
                 magikacia.deal_spell_damage(object, dmg or 10, self.typename or "projectile", pl)
@@ -388,18 +388,17 @@ function magikacia.register_projectile(proj_def)
         local vel = self.object:get_velocity()
         local node = minetest.get_node(pos)
         local ndef = minetest.registered_nodes[node.name]
+        local thrower = minetest.get_player_by_name(tostring(self._thrower)) or self._thrower or self.object
         if self._lastpos.x ~= nil then
             if (ndef and ndef.walkable) or not ndef then
                 minetest.sound_play("mcl_throwing_snowball_impact_hard",
                     { pos = pos, max_hear_distance = 16, gain = 0.7 }, true)
                 snowball_particles(self._lastpos, vel)
-                self.object:remove()
                 if mod_target and node.name == "mcl_target:target_off" then mcl_target.hit(vector.round(pos), 0.4) end
                 if proj_def.do_custom_hit ~= nil then
-                    proj_def.do_custom_hit(
-                        minetest.get_player_by_name(tostring(self._thrower)) or self._thrower or self.object,
-                        nil, pos)
+                    proj_def.do_custom_hit(thrower, nil, pos)
                 end
+                self.object:remove()
                 return
             end
         end
@@ -407,11 +406,9 @@ function magikacia.register_projectile(proj_def)
         local did_hit, obj_hit = magikacia.check_object_hit(self, pos, ndef.damage)
         if did_hit then
             if proj_def.do_custom_hit ~= nil then
-                proj_def.do_custom_hit(minetest.get_player_by_name(tostring(self._thrower)) or self._thrower or self.object,
-                    obj_hit, pos)
+                proj_def.do_custom_hit(thrower, obj_hit, pos)
             end
-            minetest.sound_play("mcl_throwing_snowball_impact_soft", { pos = pos, max_hear_distance = 16, gain = 0.7 },
-                true)
+            minetest.sound_play("mcl_throwing_snowball_impact_soft", { pos = pos, max_hear_distance = 16, gain = 0.7 }, true)
             snowball_particles(pos, vel)
             self.object:remove()
             return
