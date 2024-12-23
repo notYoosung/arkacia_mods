@@ -1,4 +1,3 @@
-magikacia.textures = magikacia.textures or {}
 local textures = {
     spellbook_netherite_inv = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAVJJREFUOE9jZKAQMBLSryMv8x+m5srDJxjqcRoA0yghKcYgwMvLIKigxnB813YGdEMwDEDXCLL9w+fPYEcExCQxzOjuQDEEbgA+jTAvgFzi4B+KYggjMRpBNl+8eJHh/YNbYK/o6+vDDQEbAPKnoq4xw/3LZ1HCFCQGUnxg42qwOEizr68vmN1SUcrw7etXBrABLoEhDFdOHAL7ccOSeeBAQwYgjcXFxQy3bt0CawQBVUMThqVLlzLCDXB3d2fobaxmyKtqYNi8eTPcuSCNIBAX5A+mk/OLGOTk5BgePXrEkJ6ezsgozc/zX1NTjWHSvCUMDx8+hBuipqaGVSNIEKR57sQ+iBdAAtgM+fTpK4qN6BqvPHwClodHI7ohIFtATsWlEaYXJSFhMwTmVJiNyJaiuAAW6jBDYF44de0mTAprsscqCDLk6ccveDUSJYmSGHBwAKOwttyhuCpgAAAADmVYSWZNTQAqAAAACAAAAAAAAADSU5MAAAAASUVORK5CYII=",
     spellbook_diamond_inv = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAATtJREFUOE9jZCAAhHrm/ocpeVeSzIiuHEMApgCkke3rGwbtZHeGK6cvMjBeesHwi1uEAd0QDAOQbTSMMGYIFxaGW1oxdRd+A2CakTWufPuW4fyKswwwMXRD4C5A1gyzEmY7SFNHthvcJXVdy8DsF/XljGADkP0L4mPTCDME5CKYGpAYI0gzyHRkW3CxYd4BBS4oQEEAxQBkf4IkQQbDbASFA0wslUOG4dTlqwz+67dCDHhbnMSweMs2hoKbLxhgUQfyBsivMJtAhsE0ggwy09VmkGzqghgA0vS8rgzFEFiIdRnpMMT6eIFthGkEWbbQUBocO/BABEnCXALTALIFXSPMlfAwQE55uAyBeQ85GcNSJEpKhKUFmEtAGkA2YtMIE8OalEFh8l9PAmf6RzYQa2YilAMJGkAgh6NIAwAANs07cvHfpwAAAA5lWElmTU0AKgAAAAgAAAAAAAAA0lOTAAAAAElFTkSuQmCC",
@@ -8,5 +7,9 @@ local textures = {
 }
 for k, v in pairs(textures) do
     textures[k] = "blank.png^[png:" .. textures[k]
+    minetest.register_craftitem(":magikacia:zzz_textures_" .. k, {
+        description = k,
+        inventory_image = textures[k],
+    })
 end
 table.update(magikacia.textures, textures)

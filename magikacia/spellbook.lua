@@ -414,8 +414,9 @@ end
 
 local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if not placer then return nil end
+    local placer_name = placer:get_player_name()
     local use_pos_self = placer:get_pos()
-    local meta = placer:get_meta()
+    --[[local meta = placer:get_meta()]]
     local use_pos_above = nil
     local use_pos_under = nil
     local pointed_obj = nil
@@ -433,6 +434,8 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     local use_at_self = false
     local itemname = itemstack:get_name()
     local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
+    local placer_props = placer:get_properties()
+    local eye_height = placer_props.eye_height or 1.625
 
     local inv_cores = magikacia.inv.get_in(itemstack, placer, "cores") or {}
     local cores_multipliers = magikacia.get_core_multipliers(inv_cores)
@@ -454,7 +457,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if inv_runes_contains[modname .. ":rune_earth"] then
         local offset = placer:get_look_dir()
         for i = 1, 5 do
-            local pos = vector.add(vector.offset(use_pos_self, 0, placer:get_properties().eye_height * 0.7, 0),
+            local pos = vector.add(vector.offset(use_pos_self, 0, eye_height * 0.7, 0),
                 vector.multiply(offset, i))
             if pos then
                 magikacia.radius_effect_func(pos, 2, placer, function(obj)
@@ -782,12 +785,69 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         end
     end
 
+    if inv_runes_contains[modname .. ":rune_shadow"] then
+        local look_dir = placer:get_look_dir()
+        local look_horiz = placer:get_look_horizontal()
+        local look_vert = placer:get_look_vertical()
+        local ent_spd = 10
+        local spawn_pos = vector.offset(placer:get_pos(), 0, eye_height, 0)
+        local frame_duration = 0.2
+        local ent = magikacia.spawn_effect_entity({
+            pos = spawn_pos,
+            itemname = "magikacia:zzz_textures_effect_shadow_primary",
+            rotation = { x = look_horiz, y = look_vert, z = 0 },
+            size = 1,
+            nframes = 4,
+            total_anim_time = frame_duration * 4,
+            expiration_time = frame_duration * 4,
+            base_item = "magikacia:zzz_textures_effect_shadow_primary",
+        })
+        local ent_vel = look_dir:multiply(ent_spd)
+        ent:set_velocity(ent_vel)
+        minetest.log("look_horiz:" .. look_horiz)
+        minetest.log("look_vert: " .. look_vert)
+        local end_pos = vector.add(spawn_pos, vector.multiply(ent_vel, frame_duration * 4))
+        minetest.after(frame_duration * 4, function(dtime)
+            magikacia.radius_effect_func(end_pos, 3, placer, function(obj, obj_is_player)
+                local pdata = magikacia.players[placer_name]
+                if pdata then
+                    pdata.effect_void_primary_captured_list = pdata.effect_void_primary_captured_list or {}
+                    table.insert(magikacia.players[placer_name].effect_void_primary_captured_list, {
+                        obj = obj,
+                    })
+                end
+            end)
+        end)
+    end
+
 
     if use_success then
         minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 64, gain = 0.5 }, true)
     end
 
     return magikacia.on_use_bag(itemstack, placer, pointed_thing)
+end
+magikacia.registered_player_globalsteps["spellbook:effect_shadow"] = function(player, dtime)
+    local pname = player:get_player_name()
+    local player_data = magikacia.players[pname]
+    if player_data then
+        local effect_void_primary_captured_list = player_data.effect_void_primary_captured_list
+        if effect_void_primary_captured_list then
+            local player_props = player:get_properties()
+            local eye_height = player_props.eye_height or 1.625
+            local eye_pos = vector.offset(player:get_pos(), 0, eye_height, 0)
+            local look_dir = player:get_look_dir()
+            --[[local frame_duration = 0.2]]
+            local ent_spd = 10
+            local possess_pos = vector.add(eye_pos, vector.multiply(look_dir, ent_spd))
+            for _, captured_def in ipairs(effect_void_primary_captured_list) do
+                local obj = captured_def.obj
+                if obj and obj:is_valid() and obj:get_pos() then
+                    obj:move_to(possess_pos)
+                end
+            end
+        end
+    end
 end
 
 local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagtable)

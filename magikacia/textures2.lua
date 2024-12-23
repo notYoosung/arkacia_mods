@@ -1,4 +1,3 @@
-magikacia.textures = magikacia.textures or {}
 local textures = {
     gauntlet_iron_inv = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAABt0lEQVQ4jaWSMaviQBSFz8gKqWwEsQgGhBkRJOUgpLKxtLBzfoJtaktLC/+BlWBrqSA2Igg2VpIQRbAICQbEQslC7ha7yvP5hLe80w0z37mXM4cREX6i1I/o/zFQSpFS6mXdX9+FTdNEkiQQQpDjOOx+x95l8HGaEAIA4Ps+CoUCBoMB7iYvBnfQNE0AwO12Q6VSwWq1QhAEYIzBMAwMh0M4jsNSn2EpJaSUD/ByuSAMQ0gpkcvlwBhDkiQPJvUZzmQy0HUd5/MZu90OtVoN+/0eh8MBUkqkUikEQfAcolKKer0eNE1Dp9NBuVyGZVlYLBZIp9MwTRPr9Rqz2ewlq8cGx+MR1+sV3W4XYRhis9nAsizEcYzT6YQ4jmEYBlzXheu6mEwm7MnA930EQYAkSWDbNqIownw+h+M4mE6nEEKgVCr9BgBN01ij0Xj+RqUUtdtt6LqOfD4PxhiazSYAoF6vo1gswrZtZLNZBgDL5fLvZCLC3aTVatF2u6UoisjzPBqNRsQ5p/F4TP1+nzjndH//4J4O/0zCMCTP84hzTtVqFZzzL2Ei+rqJQggCgI+Vfae3Vf6u/gDjhPxsbrEDYgAAAABJRU5ErkJggg==",
     gauntlet_gold_inv = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAFFQTFRFAAAAs2YS7L0n9MwtdScA4JgQ+99P67YR++NY5KsR+t1h/fWA6bIeyoAPxnoP7L0u+tta3JYT67ci/fV9wnMP+tZJ/fVl+fGe+tpD6bEU/OlW6YaauQAAABt0Uk5TAP//////////////////////////////////xGlyNQAAAH9JREFUeJx9z8EKwjAQRdF3m1Rwo10U8f8/T8Xu1NJp48RERRGHbN5JmMmgr+IPoPQBeNkLyCfMjRXArxVY5EJ5rDZZCFbAs8csScmBNVwfshKXDBumm9pJUbNyUzqWMGrcDqpj6SLMOu9OVj/G3hsc+0PzBNFrsCh771LDz23v+rEwEdX7iCEAAAAASUVORK5CYII=",
@@ -9,5 +8,9 @@ local textures = {
 }
 for k, v in pairs(textures) do
     textures[k] = "blank.png^[png:" .. textures[k]
+    minetest.register_craftitem(":magikacia:zzz_textures_" .. k, {
+        description = k,
+        inventory_image = textures[k],
+    })
 end
 table.update(magikacia.textures, textures)

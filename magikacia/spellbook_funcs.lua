@@ -16,11 +16,14 @@ function magikacia.is_obj_not_static(obj)
     if not obj then
         return nil
     end
+    if not obj:is_valid() then
+        return nil
+    end
     if obj:is_player() then
         return true
     end
     local le = obj:get_luaentity()
-    if not le then
+    if not le or not le then
         return nil
     end
     if not le then
@@ -622,12 +625,46 @@ end
 minetest.register_entity(":magikacia:effect_entity", {
     initial_properties = {
         visual = "wielditem",
-        visual_size = { x = 0.3, y = 0.3 },
+        wield_item = "",
+        visual_size = { x = 1, y = 1 },
         physical = false,
         pointable = false,
-        textures = { "blank.png" },
+        --[[textures = { "blank.png" },]]
         static_save = false,
-    }
+    },
+    on_activate = function(self, staticdata, dtime_s)
+        local data = minetest.deserialize(staticdata)
+        if data then
+            local defs = data._magikacia_effect_entity_defs
+            if defs ~= nil then
+                if defs.nframes ~= nil then
+                    defs.nframes = tonumber(defs.nframes)
+                    defs.total_anim_time = tonumber(defs.total_anim_time)
+                end
+                self._magikacia_effect_entity_defs = defs
+            end
+        end
+    end,
+    on_step = function(self, dtime)
+        local ent_def = self._magikacia_effect_entity_defs
+        self.timer = (self.timer or 0) + dtime
+        if self.timer > (ent_def.expiration_time or 5) then
+            self.object:remove()
+            return
+        end
+        local obj = self.object
+        --[[local props = obj:get_properties()]]
+        if ent_def then
+            if ent_def.nframes ~= nil then
+                local nframe = math.floor(ent_def.nframes * math.fmod(self.timer, ent_def.total_anim_time) / ent_def.total_anim_time) + 1
+                obj:set_properties({
+                    wield_item = ent_def.base_item .. "_" .. nframe
+                })
+            end
+        end
+        --[[local rot = obj:get_rotation()
+        obj:set_rotation({ x = rot.x, y = rot.y, z = math.round((self.timer * math.pi * 4) / (math.pi / 4)) * (math.pi / 4) })]]
+    end,
 })
 local base_props = {
     visual = "wielditem",
@@ -637,13 +674,6 @@ local base_props = {
     textures = { "blank.png" },
 }
 
-local map_props = {
-    visual = "upright_sprite",
-    visual_size = { x = 1, y = 1 },
-    collide_with_objects = false,
-    textures = { "blank.png" },
-    _mcl_pistons_unmovable = true
-}
 
 
 magikacia.tpl_entity = {
@@ -663,8 +693,42 @@ function magikacia.tpl_entity:set_def(def)
 end
 
 function magikacia.spawn_effect_entity(def)
-
+    local ent = minetest.add_entity(def.pos, "magikacia:effect_entity", minetest.serialize({ _magikacia_effect_entity_defs = def, }))
+    ent:set_properties(table.merge(base_props, {
+        wield_item = def.itemname,
+        visual_size = { x = def.size, y = def.size },
+    }, def.object_properties or {}))
+    ent:set_rotation(def.rotation)
+    return ent
 end
+
+--[[
+]]
+
+minetest.register_craftitem(":magikacia:temp_texture", {
+    description = "Temp Texture",
+    inventory_image = "blank.png^[png:",
+})
+
+minetest.register_tool(":magikaica:entity_tool", {
+    description = "Entity Tool",
+    on_use = function(itemstack, user, pointed_thing)
+        local look_dir = user:get_look_dir()
+        local look_horiz = user:get_look_horizontal()
+        local look_vert = user:get_look_vertical()
+        local ent = magikacia.spawn_effect_entity({
+            pos = user:get_pos(),
+            itemname = "magikacia:zzz_textures_effect_absolute_solver_primary",
+            rotation = { x = look_vert, y = look_horiz, z = 0 },
+            size = 1,
+        })
+        ent:set_velocity(look_dir:multiply(50))
+    end
+})
+--[[
+ok so left click will spawn a hand that will go in a straight line through the air and after like 0.4 seconds of it going through the air then it will turn to the second frame, after 0.4 more seconds it will go to the third frame, then after 0.4 more seconds it will go to the fourth frame and if theres a player like really nearby (check that its not the user lol) then it will grab them but if theres not then it will dissappear
+when a player is grabbed by the hand they cant move bc theyr stuck XD then if the user uses left click again on a different spot it will go towards there quickly and the player will follow and then it will drop them (go to the 3rd animation frame then dissapear the hand) and this can be good for fall dmg
+]]
 
 
 

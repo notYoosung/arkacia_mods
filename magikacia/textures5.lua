@@ -1,4 +1,3 @@
-magikacia.textures = magikacia.textures or {}
 local textures = {
     deepslate_runed_earth = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAbBJREFUOE+NU11vgkAQHDgQUZFqfFL/gmkfbHzx//8Po48mUEGQz2tmyaG2pum+XNjbm92ZWazdbqdd18V/o6oqKeVZFAWs/X6vTfIVSNO0UMp+umJ92zSo6voOEMdxX+Q4jnQYDAa/MLXWKMsSQRDcJ8iyDGmaYjabgR3btpGHhhpzDE5iRvc87w6QJgny2w3j8VhGs5WCbSsB4skwoPy+pgn80agDoIjswCRReaHbFpbd8bYsCxzb5PgozzI4rouWdR/v75qFpDCZTDAcDn/xHvq+gBAsjiJckgTTIOhE3Gw2AkBkcl4sFjgej1iv1z0QHzLHu+v1Kjqw1rbtzgVW0gVqEIYhTqcTlsulqE0nWMgcATj25XLBdDrtKFKDRwq053A4YLVage6QUtM0OJ/PAlDXNaIoEsd6AIqY5xl83xchRTSt5aEBMHzyPJfJOO0LgFG/dcXtJiKxEzmbjeT59RVjPp93ANvtp66rEmVVSTf6zIUxAHTGLJdZrCcKjzYOPK9Xnr4XZSlqK6VQFgWU4/T0wvBNlqvfg1c/Eim4jvPnj9rvwc8q2vUYtPJVfAMagC0RARU4lQAAAA5lWElmTU0AKgAAAAgAAAAAAAAA0lOTAAAAAElFTkSuQmCC",
     deepslate_runed_fire = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAhtJREFUOE+Nkltv2kAQhY8v3AQBig2kiLe0PLRxoVGqvPD/JRC/AKlGvCAi7uAYsNd2dcZAoqoPXcmydmf2mzNnVnt5eUkymQz+d4VhKKn8n89naP1+P7kefoQUCgVomgbDMGEYOrbb7S3M/DiKECr1b0AUxSDANA1QHUFXAGNxHAnspsD3fei6IZWY4DiPmM1mkmCaJorFItrtNkajkUhnLiE3gHc4IJfPS5DSfj49YbVaY7NZSwu2baFer2MwGMhlFQbQDSMF0ERW5SEXAz8cB9vdDsvlErquo9lswrIsDIdDyWGRKGYrMbRet5tc3Wne3yNSCtVqFWxrt99L6FO1Kgrn8zk0QM4NXU9NdBxHAKQ1Gg0xLJvNirzj8SgAGmoYhkCZdzgcUrW6/g7gAQFJksgXcUyXmTNGMM+5PM+7jVQ84O7h4QuOR1+qUgGTgyCQP0dJ4Ol0QqlUwt1dGa77WyA3Ezudr3KBdHrA8bENXiSAsc1mg3K5jEqlgvF4/DeggyA4C6DVaokKpZS0QZjnveH1dY5arYZcLgfXdVPA8/Ov5PH7N6gofRi73R6t1mepSgAV8C34/hsWi4WMM5MhPMR0Ok3H2O12xd0gDLFer8XMHBVEkXhwnQBboHzulYowmbgXQK8HJImYtFytYFsW8vm8PBa6r2vaLVYply8Ahclkko6xRwCQJi2XsG1b+vw4PrbH2LsCJT78ATRZauQ+2AsRAAAADmVYSWZNTQAqAAAACAAAAAAAAADSU5MAAAAASUVORK5CYII=",
@@ -18,5 +17,9 @@ local textures = {
 }
 for k, v in pairs(textures) do
     textures[k] = "blank.png^[png:" .. textures[k]
+    minetest.register_craftitem(":magikacia:zzz_textures_" .. k, {
+        description = k,
+        inventory_image = textures[k],
+    })
 end
 table.update(magikacia.textures, textures)

@@ -300,7 +300,16 @@ magikacia.runes = {
             left_sneak = "",
             right = "",
         }
-    }
+    },
+    {
+        name = "Shadow",
+        description = "",
+        spell_descriptions = {
+            left = "",
+            left_sneak = "",
+            right = "",
+        }
+    },
 }
 local color_list = {
     mcl_colors.DARK_GREEN,
@@ -324,7 +333,7 @@ for _, v in ipairs(magikacia.runes) do
         stack_size = 1,
     }
     local tex = magikacia.textures["rune_" .. formattedname]
-    if tex and tex ~= "" then
+    if tex and tex ~= "" and tex ~= "blank.png^[png:" then
         def.inventory_image = tex
     end
     minetest.register_craftitem(":" .. modname .. ":rune_" .. formattedname, def)
@@ -372,7 +381,7 @@ magikacia.cores = {
     },
     {
         name = "Absolutely Solved",
-        description = "Attacks cause no direct damage! Perfect for pranks or games!\n - Warning: Also cancels out damage from other cores!",
+        description = "",
         modifiers = {
             damage = 100,
             physical_effect = 100,
@@ -905,31 +914,53 @@ minetest.register_chatcommand("adminite", {
         interact = true,
     },
     func = function(name, param)
+        local player = minetest.get_player_by_name(name)
         if (param ~= "") then
-            local params = string.split(param, " +")
+            local params = string.split(param, " +", false, -2, true)
 
-            local attack_specific = {}
+            local specific_attack = {}
             local owner = ""
 
             local subcmd = params[1]
-            local extraparams = #params > 1 and table.unpack(params, 2) or {}
+            local extraparams = {}
+            if #params > 1 then
+                for iparam = 2, #params do
+                    table.insert(extraparams, params[iparam])
+                end
+            end
+            local extraparams_reversed = {}
+            for _, v in ipairs(extraparams) do
+                extraparams_reversed[v] = true
+            end
+
 
             if subcmd == "" then
 
             elseif subcmd == "only" then
                 for i = 1, #params do
                     if (params[i] ~= "only") then
-                        table.insert(attack_specific, params[i])
+                        table.insert(specific_attack, params[i])
                     end
                 end
             elseif subcmd == "except" then
                 for mob_name in pairs(mcl_mobs.mobs) do
-                    table.insert(attack_specific, mob_name)
+                    if not extraparams_reversed[mob_name] then
+                        table.insert(specific_attack, mob_name)
+                    end
                 end
             else
                 minetest.chat_send_player(name,
                     "Invalid subcommand: \"" .. subcmd .. "\". Valid subcommands are \"only\" and \"except\".")
                 return
+            end
+            if player then
+                local pos = player:get_pos()
+                if pos then
+                    minetest.add_entity(pos, ":magikacia:adminite", minetest.serialize({
+                        owner = owner,
+                        specific_attack = specific_attack,
+                    }))
+                end
             end
         end
     end

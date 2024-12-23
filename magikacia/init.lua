@@ -39,6 +39,7 @@ minetest.register_on_mods_loaded(function()
 		"textures4",
 		"textures5",
 		"textures6",
+		"textures7",
 		"magikacia",
 		"magikacia_explosions",
 		"spellbook_funcs",
