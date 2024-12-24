@@ -412,8 +412,10 @@ for i = 0, math.pi * 6, math.pi / 5 do
 end
 
 local specific_attack_all = {}
-for mob_name in pairs(mcl_mobs.registered_mobs) do
-    table.insert(specific_attack_all, mob_name)
+for mob_name, _ in pairs(mcl_mobs.registered_mobs) do
+    if mob_name ~= ":magikacia:adminite" then
+        table.insert(specific_attack_all, mob_name)
+    end
 end
 
 
@@ -452,7 +454,6 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
 
     local is_placer_sneaking = false
     if placer:is_player() then
-        local placer_name = placer:get_player_name()
         if controls.players[placer_name].sneak[1] then
             is_placer_sneaking = true
         end

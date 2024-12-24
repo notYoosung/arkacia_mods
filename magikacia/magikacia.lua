@@ -942,9 +942,9 @@ minetest.register_chatcommand("adminite", {
                         table.insert(specific_attack, ":magikacia:" .. params[i])
                     end
                 end
-            elseif subcmd == "except" or subcmd == "" then
-                for mob_name in pairs(mcl_mobs.registered_mobs) do
-                    if not extraparams_reversed[mob_name] and not extraparams_reversed["mobs_mc:" .. mob_name] then
+            elseif subcmd == "except" then
+                for mob_name, _ in ipairs(mcl_mobs.registered_mobs) do
+                    if not extraparams_reversed[mob_name] and not extraparams_reversed["mobs_mc:" .. mob_name] and not (mob_name == ":magikacia:adminite") then
                         table.insert(specific_attack, mob_name)
                     end
                 end
@@ -1038,3 +1038,10 @@ minetest.register_tool(":magikacia:wings_butterfly", {
     _mcl_armor_element = "torso",
     _mcl_armor_texture = magikacia.textures.wings_butterfly,
 })
+
+
+
+--[[
+ok so left click will spawn a hand that will go in a straight line through the air and after like 0.4 seconds of it going through the air then it will turn to the second frame, after 0.4 more seconds it will go to the third frame, then after 0.4 more seconds it will go to the fourth frame and if theres a player like really nearby (check that its not the user lol) then it will grab them but if theres not then it will dissappear
+when a player is grabbed by the hand they cant move bc theyr stuck XD then if the user uses left click again on a different spot it will go towards there quickly and the player will follow and then it will drop them (go to the 3rd animation frame then dissapear the hand) and this can be good for fall dmg
+]]

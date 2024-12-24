@@ -77,4 +77,3 @@ minetest.register_node("arkacia:ladder", {
     on_rotate = rotate_climbable,
 })
 
-mcl_throwing
