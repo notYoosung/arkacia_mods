@@ -857,7 +857,7 @@ also wat if u can seperate the mob names with a comma , so u can do multiple tha
 
 mcl_mobs.register_mob(":magikacia:adminite", {
     description = "Adminite",
-    type = "npc",
+    type = "animal",
     passive = false,
     attack_type = "dogfight",
     retaliates = true,
@@ -915,14 +915,14 @@ minetest.register_chatcommand("adminite", {
     },
     func = function(name, param)
         local player = minetest.get_player_by_name(name)
+        local specific_attack = {}
+        local owner = name
+        local extraparams = {}
         if (param ~= "") then
             local params = string.split(param, " +", false, -2, true)
 
-            local specific_attack = {}
-            local owner = ""
 
             local subcmd = params[1]
-            local extraparams = {}
             if #params > 1 then
                 for iparam = 2, #params do
                     table.insert(extraparams, params[iparam])
@@ -939,38 +939,35 @@ minetest.register_chatcommand("adminite", {
                     if (params[i] ~= "only") then
                         table.insert(specific_attack, params[i])
                         table.insert(specific_attack, "mobs_mc:" .. params[i])
-                        table.insert(specific_attack, "magikacia:" .. params[i])
+                        table.insert(specific_attack, ":magikacia:" .. params[i])
                     end
                 end
             elseif subcmd == "except" or subcmd == "" then
                 for mob_name in pairs(mcl_mobs.registered_mobs) do
                     if not extraparams_reversed[mob_name] and not extraparams_reversed["mobs_mc:" .. mob_name] then
                         table.insert(specific_attack, mob_name)
-                        table.insert(specific_attack, "mobs_mc:" .. mob_name)
-                        table.insert(specific_attack, "magikacia:" .. mob_name)
                     end
                 end
             else
                 minetest.chat_send_player(name,
-                    "Invalid subcommand: \"" .. subcmd .. "\". Valid subcommands are \"only\" and \"except\".")
+                    "Invalid subcommand: \"" .. subcmd .. "\". Valid subcommands are \"only\" and \"except\". Put no subcommands to attack all mobs (except user).")
                 return
             end
-            minetest.log(dump2(specific_attack))
-            if player then
-                local pos = player:get_pos()
-                if pos then
-                    local ent = minetest.add_entity(pos, ":magikacia:adminite", minetest.serialize({
-                        owner = owner,
-                        specific_attack = specific_attack,
-                    }))
-                    if ent then
-                        local le = ent:get_luaentity()
-                        if le then
-                            le.owner = owner
-                            le.specific_attack = table.merge(le.specific_attack or {}, specific_attack)
-                        end
+        end
+        if player then
+            local pos = player:get_pos()
+            if pos then
+                local ent = minetest.add_entity(pos, ":magikacia:adminite", minetest.serialize({
+                    owner = owner,
+                    specific_attack = specific_attack,
+                }))
+                --[[if ent then
+                    local le = ent:get_luaentity()
+                    if le then
+                        le.owner = owner
+                        le.specific_attack = table.merge(le.specific_attack or {}, specific_attack)
                     end
-                end
+                end]]
             end
         end
     end

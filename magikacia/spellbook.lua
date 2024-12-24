@@ -411,6 +411,11 @@ for i = 0, math.pi * 6, math.pi / 5 do
     table.insert(wind_primary_sneak_pos_list, vector.new(math.cos(i) * i, i * 2, i * math.sin(i)))
 end
 
+local specific_attack_all = {}
+for mob_name in pairs(mcl_mobs.registered_mobs) do
+    table.insert(specific_attack_all, mob_name)
+end
+
 
 local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if not placer then return nil end
@@ -454,7 +459,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
 
-    if inv_runes_contains[modname .. ":rune_earth"] then
+    if inv_runes_contains["magikacia:rune_earth"] then
         local offset = placer:get_look_dir()
         for i = 1, 5 do
             local pos = vector.add(vector.offset(use_pos_self, 0, eye_height * 0.7, 0),
@@ -475,7 +480,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_self = true
     end
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_electric"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_electric"] then
         local electric_primary_success = false
         magikacia.radius_effect_func(use_pos_above, 3.5, placer, function(obj)
             if magikacia.tase(placer, obj) then
@@ -503,7 +508,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         })
     end
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_fire"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_fire"] then
         for _, k in ipairs(around_plus_pos_list) do
             magikacia.safe_replace({ x = use_pos_above.x + k[1], y = use_pos_above.y, z = use_pos_above.z + k[2] },
                 "magikacia:fire_temp",
@@ -518,7 +523,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_ice"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_ice"] then
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             mcl_potions.swiftness_func(obj, -1, 3 * cores_multipliers.physical_effect)
             mcl_potions.leaping_func(obj, -1, 3 * cores_multipliers.physical_effect)
@@ -531,7 +536,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_telepathic"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_telepathic"] then
         if is_placer_sneaking then
             if pointed_obj then
                 local pself = placer:get_pos()
@@ -559,7 +564,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_water"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_water"] then
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
                 magikacia.deal_spell_damage(obj, 5 * cores_multipliers.damage, "water_primary", placer)
@@ -584,7 +589,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_void"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_void"] then
         magikacia.radius_effect_func(use_pos_above, 2, placer, function(obj)
             magikacia.deal_spell_damage(obj, 20 * cores_multipliers.damage, "void_primary", placer)
         end)
@@ -598,7 +603,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_wind"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_wind"] then
         if not is_placer_sneaking then
             magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
                 local newvel = vector.offset(
@@ -656,7 +661,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if entity_modifier and use_pos_above and inv_runes_contains[modname .. ":rune_disguise"] then
+    if entity_modifier and use_pos_above and inv_runes_contains["magikacia:rune_disguise"] then
         entity_modifier.disguise_tool_primary(itemstack, placer, pointed_thing)
         magikacia.spawn_effect_anim({
             pos = use_pos_above,
@@ -666,7 +671,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if entity_modifier and use_pos_above and inv_runes_contains[modname .. ":rune_resize"] then
+    if entity_modifier and use_pos_above and inv_runes_contains["magikacia:rune_resize"] then
         if pointed_obj then
             local vs = get_visual_size(pointed_obj) * 1 + 0.1 * cores_multipliers.physical_effect
             if vs and (is_gauntlet_admin or vs <= resize_max_size) then
@@ -706,7 +711,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         end
     end
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_poison"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_poison"] then
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj, obj_is_player)
             if obj_is_player then
                 mcl_potions.poison_func(obj, 1 * cores_multipliers.damage, 3 * cores_multipliers.physical_effect)
@@ -717,7 +722,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_healing"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_healing"] then
         magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
             mcl_potions.regeneration_func(obj, 1, 3 * cores_multipliers.physical_effect)
             mcl_potions.healing_func(obj, 6 * cores_multipliers.physical_effect)
@@ -730,7 +735,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_absolute_solver"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_absolute_solver"] then
         magikacia.spawn_effect_anim({
             pos = use_pos_above,
             texture = "effect_absolute_solver_primary",
@@ -743,7 +748,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
 
 
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_nature"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_nature"] then
         for i = 5, 5 * cores_multipliers.physical_effect, 5 do
             for ii = 0, math.pi * 2 - 0.01, math.pi / 3 do
                 local above_posi = {
@@ -759,14 +764,14 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_under and inv_runes_contains[modname .. ":rune_protection"] then
+    if use_pos_under and inv_runes_contains["magikacia:rune_protection"] then
         minetest.registered_chatcommands["area_pos1"].func(placer:get_player_name(),
             use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z)
         use_success = true
         use_at_place_under = true
     end
 
-    if inv_runes_contains[modname .. ":rune_bubble"] then
+    if inv_runes_contains["magikacia:rune_bubble"] then
         local add_vel = vector.multiply(placer:get_look_dir(), 20 * cores_multipliers.physical_effect)
         local _bubble_itemstack
         local bubble_use_pos
@@ -785,7 +790,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         end
     end
 
-    if inv_runes_contains[modname .. ":rune_shadow"] then
+    if inv_runes_contains["magikacia:rune_shadow"] then
         local look_dir = placer:get_look_dir()
         local look_horiz = placer:get_look_horizontal()
         local look_vert = placer:get_look_vertical()
@@ -820,6 +825,19 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         end)
     end
 
+    if inv_runes_contains["magikacia:rune_summoning"] then
+        local safe_use_pos = use_pos_above or use_pos_self
+        if safe_use_pos then
+            local ent = minetest.add_entity(safe_use_pos, ":magikacia:adminite", minetest.serialize({
+                owner = placer_name,
+                specific_attack = specific_attack_all,
+            }))
+            magikacia.spawn_effect_anim({
+                pos = safe_use_pos,
+                texture = "effect_vortex_blue",
+            })
+        end
+    end
 
     if use_success then
         minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 64, gain = 0.5 }, true)
@@ -886,7 +904,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
 
 
     local spell_earth_time_active = meta:get_float("magikacia:spell_earth_time_active")
-    if inv_runes_contains[modname .. ":rune_earth"] and spell_earth_time_active == 0 then
+    if inv_runes_contains["magikacia:rune_earth"] and spell_earth_time_active == 0 then
         meta:set_float("magikacia:spell_earth_time_active", spell_earth_time_active + 1)
         placer:add_velocity({ x = 0, y = 15, z = 0 })
         magikacia.spawn_effect_anim({
@@ -897,7 +915,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_self = true
     end
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_electric"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_electric"] then
         magikacia.lightning_strike(vector.offset(use_pos_above, 0, -1, 0), placer)
         magikacia.spawn_effect_anim({
             pos = use_pos_above,
@@ -907,20 +925,20 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_place_above = true
     end
 
-    if inv_runes_contains[modname .. ":rune_fire"] then
+    if inv_runes_contains["magikacia:rune_fire"] then
         mcl_potions.fire_resistance_func(placer, nil, 10)
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_fire_secondary_entity")(
             ItemStack("magikacia:throwable_attack_fire_secondary", 64), placer, pointed_thing)
         use_success = true
     end
 
-    if inv_runes_contains[modname .. ":rune_ice"] then
+    if inv_runes_contains["magikacia:rune_ice"] then
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_ice_secondary_entity")(
             ItemStack("magikacia:throwable_attack_ice_secondary", 64), placer, pointed_thing)
         use_success = true
     end
 
-    if inv_runes_contains[modname .. ":rune_telepathic"] then
+    if inv_runes_contains["magikacia:rune_telepathic"] then
         --[[minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(), formspec_ender_chest)]]
         magikacia.random_teleport_obj(placer)
         magikacia.spawn_effect_anim({
@@ -931,7 +949,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_self = true
     end
 
-    if use_pos_above and inv_runes_contains[modname .. ":rune_void"] then
+    if use_pos_above and inv_runes_contains["magikacia:rune_void"] then
         local function suck(time, victim)
             if victim then
                 minetest.after(0.1, function(t, obj)
@@ -962,7 +980,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_success = true
         use_at_place_above = true
     end
-    if use_pos_self and inv_runes_contains[modname .. ":rune_water"] then
+    if use_pos_self and inv_runes_contains["magikacia:rune_water"] then
         local node = minetest.get_node(use_pos_self)
         if node and minetest.get_item_group(node.name, "water") > 0 or (mcl_weather.rain.raining and mcl_weather.is_outdoor(use_pos_self) and mcl_weather.has_rain(use_pos_self)) then
             magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
@@ -995,7 +1013,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         end
     end
 
-    if use_pos_self and inv_runes_contains[modname .. ":rune_wind"] then
+    if use_pos_self and inv_runes_contains["magikacia:rune_wind"] then
         magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
             magikacia.deal_spell_damage(obj, 10 * cores_multipliers.damage, "wind_secondary", placer)
         end)
@@ -1011,7 +1029,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_success = true
     end
 
-    if entity_modifier and inv_runes_contains[modname .. ":rune_disguise"] then
+    if entity_modifier and inv_runes_contains["magikacia:rune_disguise"] then
         entity_modifier.disguise_tool_secondary(itemstack, placer, pointed_thing)
         magikacia.spawn_effect_anim({
             pos = use_pos_above or use_pos_self,
@@ -1021,7 +1039,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         --[[use_at_place_above = true]]
     end
 
-    if entity_modifier and inv_runes_contains[modname .. ":rune_resize"] then
+    if entity_modifier and inv_runes_contains["magikacia:rune_resize"] then
         if pointed_obj then
             local vs = get_visual_size(pointed_obj) / 1.1
             if vs and vs >= 0.1 then
@@ -1061,7 +1079,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         end
     end
 
-    if inv_runes_contains[modname .. ":rune_absolute_solver"] then
+    if inv_runes_contains["magikacia:rune_absolute_solver"] then
         local base_pos = use_pos_above or use_pos_self
         if base_pos then
             for i = 0, -50, -5 do
@@ -1089,10 +1107,10 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         end
     end
 
-    if inv_runes_contains[modname .. ":rune_summoning"] then
+    if inv_runes_contains["magikacia:rune_summoning"] then
     end
 
-    if inv_runes_contains[modname .. ":rune_protection"] then
+    if inv_runes_contains["magikacia:rune_protection"] then
         local base_pos = use_pos_under or use_pos_self
         if base_pos then
             minetest.registered_chatcommands["area_pos2"].func(placer:get_player_name(), base_pos.x .. " " .. base_pos.y .. " " .. base_pos.z)
@@ -1109,7 +1127,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         end
     end
 
-    if inv_runes_contains[modname .. ":rune_bubble"] then
+    if inv_runes_contains["magikacia:rune_bubble"] then
         if magikacia_bubbles then
             magikacia_bubbles.bubble_blower_secondary(itemstack, placer, pointed_thing)
             use_success = true
