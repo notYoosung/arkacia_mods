@@ -900,6 +900,7 @@ mcl_mobs.register_mob(":magikacia:adminite", {
     follow_velocity = 5,
     stepheight = 1.1,
     runaway_from = { "magikacia:adminite_wardstone", },
+    order = "follow",
 })
 
 mcl_mobs.register_egg(":magikacia:adminite", "Adminite", "#161616", "#6d6d6d", 0)
