@@ -1,17 +1,17 @@
- 
- 
- 
- 
+
+
+
+
 
 local S = minetest.get_translator("mobs_mc")
 
 
 local blank = "blank.png^[png:"
 local potat_texture = blank .. "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7DAAAOwwHHb6hkAAABQElEQVQ4EWP8DwQMFAAmCvSCtQ68ASyEvLA5VQhFie/sdyh8RmyBiKxJyoiZQVRDl+HXk8sMv/78Z7h77B8DsiEYBoA060cZMPDyQhz3j4mR4eXFswzi+sYM76+eY/j26z/DwxMIQ1ACEaTZJt2EQcgmmOGPihAYg9wL0gwCbDK6YPrQkY9gGkTADQBplrdgAmviZA1mEBKYwMDJbQtX+PXjb4YP9y4x3D/5Dy6GYgCII6tvhCL5/ethMB9d88O3bHB18DAo1WRmKDseysB07z3DPyVBsILv518xnFh4jkHDlgVu89IN3xlWvfoONwAlGp+v3cMgoKTHwA00hOnff7CTYZpBGkEAWTOID3cBiANyhak5L4MIL8SJn3/+YcClEaQeBFAMAAmADEH2I7qNIDXIAMMAZEli2PBoJEYxNjUApDCNvAPbZf8AAAAASUVORK5CYII="
+potat_texture = potat_texture .. "^[makealpha:255,255,255"
 
- 
- 
- 
+
+
 local shoulders = {
     left = vector.new(-3.75, 10.5, 0),
     right = vector.new(3.75, 10.5, 0)
@@ -137,8 +137,8 @@ mcl_mobs.register_mob(":arkacia:potat", {
     curiosity = 100,
     collisionbox = { -0.0, -0.0, -0.0, 0.0, 0.0, 0.0 },
     visual = "sprite",
-    textures = { potat_texture .. "^[makealpha:255,255,255" },
-    visual_size = { x = 5, y = 5 },
+    textures = { potat_texture },
+    visual_size = { x = 10, y = 10 },
     sounds = {
         random = "mobs_mc_parrot_random",
         damage = { name = "mobs_mc_parrot_hurt", gain = 0.3 },
@@ -169,7 +169,6 @@ mcl_mobs.register_mob(":arkacia:potat", {
     makes_footstep_sound = false,
     fear_height = 0,
     view_range = 16,
-    owner = "singleplayer",
     order = "follow",
     _mcl_fishing_hookable = true,
     _mcl_fishing_reelable = false,
@@ -185,6 +184,14 @@ mcl_mobs.register_mob(":arkacia:potat", {
     suffocation = false,
     player_active_range = 64,
     drowning = 0,
+    on_activate = function(self, staticdata, dtime)
+        if staticdata then
+            local data = minetest.deserialize(staticdata)
+            for k, v in pairs(data) do
+                self[k] = v
+            end
+        end
+    end,
     on_rightclick = function(self, clicker)
         if self._doomed then return end
         local item = clicker:get_wielded_item()
@@ -206,16 +213,18 @@ mcl_mobs.register_mob(":arkacia:potat", {
         perch(self, clicker)
     end,
     do_custom = function(self, dtime)
+        local owner = minetest.get_player_by_name(self.owner)
+        if not owner then
+            self.object:remove()
+            return
+        end
         --[[check_perch(self, dtime)]]
         check_mobimitate(self, dtime)
         local obj = self.object
-        local owner = minetest.get_player_by_name(self.owner)
-        if owner then
-            local owner_pos = owner:get_pos()
-            local dist = vector.distance(obj:get_pos(), owner_pos)
-            if dist > 16 then
-                obj:move_to(vector.offset(owner_pos, 0, 3, 0))
-            end
+        local owner_pos = owner:get_pos()
+        local dist = vector.distance(obj:get_pos(), owner_pos)
+        if dist > 32 then
+            obj:move_to(vector.offset(owner_pos, 0, 10, 0))
         end
         --[[self.owner = "P07AT0"
         self.order = "follow"]]
@@ -228,4 +237,13 @@ mcl_mobs.register_mob(":arkacia:potat", {
 })
 
 
-mcl_mobs.register_egg(":arkacia:potat", S("Potat"), "#0da70a", "#ff0000", 0)
+minetest.register_craftitem(":arkacia:potat", {
+    description = "Potat",
+    inventory_image = potat_texture,
+    on_place = function(itemstack, placer, pointed_thing)
+        local pos = pointed_thing.above
+        local owner_name = placer:get_player_name() or ""
+        local potat = minetest.add_entity(pos, ":arkacia:potat", minetest.serialize({ owner = owner_name }))
+        return itemstack
+    end
+})

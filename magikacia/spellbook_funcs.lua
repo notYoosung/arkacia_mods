@@ -735,14 +735,21 @@ when a player is grabbed by the hand they cant move bc theyr stuck XD then if th
 
 if not mcl_util._magikacia_spellbook_funcs_init then
     mcl_damage.register_modifier(function(obj, damage, reason)
-        if obj and  obj:is_player() then
+        if obj and obj:is_player() then
+            local obj_meta = obj:get_meta()
+            local hp = obj:get_hp()
+            if obj_meta and obj_meta:get_bool("magikacia:rune_shield_active") then
+                if damage > 0 then
+                    obj_meta:set_bool("magikacia:rune_shield_active")
+                    return hp
+                end
+            end
             local inv = obj:get_inventory()
             if inv then
-                for k, v in pairs(inv:get_list("main")) do
-                    if minetest.get_item_group(v:get_name(), "spellbook") and (magikacia.has_in_spellbook_inv_main and magikacia.has_in_spellbook_inv_main(v, obj, "magikacia:rune_void")) then
-                        if reason.type == "out_of_world" then
-                            local ppos = obj:get_pos(); local _, is_in_deadly_void = mcl_worlds.is_in_void(ppos); if not is_in_deadly_void then return end
-                            local hp = obj:get_hp();
+                if reason.type == "out_of_world" then
+                    local ppos = obj:get_pos(); local _, is_in_deadly_void = mcl_worlds.is_in_void(ppos); if not is_in_deadly_void then return end
+                    for k, v in pairs(inv:get_list("main")) do
+                        if minetest.get_item_group(v:get_name(), "spellbook") and (magikacia.has_in_spellbook_inv_main and magikacia.has_in_spellbook_inv_main(v, obj, "magikacia:rune_void")) then
                             if hp + damage <= 20 then
                                 return hp + damage;
                             else
@@ -753,6 +760,6 @@ if not mcl_util._magikacia_spellbook_funcs_init then
                 end
             end
         end
-    end, 1020)
+    end, 2048)
     mcl_util._magikacia_spellbook_funcs_init = true
 end
