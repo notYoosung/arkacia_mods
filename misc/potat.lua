@@ -33,12 +33,12 @@ local function get_random_mob_sound()
             return table_get_rand(e.sounds)
         end
     end
-    return minetest.registered_entities["arkacia:potat"].sounds.random
+    return minetest.registered_entities[":arkacia:potat"].sounds.random
 end
 
 local function imitate_mob_sound(self, mob)
     local snd = mob.sounds.random
-    if not snd or mob.name == "arkacia:potat" or math.random(20) == 1 then
+    if not snd or mob.name == ":arkacia:potat" or math.random(20) == 1 then
         snd = get_random_mob_sound()
     end
     return minetest.sound_play(snd, {
@@ -54,19 +54,19 @@ local function check_mobimitate(self, dtime)
 
     for o in minetest.objects_inside_radius(self.object:get_pos(), 20) do
         local l = o:get_luaentity()
-        if l and l.is_mob and l.name ~= "arkacia:potat" then
+        if l and l.is_mob and l.name ~= ":arkacia:potat" then
             imitate_mob_sound(self, l)
             return
         end
     end
 end
 
- 
+
 local function get_shoulder(player)
     local sh = "left"
     for _, o in pairs(player:get_children()) do
         local l = o:get_luaentity()
-        if l and l.name == "arkacia:potat" then
+        if l and l.name == ":arkacia:potat" then
             local _, _, a = l.object:get_attach()
             for _, s in pairs(shoulders) do
                 if a and vector.equals(a, s) then
@@ -96,7 +96,7 @@ local function check_perch(self, dtime)
         for p in mcl_util.connected_players() do
             for _, o in pairs(p:get_children()) do
                 local l = o:get_luaentity()
-                if l and l.name == "arkacia:potat" then
+                if l and l.name == ":arkacia:potat" then
                     local n1 = minetest.get_node(vector.offset(p:get_pos(), 0, -0.6, 0)).name
                     local n2 = minetest.get_node(vector.offset(p:get_pos(), 0, 0, 0)).name
                     if (n1 == "air" or minetest.get_item_group(n2, "water") > 0 or minetest.get_item_group(n2, "lava") > 0) and
@@ -129,18 +129,15 @@ mcl_mobs.register_mob(":arkacia:potat", {
     type = "animal",
     spawn_class = "passive",
     passive = true,
-    pathfinding = 1,
+    pathfinding = 2,
     hp_min = 65535,
     hp_max = 65535,
-    xp_min = 1,
-    xp_max = 3,
-    head_swivel = "head.control",
-    bone_eye_height = 1.1,
-    horizontal_head_height = 0,
+    xp_min = 65535,
+    xp_max = 65535,
     curiosity = 100,
-    collisionbox = { -0.1, -0.1, -0.1, 0.1, 0.1, 0.1 },
+    collisionbox = { -0.0, -0.0, -0.0, 0.0, 0.0, 0.0 },
     visual = "sprite",
-    textures = { potat_texture },
+    textures = { potat_texture .. "^[makealpha:255,255,255" },
     visual_size = { x = 5, y = 5 },
     sounds = {
         random = "mobs_mc_parrot_random",
@@ -160,8 +157,7 @@ mcl_mobs.register_mob(":arkacia:potat", {
         walk_end = 40,
         walk_speed = 50,
     },
-    fall_damage = 0,
-    fall_speed = -2.25,
+    fall_speed = 0,
     attack_type = "dogfight",
     floats = 1,
     physical = false,
@@ -173,7 +169,22 @@ mcl_mobs.register_mob(":arkacia:potat", {
     makes_footstep_sound = false,
     fear_height = 0,
     view_range = 16,
-    owner = "P07AT0",
+    owner = "singleplayer",
+    order = "follow",
+    _mcl_fishing_hookable = true,
+    _mcl_fishing_reelable = false,
+    _arrow_resistant = true,
+    lava_damage = 0,
+    fire_damage = 0,
+    light_damage = 0,
+    water_damage = 0,
+    _mcl_freeze_damage = 0,
+    fire_resistant = true,
+    stepheight = 1.5,
+    fall_damage = 0,
+    suffocation = false,
+    player_active_range = 64,
+    drowning = 0,
     on_rightclick = function(self, clicker)
         if self._doomed then return end
         local item = clicker:get_wielded_item()
@@ -195,17 +206,26 @@ mcl_mobs.register_mob(":arkacia:potat", {
         perch(self, clicker)
     end,
     do_custom = function(self, dtime)
-        check_perch(self, dtime)
+        --[[check_perch(self, dtime)]]
         check_mobimitate(self, dtime)
-        self.owner = "P07AT0"
-        self.order = "follow"
+        local obj = self.object
+        local owner = minetest.get_player_by_name(self.owner)
+        if owner then
+            local owner_pos = owner:get_pos()
+            local dist = vector.distance(obj:get_pos(), owner_pos)
+            if dist > 16 then
+                obj:move_to(vector.offset(owner_pos, 0, 3, 0))
+            end
+        end
+        --[[self.owner = "P07AT0"
+        self.order = "follow"]]
     end,
     do_punch = function(self, puncher)  
         if self.object:get_attach() == puncher then
-            return false            
+            return false
         end
     end,
 })
 
- 
+
 mcl_mobs.register_egg(":arkacia:potat", S("Potat"), "#0da70a", "#ff0000", 0)

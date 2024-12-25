@@ -738,7 +738,7 @@ if not mcl_util._magikacia_spellbook_funcs_init then
         if obj and  obj:is_player() then
             local inv = obj:get_inventory()
             if inv then
-                for k, v in inv:get_list("main") do
+                for k, v in pairs(inv:get_list("main")) do
                     if minetest.get_item_group(v:get_name(), "spellbook") and (magikacia.has_in_spellbook_inv_main and magikacia.has_in_spellbook_inv_main(v, obj, "magikacia:rune_void")) then
                         if reason.type == "out_of_world" then
                             local ppos = obj:get_pos(); local _, is_in_deadly_void = mcl_worlds.is_in_void(ppos); if not is_in_deadly_void then return end
