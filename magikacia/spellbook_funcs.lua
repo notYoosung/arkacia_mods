@@ -738,10 +738,10 @@ if not mcl_util._magikacia_spellbook_funcs_init then
         if obj and obj:is_player() then
             local obj_meta = obj:get_meta()
             local hp = obj:get_hp()
-            if obj_meta and obj_meta:get_bool("magikacia:rune_shield_active") then
+            if obj_meta and obj_meta:get_int("magikacia:rune_shield_active") == 1 then
                 if damage > 0 then
-                    obj_meta:set_bool("magikacia:rune_shield_active")
-                    return hp
+                    obj_meta:set_int("magikacia:rune_shield_active", 0)
+                    return 0
                 end
             end
             local inv = obj:get_inventory()
@@ -751,9 +751,9 @@ if not mcl_util._magikacia_spellbook_funcs_init then
                     for k, v in pairs(inv:get_list("main")) do
                         if minetest.get_item_group(v:get_name(), "spellbook") and (magikacia.has_in_spellbook_inv_main and magikacia.has_in_spellbook_inv_main(v, obj, "magikacia:rune_void")) then
                             if hp + damage <= 20 then
-                                return hp + damage;
+                                return -damage;
                             else
-                                return 20
+                                return 20 - (hp + damage)
                             end
                         end
                     end

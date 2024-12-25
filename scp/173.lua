@@ -69,6 +69,7 @@ mcl_mobs.register_mob(":scp:scp_173", {
     suffocation = false,
     player_active_range = 64,
     makes_footstep_sound = true,
+    breath_max = -1,
     on_activate = function(self, staticdata, dtime)
         self.object:set_properties({
             collide_with_objects = true,
