@@ -310,6 +310,15 @@ magikacia.runes = {
             right = "",
         }
     },
+    {
+        name = "Portal",
+        description = "",
+        spell_descriptions = {
+            left = "",
+            left_sneak = "",
+            right = "",
+        }
+    },
 }
 local color_list = {
     mcl_colors.DARK_GREEN,

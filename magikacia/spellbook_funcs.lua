@@ -767,3 +767,5 @@ end
 
 
 local effect_shield_entities = {}
+
+local effect_portal_entities = {}
