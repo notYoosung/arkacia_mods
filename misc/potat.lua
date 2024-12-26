@@ -188,7 +188,7 @@ mcl_mobs.register_mob(":arkacia:potat", {
     on_activate = function(self, staticdata, dtime)
         if staticdata then
             local data = minetest.deserialize(staticdata)
-            if staticdata then
+            if data then
                 for k, v in pairs(data) do
                     self[k] = v
                 end

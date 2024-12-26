@@ -1,4 +1,4 @@
-local minetest = minetest
+--[[local minetest = minetest]]
 
 local blank = "blank.png^[png:"
 
@@ -36,11 +36,7 @@ local S = minetest.get_translator("mailbox")
 local FS = function(...) return minetest.formspec_escape(S(...)) end
 
 local formspec_bg = ""
-local get_hotbar_bg = function() return "" end
-if minetest.global_exists("default") then
-    formspec_bg = default.gui_bg .. default.gui_bg_img .. default.gui_slots
-    get_hotbar_bg = default.get_hotbar_bg
-end
+local get_hotbar_bg = function(a, b) return "" end
 
 local function noop() end
 
@@ -125,7 +121,7 @@ end
 
 local show_formspec = function(pos, owner, pname, pl_can_manage)
     local spos = pos.x .. "," .. pos.y .. "," .. pos.z
-    local formspec = "size[8,5.5]" .. formspec_bg .. default.get_hotbar_bg(0, 1.5) ..
+    local formspec = "size[8,5.5]" .. formspec_bg .. get_hotbar_bg(0, 1.5) ..
         "label[0,0;" .. FS("Send your goods\nto @1", owner) .. " :]" ..
         "list[nodemeta:" .. spos .. ";drop;3.5,0;1,1;]" ..
         "list[current_player;main;0,1.5;8,1;]" ..
