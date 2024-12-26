@@ -622,7 +622,49 @@ magikacia.tase = function(user, obj)
 end
 
 
-minetest.register_entity(":magikacia:effect_entity", {
+
+
+minetest.register_entity(":magikacia:effect_entity_sprite", {
+    initial_properties = {
+        visual = "sprite",
+        wield_item = "",
+        visual_size = { x = 1, y = 1 },
+        physical = false,
+        pointable = false,
+        textures = { "blank.png" },
+        static_save = false,
+    },
+    on_activate = function(self, staticdata, dtime_s)
+        local data = minetest.deserialize(staticdata)
+        if data then
+            local defs = data._magikacia_effect_entity_3d_defs
+            if defs ~= nil then
+                if defs.nframes ~= nil then
+                    defs.nframes = tonumber(defs.nframes)
+                    defs.total_anim_time = tonumber(defs.total_anim_time)
+                end
+                data._magikacia_effect_entity_3d_defs = defs
+            end
+            for k, v in pairs(data) do
+                self[k] = v
+            end
+        end
+    end,
+    on_step = function(self, dtime)
+        local ent_def = self._magikacia_effect_entity_3d_defs or {}
+        if ent_def.can_despawn ~= false then
+            self.timer = (self.timer or 0) + dtime
+            if self.timer > (ent_def.expiration_time or 5) then
+                self.object:remove()
+                return
+            end
+        end
+    end,
+})
+
+
+
+minetest.register_entity(":magikacia:effect_entity_3d", {
     initial_properties = {
         visual = "wielditem",
         wield_item = "",
@@ -635,18 +677,18 @@ minetest.register_entity(":magikacia:effect_entity", {
     on_activate = function(self, staticdata, dtime_s)
         local data = minetest.deserialize(staticdata)
         if data then
-            local defs = data._magikacia_effect_entity_defs
+            local defs = data._magikacia_effect_entity_3d_defs
             if defs ~= nil then
                 if defs.nframes ~= nil then
                     defs.nframes = tonumber(defs.nframes)
                     defs.total_anim_time = tonumber(defs.total_anim_time)
                 end
-                self._magikacia_effect_entity_defs = defs
+                self._magikacia_effect_entity_3d_defs = defs
             end
         end
     end,
     on_step = function(self, dtime)
-        local ent_def = self._magikacia_effect_entity_defs
+        local ent_def = self._magikacia_effect_entity_3d_defs
         self.timer = (self.timer or 0) + dtime
         if self.timer > (ent_def.expiration_time or 5) then
             self.object:remove()
@@ -692,8 +734,17 @@ function magikacia.tpl_entity:set_def(def)
     }, def.object_properties or {}))
 end
 
-function magikacia.spawn_effect_entity(def)
-    local ent = minetest.add_entity(def.pos, "magikacia:effect_entity", minetest.serialize({ _magikacia_effect_entity_defs = def, }))
+function magikacia.spawn_effect_entity_sprite(def)
+    local ent = minetest.add_entity(def.pos, "magikacia:effect_entity_sprite", minetest.serialize({ _magikacia_effect_entity_3d_defs = def, }))
+    ent:set_properties(table.merge(base_props, {
+        textures = { def.texture },
+        visual_size = { x = def.size, y = def.size },
+    }, def.object_properties or {}))
+    --[[ent:set_rotation(def.rotation)]]
+    return ent
+end
+function magikacia.spawn_effect_entity_3d(def)
+    local ent = minetest.add_entity(def.pos, "magikacia:effect_entity_3d", minetest.serialize({ _magikacia_effect_entity_3d_defs = def, }))
     ent:set_properties(table.merge(base_props, {
         wield_item = def.itemname,
         visual_size = { x = def.size, y = def.size },
@@ -716,7 +767,7 @@ minetest.register_tool(":magikaica:entity_tool", {
         local look_dir = user:get_look_dir()
         local look_horiz = user:get_look_horizontal()
         local look_vert = user:get_look_vertical()
-        local ent = magikacia.spawn_effect_entity({
+        local ent = magikacia.spawn_effect_entity_3d({
             pos = user:get_pos(),
             itemname = "magikacia:zzz_textures_effect_absolute_solver_primary",
             rotation = { x = look_vert, y = look_horiz, z = 0 },
@@ -767,5 +818,24 @@ end
 
 
 local effect_shield_entities = {}
+local effect_void_primary_held_entities = {}
+function magikacia.get_or_create_void_primary_held_entity(attached_ent)
+    if attached_ent and attached_ent:is_player() then
+        local pname = attached_ent:get_player_name()
+        local ent = effect_void_primary_held_entities[pname]
+        if ent and ent.object then
+            return ent
+        else
+            local newent = minetest.add_entity("magikacia:effect_entity_sprite", {
+                attached_to = attached_ent,
+                texture = magikacia.effect_void_primary .. "^[verticalframe:4,4",
+                size = 1,
+                expiration_time = 5,
+            })
+            effect_void_primary_held_entities[pname] = newent
+        end
+
+    end
+end
 
 local effect_portal_entities = {}
