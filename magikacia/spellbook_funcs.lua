@@ -659,6 +659,17 @@ minetest.register_entity(":magikacia:effect_entity_sprite", {
                 return
             end
         end
+        local attached_to = self.attached_to
+        if attached_to then
+            local attached_player = minetest.get_player_by_name(attached_to)
+            if not attached_player then
+                self.object:remove()
+                return
+            end
+
+
+            
+        end
     end,
 })
 
