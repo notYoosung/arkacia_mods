@@ -871,6 +871,7 @@ end
 
 local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagtable)
     if not placer then return nil end
+    local placer_name = placer:get_player_name()
     local use_pos_self = placer:get_pos()
     local meta = placer:get_meta()
     local use_pos_above = nil
@@ -1134,6 +1135,23 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             use_success = true
             use_at_place_above = true
         end
+    end
+
+    if inv_runes_contains["magikacia:rune_shield"] then
+        if meta:get_int("magikacia:rune_shield_active") == 0 then
+            --[[minetest.add_entity(pos, name, minetest.serialize({ owner=placer_name, }))]]
+            meta:set_int("magikacia:rune_shield_active", 1)
+        elseif meta:get_int("magikacia:rune_shield_active") == 1 then
+            magikacia.radius_effect_func(use_pos_self, 5, placer, function(obj)
+                magikacia.deal_spell_damage(obj, 10 * cores_multipliers.damage, "shield_secondary", placer)
+                minetest.sound_play("mcl_block", { pos = use_pos_above, max_hear_distance = 64, gain = 0.5 }, true)
+                obj:add_velocity(vector.offset(vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_self)), 10), 0, 20, 0))
+            end)
+            meta:set_int("magikacia:rune_shield_active", 0)
+        end
+        magikacia_bubbles.bubble_blower_secondary(itemstack, placer, pointed_thing)
+        use_success = true
+        use_at_place_above = true
     end
 
 

@@ -763,3 +763,7 @@ if not mcl_util._magikacia_spellbook_funcs_init then
     end, 2048)
     mcl_util._magikacia_spellbook_funcs_init = true
 end
+
+
+
+local effect_shield_entities = {}
