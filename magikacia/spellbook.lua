@@ -794,14 +794,14 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if inv_runes_contains["magikacia:rune_shadow"] then
         local look_dir = placer:get_look_dir()
         local look_horiz = placer:get_look_horizontal()
-        local look_vert = placer:get_look_vertical()
+        local look_vert = -placer:get_look_vertical()
         local ent_spd = 10
         local spawn_pos = vector.offset(placer:get_pos(), 0, eye_height, 0)
         local frame_duration = 0.2
         local ent = magikacia.spawn_effect_entity({
             pos = spawn_pos,
             itemname = "magikacia:zzz_textures_effect_shadow_primary",
-            rotation = { x = look_horiz, y = look_vert, z = 0 },
+            rotation = { x = look_vert, y = look_horiz, z = 0 },
             size = 1,
             nframes = 4,
             total_anim_time = frame_duration * 4,

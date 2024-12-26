@@ -16,10 +16,12 @@ local textures = {
     effect_resize_secondary = "iVBORw0KGgoAAAANSUhEUgAAACAAAACACAYAAABqZmsaAAAACXBIWXOGG646AAAAAQF1lf+lAAAFU0lEQVR4Ae2ZUY4dNRBFXxCrSETIdxYAgmUQlO1k2A5KWAaILIDvEJRs42VOj651XV3ucs8EgRT7Y+y2q+oeV7v72T2XyyorAysDKwNfegYezSTgj5e/X6Pdx3cfY9fu+sXbn8v4Q4NZ0Z/+fLETzjoe3Za0P3ZWwlHwn1/exxDD629ePb1EkI7q/c3f1w9/fegCKNUSjgE649uLOIEnz59Ek8vTm2+b7tcaRVztWCNeCcvnh19/bMGB0YQc5HpbFO8rOWY1s2chyTizOepzGIFg77dtB+Ckj589Poo/NaZbiLFDyLkBsEBUHCLeU9lUNWl+893razWJdr8ImK2DSO1pzSAQpv+3799swxGAyfki7ADwIIDfoy3KwR/PHGYSph3F6YsT2AFgRNFM7q7Gf11QVjPCsh0CyICae+nXWfuMaOa/+lYGVgZWBlYGVgZWBr7cDJQbkrgp1YY1bsVGKay29EMAF5YoIiPhbGvmUKOD6g7gjHAl6gBqR5AOYFY8Cmf7QQlS++GEa4doAPcRr4QR8+IggmiHUzfM2j5rOV/e9pZ+sIkHGiwBdgj6tgxUs5d4E8bzoFQggiBemQHEZ4XFpKMXIDxBMRueiXY4lXOsz4q7v0D8Mda41k8JIIeH1hkEMXcAnq4zh9QRoL+4MogdAIEcYhT4c/VvAFqVHlQQvqJ9fKY9c6htTwEQWhgKDgRpE4QWlcZHtYT1ZW1kR397E8opQsjZ798IRDHwkbivI2WVcX2oaBmgk5Jlgn539heXfKgpEr67qv+2DGDqM+B6lA3GKHHtRPFq9sToAOiIEPRVJQpjPyOO3Q6ATkoFkoniNyuMLWUIcDc8/7FKwr5WiKHFpnirXhlYGVgZ+N9loHwTQsx+wLdWmoW267r2enYzewhwVjj79axexUOATHw040zYs0F7BJICzIrPCDtIBrEDmBGPwr5dk2D8VVR/hOi2ZIjLcFRLPBN1Hx93GLZzDtEBECCudr/viHtgFzxqy8dBZN8AqtlLfLQjVkD/b5s2KRoDBAjPQgOQkdeaPeKeNreJbX2UAkTZdBBByC89mmmQ+oy4+wmEPoH4uNobQJV+GT+kdgiyoLNFmYHZ1GdwnoVsnL4SYOQ42691FO31ZOwAfMFEp4de+21QrA0gez4xGB0+5Pw56l0GYlB/ruNYda2FdmS3AbDQPAv/5m0QjF5owww4xH2ywOzj6VniXndvQrKg1YmRIFg8gqgeLd4pxJF4tY66n2PdM4dw2pm2i2MfAZiU0s94lwE6KFoPZ0Dko5kTJxOn30sHwGJUFjBSUNoZjI9j4+JcZ8Vnz3h3C+TgEOo7qjPhbPZRnJgpAAMzEJkwvrPi2A4BGKRkILPC+MdFR5+XEkDGR9+M4ozxqYQVd9UrAysDKwP/eQbKN6E2IiLVNpsT00ypzhVDABeWKIIj4ezn2gGzX0LGdwBnhCtRB1A7gnQAs+JRODtwSJBae0v1OUQDuI94JSxB1Q4iiG5LJsOs9lnL+XLTW/pPdvYTDbBD4L1loJq9xJtwr7u7qkAEQbzhwURREcdwVhw/vpLqS6k/QYrpt64EOCMsAdUzECWAgj20zjJBzB2AL57R5vMMjL+4MogdAMEd4ozYfWw3AK1KDyAIX9E+PtOe+fjVMlBBnAFBWKfkCrS9CUXrj4g7+/3T6vZx2opBW+dGX0fKKuM65u/ehGQig3Dn6+3XAoKoePYkrLGqbhnA0GfAdQZCv4oL0xfFq9nj0wHQESHoq0oUxn5GHLsdAJ2UCiQTxW9WGFvKEOBuOD8da8xrCftaYVyLzW1Xe2VgZcAz8Akb+saQql4MSAAAAABJRU5ErkJggg==",
     effect_shadow_primary = "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",
 }
+local fbox = { type = "fixed", fixed = { -1 / 2, -1 / 2, -0.5 / 16, 1 / 2, 1 / 2, 0.5 / 16 } }
 for k, v in pairs(textures) do
     textures[k] = "blank.png^[png:" .. textures[k]
     minetest.register_node(":magikacia:zzz_textures_" .. k, {
         description = k,
+        groups = { dig_immediate=3, },
         tiles = {
             "blank.png",
             "blank.png",
@@ -44,18 +46,24 @@ for k, v in pairs(textures) do
     for i = 1, 4 do
         minetest.register_node(":magikacia:zzz_textures_" .. k .. "_" .. i, {
             description = k .. "_" .. i,
+            groups = { dig_immediate = 3, },
             tiles = {
                 "blank.png",
                 "blank.png",
                 "blank.png",
                 "blank.png",
-                "blank.png",
                 textures[k] .. "^[verticalframe:4:" .. i,
+                textures[k] .. "^[verticalframe:4:" .. i,
+                "blank.png",
                 "blank.png",
             },
             use_texture_alpha = "clip",
             paramtype2 = "facedir",
-            drawtype = "allfaces",
+            paramtype = "light",
+            sunlight_propagates = true,
+            selection_box = fbox,
+            node_box = fbox,
+            collision_box = fbox,
         })
     end
 end

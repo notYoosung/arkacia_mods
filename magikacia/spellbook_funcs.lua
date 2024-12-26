@@ -703,12 +703,12 @@ function magikacia.spawn_effect_entity(def)
 end
 
 --[[
+    minetest.register_craftitem(":magikacia:temp_texture", {
+        description = "Temp Texture",
+        inventory_image = "blank.png^[png:",
+    })
 ]]
 
-minetest.register_craftitem(":magikacia:temp_texture", {
-    description = "Temp Texture",
-    inventory_image = "blank.png^[png:",
-})
 
 minetest.register_tool(":magikaica:entity_tool", {
     description = "Entity Tool",
