@@ -184,11 +184,14 @@ mcl_mobs.register_mob(":arkacia:potat", {
     suffocation = false,
     player_active_range = 64,
     breath_max = -1,
+    can_despawn = false,
     on_activate = function(self, staticdata, dtime)
         if staticdata then
             local data = minetest.deserialize(staticdata)
-            for k, v in pairs(data) do
-                self[k] = v
+            if staticdata then
+                for k, v in pairs(data) do
+                    self[k] = v
+                end
             end
         end
     end,
