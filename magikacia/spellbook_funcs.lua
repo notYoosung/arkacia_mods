@@ -659,9 +659,9 @@ minetest.register_entity(":magikacia:effect_entity_sprite", {
                 return
             end
         end
-        local attached_to = self.attached_to
-        if attached_to then
-            local attached_player = minetest.get_player_by_name(attached_to)
+        local attached_to_player_name = self.attached_to_player_name
+        if attached_to_player_name then
+            local attached_player = minetest.get_player_by_name(attached_to_player_name)
             if not attached_player then
                 self.object:remove()
                 return
@@ -750,7 +750,14 @@ function magikacia.spawn_effect_entity_sprite(def)
     ent:set_properties(table.merge(base_props, {
         textures = { def.texture },
         visual_size = { x = def.size, y = def.size },
+        attached_to_player_name = def.attached_to_player_name
     }, def.object_properties or {}))
+    if def.attached_to_player_name then
+        local player = minetest.get_player_by_name(def.attached_to_player_name)
+        if player then
+            ent:set_attach(player, "", { x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 }, true)
+        end
+    end
     --[[ent:set_rotation(def.rotation)]]
     return ent
 end
