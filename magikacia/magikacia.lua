@@ -34,12 +34,12 @@ if minetest.get_modpath("mcl_init") then
         "style_type[button;border=false;bgimg=mcl_books_button9.png;bgimg_pressed=mcl_books_button9_pressed.png;bgimg_middle=2,2]"
 end
 
-minetest.register_craftitem(":" .. modname .. ":book", {
+--[[minetest.register_craftitem(":" .. modname .. ":book", {
     description = S("Book"),
     inventory_image = "default_book.png",
     groups = { book = 1, craftitem = 1, enchantability = 1 },
     _mcl_enchanting_enchanted_tool = modname .. ":book_selected",
-})
+})]]
 
 
 local function make_description(title, author, generation)
@@ -682,7 +682,7 @@ minetest.register_craftitem(":" .. modname .. ":written_book", {
 
 mcl_util._magikacia_init_fields = mcl_util._magikacia_init_fields or false
 if not mcl_util._magikacia_init_fields then
-    minetest.register_on_player_receive_fields(function(player, formname, fields)
+    --[[minetest.register_on_player_receive_fields(function(player, formname, fields)
         if ((formname == modname .. ":writable_book") and fields and fields.text) then
             local stack = player:get_wielded_item()
             if (stack:get_name() and (stack:get_name() == modname .. ":writable_book")) then
@@ -734,7 +734,7 @@ if not mcl_util._magikacia_init_fields then
                 meta:set_string("text", text)
                 meta:set_string("description", make_description(title, name, 0))
 
-                --[[The book copy counter. 0 = original, 1 = copy of original, 2 = copy of copy of original, …]]
+                --The book copy counter. 0 = original, 1 = copy of original, 2 = copy of copy of original, …
                 meta:set_int("generation", 0)
 
                 player:set_wielded_item(newbook)
@@ -764,13 +764,13 @@ if not mcl_util._magikacia_init_fields then
     minetest.register_craft({
         type = "shapeless",
         output = modname .. ":writable_book",
-        recipe = { modname .. ":bookbook", "mcl_mobitems:ink_sac", "mcl_mobitems:feather" },
+        recipe = { modname .. ":book", "mcl_mobitems:ink_sac", "mcl_mobitems:feather" },
     })
 
     minetest.register_on_craft(function(itemstack, player, old_craft_grid, craft_inv)
         local _, original, index = craft_copy_book(itemstack, player, old_craft_grid, craft_inv)
         if original and index then craft_inv:set_stack("craft", index, original) end
-    end)
+    end)--]]
 
 
     mcl_player.register_globalstep(function(player, dtime)

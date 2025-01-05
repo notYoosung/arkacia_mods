@@ -18,7 +18,10 @@ local dofiles = {
     "models",
 }
 
-for k, v in pairs(dofiles) do
-    minetest.log(k .. ": " .. tostring(v))
-    dofile(modpath .. "/" .. tostring(v) .. ".lua")
-end
+minetest.register_on_mods_loaded(function()
+    for k, v in pairs(dofiles) do
+        minetest.log(k .. ": " .. tostring(v))
+        dofile(modpath .. "/" .. tostring(v) .. ".lua")
+    end
+    
+end)

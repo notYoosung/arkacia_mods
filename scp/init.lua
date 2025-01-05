@@ -15,7 +15,7 @@ local function scandir(directory)
     return t
 end
 
-local ignorefiles = { "init", "map", "scptpclassd", "scptpguard", "skins" }
+local ignorefiles = { "init", "map", "scptpclassd", "scptpguard", "skins", "mcl_util_compat" }
 
 for k, v in pairs(scandir(modpath)) do
     if not tostring(v):match("%.lua$") then

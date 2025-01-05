@@ -708,7 +708,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                 })
             end
             use_success = true
-            use_at_place_self = true
+            use_at_self = true
         end
     end
 

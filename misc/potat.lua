@@ -135,7 +135,7 @@ mcl_mobs.register_mob(":arkacia:potat", {
     xp_min = 65535,
     xp_max = 65535,
     curiosity = 100,
-    collisionbox = { -0.0, -0.0, -0.0, 0.0, 0.0, 0.0 },
+    collisionbox = { -0.001, -0.001, -0.001, 0.001, 0.001, 0.001 },
     visual = "sprite",
     textures = { potat_texture },
     visual_size = { x = 10, y = 10 },

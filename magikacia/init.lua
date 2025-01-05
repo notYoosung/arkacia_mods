@@ -49,6 +49,7 @@ minetest.register_on_mods_loaded(function()
 		"falling_bricks",
 		"fireflies",
 		"bubbles",
+		"gear",
 	}
 	for _, v in ipairs(files) do
 		dofile(modpath .. "/" .. v .. ".lua")
