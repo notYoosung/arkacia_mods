@@ -424,9 +424,9 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     local placer_name = placer:get_player_name()
     local use_pos_self = placer:get_pos()
     --[[local meta = placer:get_meta()]]
-    local use_pos_above = nil
-    local use_pos_under = nil
-    local pointed_obj = nil
+    local use_pos_above
+    local use_pos_under
+    local pointed_obj
     if pointed_thing.type == "node" then
         use_pos_above = pointed_thing.above
         use_pos_under = pointed_thing.under
@@ -442,7 +442,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     local itemname = itemstack:get_name()
     local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
     local placer_props = placer:get_properties()
-    local eye_height = placer_props.eye_height or 1.625
+    local placer_eye_height = placer_props.eye_height or 1.625
 
     local inv_cores = magikacia.inv.get_in(itemstack, placer, "cores") or {}
     local cores_multipliers = magikacia.get_core_multipliers(inv_cores)
@@ -463,7 +463,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if inv_runes_contains["magikacia:rune_earth"] then
         local offset = placer:get_look_dir()
         for i = 1, 5 do
-            local pos = vector.add(vector.offset(use_pos_self, 0, eye_height * 0.7, 0),
+            local pos = vector.add(vector.offset(use_pos_self, 0, placer_eye_height * 0.7, 0),
                 vector.multiply(offset, i))
             if pos then
                 magikacia.radius_effect_func(pos, 2, placer, function(obj)
@@ -736,16 +736,6 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_absolute_solver"] then
-        magikacia.spawn_effect_anim({
-            pos = use_pos_above,
-            texture = "effect_absolute_solver_primary",
-            size = 20,
-        })
-        use_success = true
-        use_at_place_above = true
-    end
-
 
 
 
@@ -790,40 +780,68 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
             use_at_place_above = true
         end
     end
-
-    if inv_runes_contains["magikacia:rune_shadow"] then
-        local look_dir = placer:get_look_dir()
-        local look_horiz = placer:get_look_horizontal()
-        local look_vert = -placer:get_look_vertical()
-        local ent_spd = 10
-        local spawn_pos = vector.offset(placer:get_pos(), 0, eye_height, 0)
-        local frame_duration = 0.2
-        local ent = magikacia.spawn_effect_entity_3d({
-            pos = spawn_pos,
-            itemname = "magikacia:zzz_textures_effect_shadow_primary",
-            rotation = { x = look_vert, y = look_horiz, z = 0 },
-            size = 1,
-            nframes = 4,
-            total_anim_time = frame_duration * 4,
-            expiration_time = frame_duration * 4,
-            base_item = "magikacia:zzz_textures_effect_shadow_primary",
-        })
-        local ent_vel = look_dir:multiply(ent_spd)
-        ent:set_velocity(ent_vel)
-        minetest.log("look_horiz:" .. look_horiz)
-        minetest.log("look_vert: " .. look_vert)
-        local end_pos = vector.add(spawn_pos, vector.multiply(ent_vel, frame_duration * 4))
-        minetest.after(frame_duration * 4, function(dtime)
-            magikacia.radius_effect_func(end_pos, 3, placer, function(obj, obj_is_player)
-                local pdata = magikacia.players[placer_name]
+    
+    if inv_runes_contains["magikacia:rune_absolute_solver"] then
+        local pdata = magikacia.players[placer_name]
+        pdata.effect_absolute_solver_primary_captured_list = pdata.effect_absolute_solver_primary_captured_list or {}
+        if is_placer_sneaking or #pdata.effect_absolute_solver_primary_captured_list > 0 then
+            pdata.effect_absolute_solver_primary_captured_list = {}
+        elseif pointed_obj and use_pos_above then
+            if not magikacia.is_obj_static(pointed_obj) then
                 if pdata then
-                    pdata.effect_void_primary_captured_list = pdata.effect_void_primary_captured_list or {}
-                    table.insert(magikacia.players[placer_name].effect_void_primary_captured_list, {
-                        obj = obj,
+                    table.insert(magikacia.players[placer_name].effect_absolute_solver_primary_captured_list, {
+                        obj = pointed_obj,
+                        dist = vector.distance(vector.offset(use_pos_self, 0, placer_eye_height, 0), use_pos_above),
                     })
                 end
+            end
+        end
+        use_success = true
+        use_at_place_above = true
+    end
+
+    if use_pos_above and inv_runes_contains["magikacia:rune_shadow"] then
+        local pdata = magikacia.players[placer_name]
+        if not pdata.effect_shadow_primary_captured_list or #pdata.effect_shadow_primary_captured_list == 0 then
+            local look_dir = placer:get_look_dir()
+            local look_horiz = placer:get_look_horizontal()
+            local look_vert = -placer:get_look_vertical()
+            local ent_spd = 10
+            local spawn_pos = vector.offset(placer:get_pos(), 0, placer_eye_height, 0)
+            local frame_duration = 0.2
+            local ent = magikacia.spawn_effect_entity_3d({
+                pos = spawn_pos,
+                itemname = "magikacia:zzz_textures_effect_shadow_primary",
+                rotation = { x = look_vert, y = look_horiz, z = 0 },
+                size = 1,
+                nframes = 4,
+                total_anim_time = frame_duration * 4,
+                expiration_time = frame_duration * 4,
+                base_item = "magikacia:zzz_textures_effect_shadow_primary",
+            })
+            local ent_vel = look_dir:multiply(ent_spd)
+            ent:set_velocity(ent_vel)
+            --[[minetest.log("look_horiz:" .. look_horiz)
+            minetest.log("look_vert: " .. look_vert)--]]
+            local end_pos = vector.add(spawn_pos, vector.multiply(ent_vel, frame_duration * 4))
+            minetest.after(frame_duration * 4, function(dtime)
+                magikacia.radius_effect_func(end_pos, 3, placer, function(obj, obj_is_player)
+                    if pdata then
+                        pdata.effect_shadow_primary_captured_list = pdata.effect_shadow_primary_captured_list or {}
+                        table.insert(magikacia.players[placer_name].effect_shadow_primary_captured_list, {
+                            obj = obj,
+                        })
+                        magikacia.players[placer_name].effect_shadow_primary_capture_pos = end_pos
+                    end
+                end)
             end)
-        end)
+        else
+            if is_placer_sneaking then
+                pdata.effect_shadow_primary_captured_list = {}
+            elseif use_pos_above then
+                magikacia.players[placer_name].effect_shadow_primary_capture_pos = vector.offset(use_pos_above, 0, pointed_thing.type == "node" and -0.5 or 0, 0)
+            end
+        end
     end
 
     if inv_runes_contains["magikacia:rune_summoning"] then
@@ -846,37 +864,69 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
 
     return magikacia.on_use_bag(itemstack, placer, pointed_thing)
 end
-magikacia.registered_player_globalsteps["spellbook:effect_shadow"] = function(player, dtime)
+magikacia.registered_player_globalsteps["spellbook:effect_absolute_solver_primary"] = function(player, dtime)
     local pname = player:get_player_name()
     local player_data = magikacia.players[pname]
     if player_data then
-        local effect_void_primary_captured_list = player_data.effect_void_primary_captured_list
-        if effect_void_primary_captured_list then
+        local effect_absolute_solver_primary_captured_list = player_data.effect_absolute_solver_primary_captured_list
+        if effect_absolute_solver_primary_captured_list then
             local player_props = player:get_properties()
             local eye_height = player_props.eye_height or 1.625
             local eye_pos = vector.offset(player:get_pos(), 0, eye_height, 0)
             local look_dir = player:get_look_dir()
-            --[[local frame_duration = 0.2]]
-            local ent_spd = 10
-            local possess_pos = vector.add(eye_pos, vector.multiply(look_dir, ent_spd))
-            for _, captured_def in ipairs(effect_void_primary_captured_list) do
+            for _, captured_def in ipairs(effect_absolute_solver_primary_captured_list) do
                 local obj = captured_def.obj
                 if obj and obj:is_valid() and obj:get_pos() then
-                    obj:move_to(possess_pos)
+                    local move_to_pos = vector.add(eye_pos, vector.multiply(look_dir, captured_def.dist ~= nil and captured_def.dist or 4))
+                    obj:move_to(move_to_pos)
+                    obj:set_velocity(vector.new(0, 9.8 * dtime, 0))
+                    magikacia.spawn_effect_anim({
+                        pos = vector.offset(move_to_pos, 0, 0.5, 0),
+                        texture = "effect_absolute_solver_primary",
+                        size = 25,
+                        duration_total = dtime,
+                    })
                 end
             end
         end
     end
 end
-
+magikacia.registered_player_globalsteps["spellbook:effect_shadow_primary"] = function(player, dtime)
+    local pname = player:get_player_name()
+    local player_data = magikacia.players[pname]
+    if player_data then
+        local effect_shadow_primary_captured_list = player_data.effect_shadow_primary_captured_list
+        if effect_shadow_primary_captured_list then
+            for _, captured_def in pairs(effect_shadow_primary_captured_list) do
+                local obj = captured_def.obj
+                if obj and obj:is_valid() and obj:get_pos() then
+                    local move_to_pos = player_data.effect_shadow_primary_capture_pos
+                    if move_to_pos then
+                        obj:move_to(move_to_pos)
+                        obj:set_velocity(vector.new(0, 9.8 * dtime, 0))
+                        magikacia.spawn_effect_anim({
+                            pos = vector.offset(move_to_pos, 0, 0.5, 0),
+                            texture = magikacia.textures["effect_shadow_primary"] .. "^[verticalframe:4:4",
+                            size = 25,
+                            duration_total = dtime,
+                            duration_anim = dtime,
+                        })
+                    end
+                else
+                    effect_shadow_primary_captured_list[_] = nil
+                end
+            end
+        end
+    end
+end
 local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagtable)
     if not placer then return nil end
     local placer_name = placer:get_player_name()
     local use_pos_self = placer:get_pos()
     local meta = placer:get_meta()
-    local use_pos_above = nil
-    local use_pos_under = nil
-    local pointed_obj = nil
+    local use_pos_above
+    local use_pos_under
+    local pointed_obj
     if pointed_thing.type == "node" then
         use_pos_above = pointed_thing.above
         use_pos_under = pointed_thing.under
@@ -898,7 +948,6 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     local inv_runes_contains = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
 
     if placer:is_player() then
-        local placer_name = placer:get_player_name()
         if controls.players[placer_name].sneak[1] then
             return open_bag(itemstack, placer, bagtable.width_main, bagtable.height_main, bagtable.sound_open, bagtable.width_cores, bagtable.height_cores)
         end
@@ -1149,9 +1198,8 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             end)
             meta:set_int("magikacia:rune_shield_active", 0)
         end
-        magikacia_bubbles.bubble_blower_secondary(itemstack, placer, pointed_thing)
         use_success = true
-        use_at_place_above = true
+        use_at_place_self = true
     end
 
 
@@ -1311,19 +1359,16 @@ minetest.register_tool(":magikacia:spellbook_transporting_bag", {
 })
 minetest.register_alias("magikacia:gauntlet_transporting_bag", "magikacia:spellbook_transporting_bag")
 
-if not mcl_util._magikacia_spellbook_init then
-    minetest.register_on_player_receive_fields(function(player, formname, fields)
-        local nisformn = string.find(formname, "magikacia:bag_transporting_bag_C_")
-        if nisformn == 1 then
-            if fields.quit then
-                player, fields, name, formname, sound = magikacia.on_close_bag(player, fields, name, formname,
-                    "magikacia_close_bag")
-                minetest.sound_play(sound, { gain = 0.8, object = player, max_hear_distance = 5 })
-            end
+magikacia.register_on_player_receive_fields("magikacia_on_close_bag", function(player, formname, fields)
+    local nisformn = string.find(formname, "magikacia:bag_transporting_bag_C_")
+    if nisformn == 1 then
+        if fields.quit then
+            player, fields, name, formname, sound = magikacia.on_close_bag(player, fields, name, formname,
+                "magikacia_close_bag")
+            minetest.sound_play(sound, { gain = 0.8, object = player, max_hear_distance = 5 })
         end
-        return
-    end)
-end
+    end
+end)
 
 if not mcl_util._magikacia_spellbook_init then
     mcl_util._magikacia_spellbook_init = true

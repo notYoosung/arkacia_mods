@@ -260,8 +260,8 @@ magikacia.runes = {
         name = "Absolute Solver",
         description = "The Solver of the Absolute Fabric. The Void. The Exponential End.",
         spell_descriptions = {
-            left = "",
-            left_sneak = "",
+            left = "Telekinesis - Grab mobs/players and move then wherever you point at!",
+            left_sneak = "Telekinesis Release - Release any mobs/player you caught!",
             right = "[NULL]",
         }
     },
@@ -292,7 +292,7 @@ magikacia.runes = {
             right = "Bubble Block - Create a block of bubbles! No fall damage, but breaks if you stand on it!",
         }
     },
-    {
+    --[[{
         name = "Rope",
         description = "dont do anythin weird with it- o.o-",
         spell_descriptions = {
@@ -300,13 +300,13 @@ magikacia.runes = {
             left_sneak = "",
             right = "",
         }
-    },
+    },]]
     {
         name = "Shadow",
         description = "",
         spell_descriptions = {
-            left = "",
-            left_sneak = "",
+            left = "Dark Capture - Launch a fist to grab mobs/players from afar! If things are caught, they are moved to where you click!",
+            left_sneak = "Dark Release - Release any mobs/player you caught!",
             right = "",
         }
     },

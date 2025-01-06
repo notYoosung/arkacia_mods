@@ -11,31 +11,35 @@ local static_objs = {
     "mcl_chests:chest",
     "mcl_itemframes:item",
     "mcl_enchanting:book",
+    "magikacia:effect_entity_sprite",
+    "magikacia:effect_entity_3d",
 }
-function magikacia.is_obj_not_static(obj)
+function magikacia.is_obj_static(obj)
     if not obj then
-        return nil
+        return true
     end
     if not obj:is_valid() then
-        return nil
-    end
-    if obj:is_player() then
         return true
     end
-    local le = obj:get_luaentity()
-    if not le or not le then
-        return nil
-    end
-    if not le then
+    if obj:is_player() and obj:get_pos() then
         return false
     end
-    if le.is_mob then
+    local le = obj:get_luaentity()
+    if not le then
         return true
+    end
+    if le.is_mob then
+        return false
     end
     for _, name in ipairs(static_objs) do
         if name == le.name then
-            return false
+            return true
         end
+    end
+    if obj:get_pos() then
+        return false
+    else
+        return true
     end
 end
 
@@ -139,7 +143,7 @@ function magikacia.radius_effect_func(pos, radius, placer, func, include_placer)
         if obj then
             local obj_is_player = obj:is_player()
             local obj_le = obj:get_luaentity()
-            if (obj_le ~= nil and magikacia.is_obj_not_static(obj))
+            if (obj_le ~= nil and not magikacia.is_obj_static(obj))
                 or (obj_is_player and (include_placer or obj:get_player_name() ~= placer:get_player_name()))
             then
                 if func then
@@ -267,7 +271,7 @@ function magikacia.spawn_effect_anim(def)
         object_collision = false,
         vertical = false,
         texture = {
-            name = magikacia.textures[def.texture] or "blank.png",
+            name = magikacia.textures[def.texture] or def.texture or "blank.png",
         },
         animation = {
             type = "vertical_frames",
@@ -614,7 +618,7 @@ magikacia.tase = function(user, obj)
             obj:set_look_horizontal(obj:get_look_horizontal() + math.random(-math.pi / 16, math.pi / 16))
             obj:set_look_vertical(obj:get_look_vertical() + math.random(-math.pi / 16, math.pi / 16))
         end
-        if (obj_is_player or magikacia.is_obj_not_static(obj)) then
+        if (obj_is_player or not magikacia.is_obj_static(obj)) then
             magikacia.deal_spell_damage(obj, 2, "electric_primary", user)
             return true
         end
@@ -802,36 +806,33 @@ when a player is grabbed by the hand they cant move bc theyr stuck XD then if th
 
 
 
-if not mcl_util._magikacia_spellbook_funcs_init then
-    mcl_damage.register_modifier(function(obj, damage, reason)
-        if obj and obj:is_player() then
-            local obj_meta = obj:get_meta()
-            local hp = obj:get_hp()
-            if obj_meta and obj_meta:get_int("magikacia:rune_shield_active") == 1 then
-                if damage > 0 then
-                    obj_meta:set_int("magikacia:rune_shield_active", 0)
-                    return 0
-                end
+magikacia.register_damage_modifier("rune_shield_secondary", function(obj, damage, reason)
+    if obj and obj:is_player() then
+        local obj_meta = obj:get_meta()
+        local hp = obj:get_hp()
+        if obj_meta and obj_meta:get_int("magikacia:rune_shield_active") == 1 then
+            if damage > 0 then
+                obj_meta:set_int("magikacia:rune_shield_active", 0)
+                return 0
             end
-            local inv = obj:get_inventory()
-            if inv then
-                if reason.type == "out_of_world" then
-                    local ppos = obj:get_pos(); local _, is_in_deadly_void = mcl_worlds.is_in_void(ppos); if not is_in_deadly_void then return end
-                    for k, v in pairs(inv:get_list("main")) do
-                        if minetest.get_item_group(v:get_name(), "spellbook") and (magikacia.has_in_spellbook_inv_main and magikacia.has_in_spellbook_inv_main(v, obj, "magikacia:rune_void")) then
-                            if hp + damage <= 20 then
-                                return -damage;
-                            else
-                                return 20 - (hp + damage)
-                            end
+        end
+        local inv = obj:get_inventory()
+        if inv then
+            if reason.type == "out_of_world" then
+                local ppos = obj:get_pos(); local _, is_in_deadly_void = mcl_worlds.is_in_void(ppos); if not is_in_deadly_void then return end
+                for k, v in pairs(inv:get_list("main")) do
+                    if minetest.get_item_group(v:get_name(), "spellbook") and (magikacia.has_in_spellbook_inv_main and magikacia.has_in_spellbook_inv_main(v, obj, "magikacia:rune_void")) then
+                        if hp + damage <= 20 then
+                            return -damage;
+                        else
+                            return 20 - (hp + damage)
                         end
                     end
                 end
             end
         end
-    end, 2048)
-    mcl_util._magikacia_spellbook_funcs_init = true
-end
+    end
+end)
 
 
 
@@ -846,7 +847,7 @@ function magikacia.get_or_create_void_primary_held_entity(attached_ent)
         else
             local newent = minetest.add_entity("magikacia:effect_entity_sprite", {
                 attached_to = attached_ent,
-                texture = magikacia.effect_void_primary .. "^[verticalframe:4,4",
+                texture = magikacia.effect_void_primary .. "^[verticalframe:4:4",
                 size = 1,
                 expiration_time = 5,
             })
