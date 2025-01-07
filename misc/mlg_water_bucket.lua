@@ -27,7 +27,7 @@ if not mcl_util._arkacia_mlg_totem_init then
 	minetest.register_craftitem(":" .. modname .. ":mlg_totem_wielded", {
 		inventory_image = "bucket_water.png",
 		wield_image = "bucket_water.png",
-		groups = { not_in_creative_inventory = 1 },
+		groups = { dig_immediate = 3, not_in_creative_inventory = 1, },
 		stack_max = 1,
 	})
 

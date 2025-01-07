@@ -811,10 +811,13 @@ magikacia.register_damage_modifier("rune_shield_secondary", function(obj, damage
         local obj_meta = obj:get_meta()
         local hp = obj:get_hp()
         if obj_meta and obj_meta:get_int("magikacia:rune_shield_active") == 1 then
-            if damage > 0 then
+            minetest.log("shield active; damage: " .. damage)
+            -- if damage > 0 then
+                minetest.log("shield block")
                 obj_meta:set_int("magikacia:rune_shield_active", 0)
+                minetest.sound_play("mcl_block", { object = obj, max_hear_distance = 16, gain = 1, pitch = 0.5 }, true)
                 return 0
-            end
+            -- end
         end
         local inv = obj:get_inventory()
         if inv then
@@ -823,7 +826,7 @@ magikacia.register_damage_modifier("rune_shield_secondary", function(obj, damage
                 for k, v in pairs(inv:get_list("main")) do
                     if minetest.get_item_group(v:get_name(), "spellbook") and (magikacia.has_in_spellbook_inv_main and magikacia.has_in_spellbook_inv_main(v, obj, "magikacia:rune_void")) then
                         if hp + damage <= 20 then
-                            return -damage;
+                            return -damage
                         else
                             return 20 - (hp + damage)
                         end

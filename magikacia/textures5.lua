@@ -20,6 +20,7 @@ for k, v in pairs(textures) do
     minetest.register_craftitem(":magikacia:zzz_textures_" .. k, {
         description = k,
         inventory_image = textures[k],
+        groups = { dig_immediate = 3, not_in_creative_inventory = 1, },
     })
 end
 table.update(magikacia.textures, textures)

@@ -305,8 +305,8 @@ magikacia.runes = {
         name = "Shadow",
         description = "",
         spell_descriptions = {
-            left = "Dark Capture - Launch a fist to grab mobs/players from afar! If things are caught, they are moved to where you click!",
-            left_sneak = "Dark Release - Release any mobs/player you caught!",
+            left = "Dark Capture - Launch a fist to grab mobs/players from afar! If things are caught, they are moved to where you click! Click again to release!",
+            left_sneak = "",
             right = "",
         }
     },

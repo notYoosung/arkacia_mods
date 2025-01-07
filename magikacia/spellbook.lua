@@ -825,7 +825,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
             minetest.log("look_vert: " .. look_vert)--]]
             local end_pos = vector.add(spawn_pos, vector.multiply(ent_vel, frame_duration * 4))
             minetest.after(frame_duration * 4, function(dtime)
-                magikacia.radius_effect_func(end_pos, 3, placer, function(obj, obj_is_player)
+                magikacia.radius_effect_func(end_pos, 1.5, placer, function(obj, obj_is_player)
                     if pdata then
                         pdata.effect_shadow_primary_captured_list = pdata.effect_shadow_primary_captured_list or {}
                         table.insert(magikacia.players[placer_name].effect_shadow_primary_captured_list, {
@@ -836,10 +836,18 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                 end)
             end)
         else
-            if is_placer_sneaking then
-                pdata.effect_shadow_primary_captured_list = {}
-            elseif use_pos_above then
+            if use_pos_above then
                 magikacia.players[placer_name].effect_shadow_primary_capture_pos = vector.offset(use_pos_above, 0, pointed_thing.type == "node" and -0.5 or 0, 0)
+                local effect_shadow_primary_captured_list = pdata.effect_shadow_primary_captured_list
+                if effect_shadow_primary_captured_list then
+                    for _, captured_def in pairs(effect_shadow_primary_captured_list) do
+                        local obj = captured_def.obj
+                        if obj and obj:is_valid() and obj:get_pos() then
+                            obj:move_to(vector.offset(use_pos_above, 0, -0.5, 0))
+                        end
+                    end
+                end
+                pdata.effect_shadow_primary_captured_list = {}
             end
         end
     end
@@ -859,7 +867,15 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_success then
-        minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 64, gain = 0.5 }, true)
+        if use_at_self then
+            minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_self, max_hear_distance = 32, gain = 0.5 }, true)
+        end
+        if use_at_place_above then
+            minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 32, gain = 0.5 }, true)
+        end
+        if use_at_place_under then
+            minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_under, max_hear_distance = 32, gain = 0.5 }, true)
+        end
     end
 
     return magikacia.on_use_bag(itemstack, placer, pointed_thing)
@@ -1193,7 +1209,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         elseif meta:get_int("magikacia:rune_shield_active") == 1 then
             magikacia.radius_effect_func(use_pos_self, 5, placer, function(obj)
                 magikacia.deal_spell_damage(obj, 10 * cores_multipliers.damage, "shield_secondary", placer)
-                minetest.sound_play("mcl_block", { pos = use_pos_above, max_hear_distance = 64, gain = 0.5 }, true)
+                minetest.sound_play("mcl_block", { object = obj, max_hear_distance = 16, gain = 1, pitch = 0.5 }, true)
                 obj:add_velocity(vector.offset(vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_self)), 10), 0, 20, 0))
             end)
             meta:set_int("magikacia:rune_shield_active", 0)
@@ -1204,7 +1220,15 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
 
 
     if use_success then
-        minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 64, gain = 0.5 }, true)
+        if use_at_self then
+            minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_self, max_hear_distance = 32, gain = 0.5 }, true)
+        end
+        if use_at_place_above then
+            minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 32, gain = 0.5 }, true)
+        end
+        if use_at_place_under then
+            minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_under, max_hear_distance = 32, gain = 0.5 }, true)
+        end
     end
 
     return nil

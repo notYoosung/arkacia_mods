@@ -7,7 +7,7 @@ minetest.register_node(":magikacia:firefly_light", {
     diggable = false,
     buildable_to = true,
     air_equivalent = true,
-    groups = { not_in_creative_inventory = 1 },
+    groups = { dig_immediate = 3, not_in_creative_inventory = 1, },
     light_source = 5,
     on_timer = function(pos)
         local node = minetest.get_node(pos)

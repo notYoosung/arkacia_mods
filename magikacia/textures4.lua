@@ -20,7 +20,7 @@ for k, v in pairs(textures) do
     textures[k] = "blank.png^[png:" .. textures[k]
     minetest.register_node(":magikacia:zzz_textures_" .. k, {
         description = k,
-        groups = { dig_immediate=3, },
+        groups = { dig_immediate = 3, not_in_creative_inventory = 1, },
         tiles = {
             "blank.png",
             "blank.png",
@@ -45,7 +45,7 @@ for k, v in pairs(textures) do
     for i = 1, 4 do
         minetest.register_node(":magikacia:zzz_textures_" .. k .. "_" .. i, {
             description = k .. "_" .. i,
-            groups = { dig_immediate = 3, },
+            groups = { dig_immediate = 3, not_in_creative_inventory = 1, },
             tiles = {
                 "blank.png",
                 "blank.png",

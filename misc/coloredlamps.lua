@@ -49,7 +49,7 @@ for _, row in ipairs(colored_lamps) do
 
     minetest.register_node(":" .. name_on, table.merge(commdef, {
         tiles = { "jeija_lightstone_gray_on.png" .. mask },
-        groups = table.merge(commdef.groups, { not_in_creative_inventory = 1 }),
+        groups = table.merge(commdef.groups, { dig_immediate = 3, not_in_creative_inventory = 1, }),
         drop = name_off,
         light_source = light,
     }))
