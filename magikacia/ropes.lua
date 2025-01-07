@@ -1,3 +1,16 @@
+local function rad_to_param2(rad)
+    local tau = math.pi * 2
+    if rad < tau * 7 / 8 and rad >= tau * 5 / 8 then
+        return 2
+    elseif rad < tau * 5 / 8 and rad >= tau * 3 / 8 then
+        return 5
+    elseif rad < tau * 3 / 8 and rad >= tau * 1 / 8 then
+        return 3
+    else
+        return 4
+    end
+end
+
 local function rotate_climbable(pos, node, _, mode)
     if mode == screwdriver.ROTATE_FACE then
         local r = screwdriver.rotate.wallmounted(pos, node, mode)
@@ -8,7 +21,7 @@ local function rotate_climbable(pos, node, _, mode)
     return false
 end
 
-minetest.register_node("arkacia:ladder", {
+minetest.register_node(":magikacia:ladder", {
     description = ("Ladder"),
     _doc_items_longdesc = ("A piece of ladder which allows you to climb vertically. Ladders can only be placed on the side of solid blocks and not on glass, leaves, ice, slabs, glowstone, nor sea lanterns."),
     drawtype = "signlike",
@@ -77,3 +90,50 @@ minetest.register_node("arkacia:ladder", {
     on_rotate = rotate_climbable,
 })
 
+
+
+
+local function extend_ladder(pos, n, param2)
+    if n > 0 then
+        local newpos = vector.offset(pos, 0, -1, 0)
+        local node = minetest.get_node(pos)
+        local can_continue = true
+        if node and node.name then
+            if node.name ~= "air" then
+                local ndef = minetest.registered_nodes[node.name]
+                if not (ndef.buildable_to or minetest.is_protected(pos, placer:get_player_name())) then
+                    can_continue = false
+                end
+            end
+        end
+        if can_continue then
+            minetest.place_node({ name = "magikacia:ladder"})
+        end
+        extend_ladder(newpos, n-1, param2)
+    end
+end
+
+
+magikacia.register_projectile({
+    name = "ladder",
+    damage = 0,
+    texture = magikacia.textures.effect_water_secondary,
+    typename = "ladder_primary",
+    do_custom_hit = function(thrower, object, pos, self, proj_def)
+        local param2 = 1
+        if self.object then
+            local vel = self.object:get_velocity()
+            if vel then
+                local ang = math.atan2(vel.z, vel.x)
+                param2 = rad_to_param2(ang)
+            end
+        end
+        if object and object:is_valid() and not pos then
+            pos = object:get_pos()
+        end
+        if pos then
+
+        end
+        
+    end,
+})

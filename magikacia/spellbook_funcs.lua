@@ -403,7 +403,7 @@ function magikacia.register_projectile(proj_def)
                 snowball_particles(self._lastpos, vel)
                 if mod_target and node.name == "mcl_target:target_off" then mcl_target.hit(vector.round(pos), 0.4) end
                 if proj_def.do_custom_hit ~= nil then
-                    proj_def.do_custom_hit(thrower, nil, pos)
+                    proj_def.do_custom_hit(thrower, nil, pos, self, proj_def)
                 end
                 self.object:remove()
                 return
@@ -413,7 +413,7 @@ function magikacia.register_projectile(proj_def)
         local did_hit, obj_hit = magikacia.check_object_hit(self, pos, ndef.damage)
         if did_hit then
             if proj_def.do_custom_hit ~= nil then
-                proj_def.do_custom_hit(thrower, obj_hit, pos)
+                proj_def.do_custom_hit(thrower, obj_hit, pos, self, proj_def)
             end
             minetest.sound_play("mcl_throwing_snowball_impact_soft", { pos = pos, max_hear_distance = 16, gain = 0.7 }, true)
             snowball_particles(pos, vel)
