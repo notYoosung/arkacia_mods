@@ -292,7 +292,7 @@ magikacia.runes = {
             right = "Bubble Block - Create a block of bubbles! No fall damage, but breaks if you stand on it!",
         }
     },
-    --[[{
+    {
         name = "Rope",
         description = "dont do anythin weird with it- o.o-",
         spell_descriptions = {
@@ -300,7 +300,7 @@ magikacia.runes = {
             left_sneak = "",
             right = "",
         }
-    },]]
+    },
     {
         name = "Shadow",
         description = "",
