@@ -21,8 +21,8 @@ local function rotate_climbable(pos, node, _, mode)
     return false
 end
 
-minetest.register_node(":magikacia:ladder_extending", {
-    description = ("Ladder"),
+minetest.register_node(":magikacia:ladder_rope", {
+    description = "Rope Ladder",
     _doc_items_longdesc = ("A piece of ladder which allows you to climb vertically. Ladders can only be placed on the side of solid blocks and not on glass, leaves, ice, slabs, glowstone, nor sea lanterns."),
     drawtype = "signlike",
     is_ground_content = false,
@@ -103,7 +103,7 @@ local function extend_ladder(pos, n, param2, placer)
                 local ndef = minetest.registered_nodes[node.name]
                 if ndef.buildable_to and not minetest.is_protected(pos, placer and placer:get_player_name() or "")) then
                     minetest.dig_node(newpos, placer)
-                    minetest.place_node(newpos, { name = "magikacia:ladder_extending", param2 = param2, })
+                    minetest.place_node(newpos, { name = "magikacia:ladder_rope", param2 = param2, })
                 else
                     can_continue = false
                 end
@@ -119,10 +119,10 @@ end
 
 
 magikacia.register_projectile({
-    name = "ladder",
+    name = "attack_rope_primary",
     damage = 0,
-    texture = magikacia.textures.effect_water_secondary,
-    typename = "ladder_primary",
+    texture = "default_ladder.png",
+    typename = "rope_primary",
     do_custom_hit = function(thrower, object, pos, self, proj_def)
         local param2 = 1
         if self.object then

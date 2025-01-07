@@ -800,7 +800,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_shadow"] then
+    if inv_runes_contains["magikacia:rune_shadow"] then
         local pdata = magikacia.players[placer_name]
         if not pdata.effect_shadow_primary_captured_list or #pdata.effect_shadow_primary_captured_list == 0 then
             local look_dir = placer:get_look_dir()
@@ -835,6 +835,8 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                     end
                 end)
             end)
+            use_success = true
+            use_at_self = true
         else
             if use_pos_above then
                 magikacia.players[placer_name].effect_shadow_primary_capture_pos = vector.offset(use_pos_above, 0, pointed_thing.type == "node" and -0.5 or 0, 0)
@@ -863,7 +865,16 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                 pos = safe_use_pos,
                 texture = "effect_vortex_blue",
             })
+            use_success = true
+            use_at_pos_above = true
         end
+    end
+
+
+    if inv_runes_contains["magikacia:rune_rope"] then
+        mcl_throwing.get_player_throw_function("magikacia:throwable_attack_rope_primary_entity")(ItemStack("magikacia:throwable_attack_rope_primary", 64), placer, pointed_thing)
+        use_success = true
+        use_at_pos_above = true
     end
 
     if use_success then
