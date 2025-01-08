@@ -860,4 +860,34 @@ function magikacia.get_or_create_void_primary_held_entity(attached_ent)
     end
 end
 
-local effect_portal_entities = {}
+
+local effect_portal_last_teleport_out = {}
+local effect_portal_primary_entities = {}
+local effect_portal_secondary_entities = {}
+
+magikacia.register_globalstep_slow("effect_portal_teleport", function(dtime)
+    for k, primary_portal in pairs(effect_portal_primary_entities) do
+        local primary_portal_pos = primary_portal.pos
+        local secondary_portal = effect_portal_secondary_entities[k]
+        if secondary_portal == nil then
+            local secondary_portal_pos = secondary_portal.pos
+            magikacia.radius_effect_func(primary_portal_pos, 2, nil, function(obj)
+                local last_teleport_out = effect_portal_last_teleport_out[obj]
+                if last_teleport_out ~= "primary" then
+                    obj:set_pos(secondary_portal_pos)
+                    effect_portal_last_teleport_out[obj] = "primary"
+                end
+            end)
+        end
+    end
+end)
+
+magikacia.register_on_leaveplayer("effect_portal_clear", function(player)
+    local pname = player:get_player_name()
+    if pname then
+        effect_portal_last_teleport_out[pname] = nil
+        effect_portal_primary_entities[pname] = nil
+        effect_portal_secondary_entities[pname] = nil
+    end
+end)
+

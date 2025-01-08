@@ -36,6 +36,14 @@ function magikacia.register_on_player_receive_fields(id, func)
     magikacia.registered_on_player_receive_fields[id] = func
 end
 
+function magikacia.register_on_joinplayer(id, func)
+    magikacia.registered_on_joinplayer[id] = func
+end
+
+function magikacia.register_on_leaveplayer(id, func)
+    magikacia.registered_on_leaveplayer[id] = func
+end
+
 if not mcl_util._magikacia_main_init then
     mcl_util._magikacia_main_init = true
     local globalstep_slow_timer = 0
