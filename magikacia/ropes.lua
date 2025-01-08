@@ -104,7 +104,9 @@ local function extend_ladder(pos, n, param2, placer)
                 local ndef = minetest.registered_nodes[node.name]
                 if ndef and ndef.buildable_to and not minetest.is_protected(pos, placer and placer:get_player_name() or "") then
                     minetest.dig_node(newpos, placer)
-                    minetest.set_node(newpos, { name = "magikacia:ladder_rope", param2 = param2, })
+                    minetest.after(0.001, function()
+                        minetest.set_node(newpos, { name = "magikacia:ladder_rope", param2 = param2, })
+                    end)
                 else
                     can_continue = false
                 end
