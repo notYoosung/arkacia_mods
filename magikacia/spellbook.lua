@@ -877,6 +877,13 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         use_at_pos_above = true
     end
 
+    if use_pos_under and use_pos_above and inv_runes_contains["magikacia:rune_portal"] then
+        magikacia.effect_portal_pairs[pname].primary = {
+            pos = use_pos_above,
+            dir = vector.subtract(use_pos_under, use_pos_above),
+        }
+    end
+
     if use_success then
         if use_at_self then
             minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_self, max_hear_distance = 32, gain = 0.5 }, true)
@@ -1229,6 +1236,24 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_place_self = true
     end
 
+    if use_pos_under and use_pos_above and inv_runes_contains["magikacia:rune_portal"] then
+        local vel_change = nil
+        local out_dir = vector.subtract(use_pos_above, use_pos_under)
+        local primary_portal = magikacia.effect_portal_pairs[pname].primary
+        if primary_portal then
+            local primary_portal_out_dir = primay_portal.out_dir
+            vel_change = vector.new(
+                out_dir.x / primary_portal_out_dir.x,
+                out_dir.y / primary_portal_out_dir.y,
+                out_dir.z / primary_portal_out_dir.z,
+            )
+        end
+        magikacia.effect_portal_pairs[pname].secondary = {
+            pos = use_pos_above,
+            out_dir = out_dir,
+            vel_change = vel_change,
+        }
+    end
 
     if use_success then
         if use_at_self then
