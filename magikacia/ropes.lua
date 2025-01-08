@@ -1,13 +1,14 @@
 local function rad_to_param2(rad)
+    minetest.log("rad: " .. rad)
     local tau = math.pi * 2
     if rad < tau * 7 / 8 and rad >= tau * 5 / 8 then
         return 2
     elseif rad < tau * 5 / 8 and rad >= tau * 3 / 8 then
-        return 5
-    elseif rad < tau * 3 / 8 and rad >= tau * 1 / 8 then
         return 3
-    else
+    elseif rad < tau * 3 / 8 and rad >= tau * 1 / 8 then
         return 4
+    else
+        return 1
     end
 end
 
@@ -58,17 +59,16 @@ minetest.register_node(":magikacia:ladder_rope", {
             return itemstack
         end
         local groups = def.groups
-
         -- Don't allow to place the ladder at particular nodes
         if (groups and (groups.glass or groups.leaves or groups.slab)) or
-            node.name == "mcl_core:ladder" or node.name == "mcl_core:ice" or node.name == "mcl_nether:glowstone" or node.name == "mcl_ocean:sea_lantern" then
+        node.name == "mcl_core:ladder" or node.name == "mcl_core:ice" or node.name == "mcl_nether:glowstone" or node.name == "mcl_ocean:sea_lantern" then
             return itemstack
         end
-
+        
         local rc = mcl_util.call_on_rightclick(itemstack, placer, pointed_thing)
         if rc then return rc end
         local above = pointed_thing.above
-
+        
         -- Ladders may not be placed on ceiling or floor
         if under.y ~= above.y then
             return itemstack
@@ -94,6 +94,7 @@ minetest.register_node(":magikacia:ladder_rope", {
 
 
 local function extend_ladder(pos, n, param2, placer)
+    minetest.log(tostring(pos))
     if n > 0 then
         local newpos = vector.offset(pos, 0, -1, 0)
         local node = minetest.get_node(pos)
@@ -101,9 +102,9 @@ local function extend_ladder(pos, n, param2, placer)
         if node and node.name then
             if node.name ~= "air" then
                 local ndef = minetest.registered_nodes[node.name]
-                if ndef.buildable_to and not minetest.is_protected(pos, placer and placer:get_player_name() or "") then
+                if ndef and ndef.buildable_to and not minetest.is_protected(pos, placer and placer:get_player_name() or "") then
                     minetest.dig_node(newpos, placer)
-                    minetest.place_node(newpos, { name = "magikacia:ladder_rope", param2 = param2, })
+                    minetest.set_node(newpos, { name = "magikacia:ladder_rope", param2 = param2, })
                 else
                     can_continue = false
                 end
@@ -124,6 +125,7 @@ magikacia.register_projectile({
     texture = "default_ladder.png",
     typename = "rope_primary",
     do_custom_hit = function(thrower, object, pos, self, proj_def)
+        minetest.log("hit")
         local param2 = 1
         if self.object then
             local vel = self.object:get_velocity()
@@ -131,11 +133,13 @@ magikacia.register_projectile({
                 local ang = math.atan2(vel.z, vel.x)
                 param2 = rad_to_param2(ang)
             end
+            pos = vector.subtract(pos, vel)
         end
         if object and object:is_valid() and not pos then
             pos = object:get_pos()
         end
         if pos then
+            minetest.log("param2: " .. param2)
             extend_ladder(pos, 32, param2, thrower)
         end
         
