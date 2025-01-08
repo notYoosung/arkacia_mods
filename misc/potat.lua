@@ -248,5 +248,6 @@ minetest.register_craftitem(":arkacia:potat", {
         local owner_name = placer:get_player_name() or ""
         local potat = minetest.add_entity(pos, ":arkacia:potat", minetest.serialize({ owner = owner_name }))
         return itemstack
-    end
+    end,
+    stack_max = 65535,
 })
