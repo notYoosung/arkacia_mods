@@ -862,46 +862,45 @@ end
 
 
 local effect_portal_last_teleport_out = {}
-local effect_portal_primary_entities = {}
-local effect_portal_secondary_entities = {}
+local effect_portal_pairs = {}
+
+local effect_portal_teleport_time = 0
 
 magikacia.register_globalstep("effect_portal_teleport", function(dtime)
-    for k, v in pairs(effect_portal_last_teleport_out) do
-        if not (k and k:is_valid() --[[and k:get_pos()]]) then
-            effect_portal_last_teleport_out[k] = nil
-        end
-    end
+    effect_portal_teleport_time = effect_portal_teleport_time + dtime
 
+    if effect_portal_teleport_time > 0.1 then
+        effect_portal_teleport_time = effect_portal_teleport_time - 0.1
 
-    local teleported_objects_log = {}
-    for k, primary_portal in pairs(effect_portal_primary_entities) do
-        local primary_portal_pos = primary_portal.pos
-        local secondary_portal = effect_portal_secondary_entities[k]
-        if secondary_portal == nil then
-            local secondary_portal_pos = secondary_portal.pos
-            magikacia.radius_effect_func(primary_portal_pos, 2, nil, function(obj)
-                local last_teleport_out = effect_portal_last_teleport_out[obj]
-                if last_teleport_out ~= "primary" and not teleported_objects_log[obj] then
-                    teleported_objects_log[obj] = true
-                    obj:set_pos(secondary_portal_pos)
-                    effect_portal_last_teleport_out[obj] = "primary"
-                end
-            end)
+        for k, v in pairs(effect_portal_last_teleport_out) do
+            if not (k and k:is_valid() --[[and k:get_pos()]]) then
+                effect_portal_last_teleport_out[k] = nil
+            end
         end
-    end
-    for k, secondary_portal in pairs(effect_portal_secondary_entities) do
-        local secondary_portal_pos = secondary_portal.pos
-        local primary_portal = effect_portal_primary_entities[k]
-        if primary_portal == nil then
-            local primary_portal_pos = primary_portal.pos
-            magikacia.radius_effect_func(secondary_portal_pos, 2, nil, function(obj)
-                local last_teleport_out = effect_portal_last_teleport_out[obj]
-                if last_teleport_out ~= "secondary" and not teleported_objects_log[obj] then
-                    teleported_objects_log[obj] = true
-                    obj:set_pos(secondary_portal_pos)
-                    effect_portal_last_teleport_out[obj] = "secondary"
-                end
-            end)
+
+        local teleported_objects_log = {}
+        for k, portal_pair in pairs(effect_portal_pairs) do
+            local portal_primary = portal_pair.primary
+            local portal_secondary = portal_pair.secondary
+
+            if portal_primary and portal_secondary then
+                magikacia.radius_effect_func(portal_primary.pos, 2, nil, function(obj)
+                    local last_teleport_out = effect_portal_last_teleport_out[obj]
+                    if last_teleport_out ~= "primary" and not teleported_objects_log[obj] then
+                        teleported_objects_log[obj] = true
+                        obj:set_pos(portal_secondary.pos)
+                        effect_portal_last_teleport_out[obj] = "primary"
+                    end
+                end)
+                magikacia.radius_effect_func(portal_secondary.pos, 2, nil, function(obj)
+                    local last_teleport_out = effect_portal_last_teleport_out[obj]
+                    if last_teleport_out ~= "secondary" and not teleported_objects_log[obj] then
+                        teleported_objects_log[obj] = true
+                        obj:set_pos(portal_primary.pos)
+                        effect_portal_last_teleport_out[obj] = "secondary"
+                    end
+                end)
+            end
         end
     end
 end)
