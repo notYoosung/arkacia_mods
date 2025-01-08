@@ -865,7 +865,15 @@ local effect_portal_last_teleport_out = {}
 local effect_portal_primary_entities = {}
 local effect_portal_secondary_entities = {}
 
-magikacia.register_globalstep_slow("effect_portal_teleport", function(dtime)
+magikacia.register_globalstep("effect_portal_teleport", function(dtime)
+    for k, v in pairs(effect_portal_last_teleport_out) do
+        if not (k and k:is_valid() --[[and k:get_pos()]]) then
+            effect_portal_last_teleport_out[k] = nil
+        end
+    end
+
+
+    local teleported_objects_log = {}
     for k, primary_portal in pairs(effect_portal_primary_entities) do
         local primary_portal_pos = primary_portal.pos
         local secondary_portal = effect_portal_secondary_entities[k]
@@ -873,9 +881,25 @@ magikacia.register_globalstep_slow("effect_portal_teleport", function(dtime)
             local secondary_portal_pos = secondary_portal.pos
             magikacia.radius_effect_func(primary_portal_pos, 2, nil, function(obj)
                 local last_teleport_out = effect_portal_last_teleport_out[obj]
-                if last_teleport_out ~= "primary" then
+                if last_teleport_out ~= "primary" and not teleported_objects_log[obj] then
+                    teleported_objects_log[obj] = true
                     obj:set_pos(secondary_portal_pos)
                     effect_portal_last_teleport_out[obj] = "primary"
+                end
+            end)
+        end
+    end
+    for k, secondary_portal in pairs(effect_portal_secondary_entities) do
+        local secondary_portal_pos = secondary_portal.pos
+        local primary_portal = effect_portal_primary_entities[k]
+        if primary_portal == nil then
+            local primary_portal_pos = primary_portal.pos
+            magikacia.radius_effect_func(secondary_portal_pos, 2, nil, function(obj)
+                local last_teleport_out = effect_portal_last_teleport_out[obj]
+                if last_teleport_out ~= "secondary" and not teleported_objects_log[obj] then
+                    teleported_objects_log[obj] = true
+                    obj:set_pos(secondary_portal_pos)
+                    effect_portal_last_teleport_out[obj] = "secondary"
                 end
             end)
         end
