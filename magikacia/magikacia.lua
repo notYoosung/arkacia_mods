@@ -314,9 +314,9 @@ magikacia.runes = {
         name = "Portal",
         description = "",
         spell_descriptions = {
-            left = "",
-            left_sneak = "",
-            right = "",
+            left = "Spawn a blue portal!",
+            left_sneak = "Same as left click!",
+            right = "Spawn an orange portal!",
         }
     },
 }

@@ -919,6 +919,22 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
                 end
             end)
         end
+        if portal_primary then
+            magikacia.spawn_effect_anim({
+                pos = portal_primary.pos,
+                texture = "effect_portal_primary",
+                duration_total = dtime,
+                duration_anim = dtime,
+            })
+        end
+        if portal_secondary then
+            magikacia.spawn_effect_anim({
+                pos = portal_primary.pos,
+                texture = "effect_portal_secondary",
+                duration_total = dtime,
+                duration_anim = dtime,
+            })
+        end
     end
     
 end)
