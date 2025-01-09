@@ -863,7 +863,8 @@ end
 
 magikacia.effect_portal_pairs = {}
 local effect_portal_last_teleport_out = {}
-local effect_portal_last_teleport_out_reset_time = 3
+local effect_portal_last_teleport_out_reset_timer = 0
+local effect_portal_last_teleport_out_reset_interval = 3
 
 local effect_portal_teleport_time = 0
 local effect_portal_teleport_interval = 0.1
@@ -871,10 +872,10 @@ local effect_portal_anim_duration = effect_portal_teleport_time * 2
 
 
 magikacia.register_globalstep("effect_portal_teleport", function(dtime)
-    effect_portal_last_teleport_out_reset_time = effect_portal_last_teleport_out_reset_time + dtime
+    effect_portal_last_teleport_out_reset_timer = effect_portal_last_teleport_out_reset_timer + dtime
     
-    if effect_portal_last_teleport_out_reset_time > effect_portal_last_teleport_out_reset_time then
-        effect_portal_last_teleport_out_reset_time = 0
+    if effect_portal_last_teleport_out_reset_timer > effect_portal_last_teleport_out_reset_interval then
+        effect_portal_last_teleport_out_reset_timer = 0
         effect_portal_last_teleport_out = {}
     end
 
@@ -954,7 +955,7 @@ end)
 magikacia.register_on_leaveplayer("effect_portal_clear", function(player)
     local pname = player:get_player_name()
     if pname then
-        effect_portal_last_teleport_out[pname] = nil
+        effect_portal_last_teleport_out[player] = nil
         magikacia.effect_portal_pairs[pname] = nil
     end
 end)
