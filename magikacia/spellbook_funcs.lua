@@ -681,9 +681,9 @@ minetest.register_entity(":magikacia:effect_entity_sprite", {
 
 minetest.register_entity(":magikacia:effect_entity_3d", {
     initial_properties = {
-        visual = "wielditem",
-        wield_item = "",
-        visual_size = { x = 1, y = 1 },
+        visual = "mesh",
+        mesh = "mcl_skins_head.obj"
+        visual_size = { x = 1, y = 1, z = 0.1 },
         physical = false,
         pointable = false,
         --[[textures = { "blank.png" },]]
@@ -862,6 +862,38 @@ end
 
 
 magikacia.effect_portal_pairs = {}
+function magikacia.effect_portal_add(id, defs, type)
+    local paired_type = type == "primary" and "secondary" or "primary"
+    if magikacia.effect_portal_pairs[id] == nil then
+        magikacia.effect_portal_pairs[id] = {}
+    end
+    local vel_change = nil
+    local paired_portal = magikacia.effect_portal_pairs[id][paired_type]
+    if paired_portal then
+        local out_dir = defs.out_dir
+        local paired_portal_out_dir = paired_portal.out_dir
+        vel_change = vector.new(
+            out_dir.x / paired_portal_out_dir.x,
+            out_dir.y / paired_portal_out_dir.y,
+            out_dir.z / paired_portal_out_dir.z
+        )
+    end
+    if vel_change == nil then
+        vel_change = vector.new(1, 1, 1)
+    end
+    magikacia.effect_portal_pairs[id][paired_type].vel_change = vel_change
+    defs.vel_change = vel_change,
+    magikacia.effect_portal_pairs[id][type] = defs
+end
+function magikacia.effect_portal_remove(id, type)
+    if magikacia.effect_portal_pairs[id] then
+        magikacia.effect_portal_pairs[id][type] = nil
+        local pair = magikacia.effect_portal_pairs[id]
+        if pair.primary == nil and pair.secondary == nil then
+            magikacia.effect_portal_pairs[id] = nil
+        end
+    end
+end
 local effect_portal_last_teleport_out = {}
 local effect_portal_last_teleport_out_reset_timer = 0
 local effect_portal_last_teleport_out_reset_interval = 3
@@ -929,6 +961,7 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
             end)
         end
         if portal_primary then
+            --[[magikacia.spawn_effect_entity_3d]]
             magikacia.spawn_effect_anim({
                 pos = portal_primary.pos,
                 texture = magikacia.textures.effect_portal_primary .. "^[transformR90",
