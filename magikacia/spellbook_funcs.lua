@@ -906,9 +906,9 @@ function magikacia.effect_portal_add(id, defs, type)
         local paired_portal_out_dir = paired_portal.out_dir
         if paired_portal_out_dir ~= nil then
             vel_change = vector.new(
-                (out_dir.x / paired_portal_out_dir.x) or 1,
-                (out_dir.y / paired_portal_out_dir.y) or 1,
-                (out_dir.z / paired_portal_out_dir.z) or 1
+                (out_dir.x * paired_portal_out_dir.x) or 1,
+                (out_dir.y * paired_portal_out_dir.y) or 1,
+                (out_dir.z * paired_portal_out_dir.z) or 1
             )
         end
     end
@@ -996,7 +996,7 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
                     local vc = portal_secondary.vel_change
                     if vc then
                         local v = obj:get_velocity()
-                        local newvel = vector.add(vector.multiply(portal_secondary.out_dir, 100), vector.new(
+                        local newvel = vector.add(vector.multiply(portal_secondary.out_dir, 10), vector.new(
                             v.x * (vc.x or 1),
                             v.y * (vc.y or 1),
                             v.z * (vc.z or 1)
