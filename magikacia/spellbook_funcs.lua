@@ -890,6 +890,7 @@ function magikacia.get_or_create_void_primary_held_entity(attached_ent)
 end
 
 magikacia.effect_portal_pairs = {}
+
 function magikacia.effect_portal_add(id, defs, type)
     local paired_type = type == "primary" and "secondary" or "primary"
     if magikacia.effect_portal_pairs[id] == nil then
@@ -905,9 +906,9 @@ function magikacia.effect_portal_add(id, defs, type)
         local paired_portal_out_dir = paired_portal.out_dir
         if paired_portal_out_dir ~= nil then
             vel_change = vector.new(
-                out_dir.x / paired_portal_out_dir.x,
-                out_dir.y / paired_portal_out_dir.y,
-                out_dir.z / paired_portal_out_dir.z
+                (out_dir.x / paired_portal_out_dir.x) or 1,
+                (out_dir.y / paired_portal_out_dir.y) or 1,
+                (out_dir.z / paired_portal_out_dir.z) or 1
             )
         end
     end
@@ -924,7 +925,7 @@ function magikacia.effect_portal_add(id, defs, type)
             new_effect_ent:remove()
         end
         local rot = vector.new(
-            out_dir.x > 0 and 90 or 270,
+            out_dir.x > 0 and 90 or 3 * math.pi / 2,
             out_dir.y > 0 and 90 or 270,
             out_dir.z > 0 and 90 or 270
         )
@@ -1012,7 +1013,6 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
                 if last_teleport_out ~= "primary" and not teleported_objects_log[obj] then
                     teleported_objects_log[obj] = true
                     local vc = portal_primary.vel_change
-                    minetest.log("vc: " .. tostring(vc))
                     if vc then
                         local v = obj:get_velocity()
                         local newvel = vector.add(vector.multiply(portal_primary.out_dir, 100), vector.new(
@@ -1020,6 +1020,7 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
                             v.y * (vc.y or 1),
                             v.z * (vc.z or 1)
                         ))
+                        minetest.log("sec: " .. tostring(newvel))
                         obj:set_velocity(newvel)
                     end
                     obj:set_pos(portal_primary.pos)
