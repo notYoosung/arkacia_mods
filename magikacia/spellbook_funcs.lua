@@ -952,11 +952,11 @@ function magikacia.effect_portal_remove(id, type)
 end
 local effect_portal_last_teleport_out = {}
 local effect_portal_last_teleport_out_reset_timer = 0
-local effect_portal_last_teleport_out_reset_interval = 3
+local effect_portal_last_teleport_out_reset_interval = 2
 
 local effect_portal_teleport_time = 0
-local effect_portal_teleport_interval = 0.1
-local effect_portal_anim_duration = effect_portal_teleport_time * 2
+local effect_portal_teleport_interval = 0.05
+local effect_portal_anim_duration = effect_portal_teleport_interval * 2
 
 
 magikacia.register_globalstep("effect_portal_teleport", function(dtime)
@@ -981,17 +981,18 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
         if portal_primary and portal_secondary then
             magikacia.radius_effect_func(portal_primary.pos, 1, nil, function(obj)
                 local last_teleport_out = effect_portal_last_teleport_out[obj]
-                minetest.log("last_teleport_out primary: " .. tostring(last_teleport_out))
                 if last_teleport_out ~= "secondary" and not teleported_objects_log[obj] then
                     teleported_objects_log[obj] = true
                     local vc = portal_secondary.vel_change
                     if vc then
                         local v = obj:get_velocity()
-                        obj:set_velocity(vector.new(
-                            v.x * vc.x,
-                            v.y * vc.y,
-                            v.z * vc.z
+                        local newvel = vector.add(vector.multiply(portal_secondary.out_dir, 100), vector.new(
+                            v.x * (vc.x or 1),
+                            v.y * (vc.y or 1),
+                            v.z * (vc.z or 1)
                         ))
+                        obj:set_velocity(newvel)
+                        -- minetest.log(tostring(newvel))
                     end
                     obj:set_pos(portal_secondary.pos)
                     effect_portal_last_teleport_out[obj] = "primary"
@@ -999,17 +1000,18 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
             end)
             magikacia.radius_effect_func(portal_secondary.pos, 1, nil, function(obj)
                 local last_teleport_out = effect_portal_last_teleport_out[obj]
-                minetest.log("last_teleport_out secondary: " .. tostring(last_teleport_out))
                 if last_teleport_out ~= "primary" and not teleported_objects_log[obj] then
                     teleported_objects_log[obj] = true
                     local vc = portal_primary.vel_change
+                    minetest.log("vc: " .. tostring(vc))
                     if vc then
                         local v = obj:get_velocity()
-                        obj:set_velocity(vector.new(
-                            v.x * vc.x,
-                            v.y * vc.y,
-                            v.z * vc.z
+                        local newvel = vector.add(vector.multiply(portal_primary.out_dir, 100), vector.new(
+                            v.x * (vc.x or 1),
+                            v.y * (vc.y or 1),
+                            v.z * (vc.z or 1)
                         ))
+                        obj:set_velocity(newvel)
                     end
                     obj:set_pos(portal_primary.pos)
                     effect_portal_last_teleport_out[obj] = "secondary"

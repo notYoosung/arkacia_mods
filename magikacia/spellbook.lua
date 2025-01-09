@@ -879,7 +879,26 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
 
     if use_pos_under and use_pos_above and inv_runes_contains["magikacia:rune_portal"] then
         local out_dir = vector.subtract(use_pos_above, use_pos_under)
+<<<<<<< Updated upstream
         local portal_def = {
+=======
+        if magikacia.effect_portal_pairs[placer_name] == nil then
+            magikacia.effect_portal_pairs[placer_name] = {}
+        end
+        local secondary_portal = magikacia.effect_portal_pairs[placer_name].secondary
+        if secondary_portal then
+            local secondary_portal_out_dir = secondary_portal.out_dir
+            if secondary_portal_out_dir then
+                vel_change = vector.new(
+                    (out_dir.x / secondary_portal_out_dir.x) or 1,
+                    (out_dir.y / secondary_portal_out_dir.y) or 1,
+                    (out_dir.z / secondary_portal_out_dir.z) or 1
+                )
+                magikacia.effect_portal_pairs[placer_name].secondary.vel_change = vel_change
+            end
+        end
+        magikacia.effect_portal_pairs[placer_name].primary = {
+>>>>>>> Stashed changes
             pos = use_pos_above,
             out_dir = out_dir,
         }
@@ -1240,7 +1259,28 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
 
     if use_pos_under and use_pos_above and inv_runes_contains["magikacia:rune_portal"] then
         local out_dir = vector.subtract(use_pos_above, use_pos_under)
+<<<<<<< Updated upstream
         local portal_def = {
+=======
+        if magikacia.effect_portal_pairs[placer_name] == nil then
+            magikacia.effect_portal_pairs[placer_name] = {}
+        end
+        local primary_portal = magikacia.effect_portal_pairs[placer_name].primary
+        if primary_portal then
+            local primary_portal_out_dir = primary_portal.out_dir
+            if primary_portal_out_dir then
+                minetest.log("primary_portal_out_dir present")
+                vel_change = vector.new(
+                    out_dir.x == 0 and primary_portal_out_dir.x(out_dir.x / primary_portal_out_dir.x) or 1,
+                    (out_dir.y / primary_portal_out_dir.y) or 1,
+                    (out_dir.z / primary_portal_out_dir.z) or 1
+                )
+                minetest.log(tostring(vel_change))
+                magikacia.effect_portal_pairs[placer_name].primary.vel_change = vel_change
+            end
+        end
+        magikacia.effect_portal_pairs[placer_name].secondary = {
+>>>>>>> Stashed changes
             pos = use_pos_above,
             out_dir = out_dir,
         }
