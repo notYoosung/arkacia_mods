@@ -43,7 +43,6 @@ function magikacia.is_obj_static(obj)
     end
 end
 
-
 function magikacia.register_attack(name, def)
     local typename = "magikacia_spell_" .. name
     mcl_death_messages.messages[typename] = {
@@ -670,9 +669,6 @@ minetest.register_entity(":magikacia:effect_entity_sprite", {
                 self.object:remove()
                 return
             end
-
-
-            
         end
     end,
 })
@@ -682,8 +678,8 @@ minetest.register_entity(":magikacia:effect_entity_sprite", {
 minetest.register_entity(":magikacia:effect_entity_3d", {
     initial_properties = {
         visual = "mesh",
-        mesh = "mcl_skins_head.obj"
-        visual_size = { x = 1, y = 1, z = 0.1 },
+        mesh = "mcl_skins_head.obj",
+        visual_size = { x = 1, y = 1, z = 0.1, },
         physical = false,
         pointable = false,
         textures = { "blank.png" },
@@ -769,6 +765,7 @@ end
 function magikacia.spawn_effect_entity_3d(def)
     --[[
     def = {
+        pos = vector.new(0, 0, 0),
         texture = "",
         size = 1,
         attached_to_player_name = "",
@@ -787,6 +784,8 @@ function magikacia.spawn_effect_entity_3d(def)
         def.attach = {}
     end
     local ent = minetest.add_entity(def.pos, "magikacia:effect_entity_3d", minetest.serialize({ _magikacia_effect_entity_3d_defs = def, }))
+    ent:set_properties(table.merge(base_props, {
+
         textures = { def.texture },
         visual_size = { x = def.size, y = def.size, z = 0.1 },
         attached_to_player_name = def.attach.player_name or ""
@@ -795,12 +794,12 @@ function magikacia.spawn_effect_entity_3d(def)
     if def.attach.name then
         local player = minetest.get_player_by_name(def.attach.name)
         if player and player:get_pos() then
-            ent:set_attach(player, "", def.attach.pos or vector.zero(), def.attach.rot or vector.zero(), def.attach.visible or true)--[[{ x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 }, true)]]
+            ent:set_attach(player, "", def.attach.pos or vector.zero(), def.attach.rot or vector.zero(), def.attach.visible or true) --[[{ x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 }, true)]]
         end
     elseif def.attach.obj then
         local obj = def.attach.obj
         if obj:is_valid() and obj:get_pos() then
-            ent:set_attach(obj, "", def.attach.pos or vector.zero(), def.attach.rot or vector.zero(), def.attach.visible or true)--[[{ x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 }, true)]]
+            ent:set_attach(obj, "", def.attach.pos or vector.zero(), def.attach.rot or vector.zero(), def.attach.visible or true) --[[{ x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 }, true)]]
         end
     end
     return ent
@@ -844,10 +843,10 @@ magikacia.register_damage_modifier("rune_shield_secondary", function(obj, damage
         if obj_meta and obj_meta:get_int("magikacia:rune_shield_active") == 1 then
             minetest.log("shield active; damage: " .. damage)
             -- if damage > 0 then
-                minetest.log("shield block")
-                obj_meta:set_int("magikacia:rune_shield_active", 0)
-                minetest.sound_play("mcl_block", { object = obj, max_hear_distance = 16, gain = 1, pitch = 0.5 }, true)
-                return 0
+            minetest.log("shield block")
+            obj_meta:set_int("magikacia:rune_shield_active", 0)
+            minetest.sound_play("mcl_block", { object = obj, max_hear_distance = 16, gain = 1, pitch = 0.5 }, true)
+            return 0
             -- end
         end
         local inv = obj:get_inventory()
@@ -887,10 +886,8 @@ function magikacia.get_or_create_void_primary_held_entity(attached_ent)
             })
             effect_void_primary_held_entities[pname] = newent
         end
-
     end
 end
-
 
 magikacia.effect_portal_pairs = {}
 function magikacia.effect_portal_add(id, defs, type)
@@ -898,46 +895,57 @@ function magikacia.effect_portal_add(id, defs, type)
     if magikacia.effect_portal_pairs[id] == nil then
         magikacia.effect_portal_pairs[id] = {}
     end
+    if magikacia.effect_portal_pairs[id][type] == nil then
+        magikacia.effect_portal_pairs[id][type] = {}
+    end
     local vel_change = nil
     local paired_portal = magikacia.effect_portal_pairs[id][paired_type]
     local out_dir = defs.out_dir
     if paired_portal then
         local paired_portal_out_dir = paired_portal.out_dir
-        vel_change = vector.new(
-            out_dir.x / paired_portal_out_dir.x,
-            out_dir.y / paired_portal_out_dir.y,
-            out_dir.z / paired_portal_out_dir.z
-        )
+        if paired_portal_out_dir ~= nil then
+            vel_change = vector.new(
+                out_dir.x / paired_portal_out_dir.x,
+                out_dir.y / paired_portal_out_dir.y,
+                out_dir.z / paired_portal_out_dir.z
+            )
+        end
     end
     if vel_change == nil then
         vel_change = vector.new(1, 1, 1)
     end
-    magikacia.effect_portal_pairs[id][paired_type].vel_change = vel_change
-    defs.vel_change = vel_change,
-    local ent = magikacia.effect_portal_pairs[id][paired_type].effect_entity
-    if ent == nil or (ent and not (ent:is_valid() and ent:get_pos())) then
-        if ent then
-            ent:remove()
+    defs.vel_change = vel_change
+    if paired_portal then
+        magikacia.effect_portal_pairs[id][paired_type].vel_change = vel_change
+    end
+    local new_effect_ent = magikacia.effect_portal_pairs[id][type].effect_entity
+    if new_effect_ent == nil or (new_effect_ent and not (new_effect_ent:is_valid() and new_effect_ent:get_pos())) then
+        if new_effect_ent then
+            new_effect_ent:remove()
         end
         local rot = vector.new(
             out_dir.x > 0 and 90 or 270,
-            out_dir.x > 0 and 90 or 270,
-            out_dir.x > 0 and 90 or 270,
+            out_dir.y > 0 and 90 or 270,
+            out_dir.z > 0 and 90 or 270
         )
         local new_ent = magikacia.spawn_effect_entity_3d({
+            pos = defs.pos,
             texture = magikacia.textures.effect_portal_primary,
             size = 1,
             object_properties = {},
-            rotation = vector.new(0, 0, 0),
+            rotation = rot,
         })
-        magikacia.effect_portal_pairs[id][paired_type].effect_entity = new_ent
+        if paired_portal then
+            magikacia.effect_portal_pairs[id][paired_type].effect_entity = new_ent
+        end
     else
-        if ent:get_pos() then
-            ent:set_pos(defs.pos)
+        if new_effect_ent:get_pos() then
+            new_effect_ent:set_pos(defs.pos)
         end
     end
     magikacia.effect_portal_pairs[id][type] = defs
 end
+
 function magikacia.effect_portal_remove(id, type)
     if magikacia.effect_portal_pairs[id] then
         magikacia.effect_portal_pairs[id][type] = nil
@@ -950,6 +958,7 @@ function magikacia.effect_portal_remove(id, type)
         end
     end
 end
+
 local effect_portal_last_teleport_out = {}
 local effect_portal_last_teleport_out_reset_timer = 0
 local effect_portal_last_teleport_out_reset_interval = 2
@@ -961,7 +970,7 @@ local effect_portal_anim_duration = effect_portal_teleport_interval * 2
 
 magikacia.register_globalstep("effect_portal_teleport", function(dtime)
     effect_portal_last_teleport_out_reset_timer = effect_portal_last_teleport_out_reset_timer + dtime
-    
+
     if effect_portal_last_teleport_out_reset_timer > effect_portal_last_teleport_out_reset_interval then
         effect_portal_last_teleport_out_reset_timer = 0
         effect_portal_last_teleport_out = {}
@@ -1050,4 +1059,3 @@ magikacia.register_on_leaveplayer("effect_portal_clear", function(player)
         magikacia.effect_portal_pairs[pname] = nil
     end
 end)
-
