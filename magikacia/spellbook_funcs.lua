@@ -686,7 +686,7 @@ minetest.register_entity(":magikacia:effect_entity_3d", {
         visual_size = { x = 1, y = 1, z = 0.1 },
         physical = false,
         pointable = false,
-        --[[textures = { "blank.png" },]]
+        textures = { "blank.png" },
         static_save = false,
     },
     on_activate = function(self, staticdata, dtime_s)
@@ -765,13 +765,44 @@ function magikacia.spawn_effect_entity_sprite(def)
     --[[ent:set_rotation(def.rotation)]]
     return ent
 end
+
 function magikacia.spawn_effect_entity_3d(def)
+    --[[
+    def = {
+        texture = "",
+        size = 1,
+        attached_to_player_name = "",
+        object_properties = {},
+        rotation = vector.new(0, 0, 0),
+        attach = {
+            player_name = "",
+            obj = obj,
+            pos = vector.new(0, 0, 0),
+            rot = vector.new(0, 0, 0),
+            visible = true,
+        },
+    }
+    ]]
+    if def.attach == nil then
+        def.attach = {}
+    end
     local ent = minetest.add_entity(def.pos, "magikacia:effect_entity_3d", minetest.serialize({ _magikacia_effect_entity_3d_defs = def, }))
-    ent:set_properties(table.merge(base_props, {
-        wield_item = def.itemname,
-        visual_size = { x = def.size, y = def.size },
+        textures = { def.texture },
+        visual_size = { x = def.size, y = def.size, z = 0.1 },
+        attached_to_player_name = def.attach.player_name or ""
     }, def.object_properties or {}))
     ent:set_rotation(def.rotation)
+    if def.attach.name then
+        local player = minetest.get_player_by_name(def.attach.name)
+        if player and player:get_pos() then
+            ent:set_attach(player, "", def.attach.pos or vector.zero(), def.attach.rot or vector.zero(), def.attach.visible or true)--[[{ x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 }, true)]]
+        end
+    elseif def.attach.obj then
+        local obj = def.attach.obj
+        if obj:is_valid() and obj:get_pos() then
+            ent:set_attach(obj, "", def.attach.pos or vector.zero(), def.attach.rot or vector.zero(), def.attach.visible or true)--[[{ x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 }, true)]]
+        end
+    end
     return ent
 end
 
@@ -869,8 +900,8 @@ function magikacia.effect_portal_add(id, defs, type)
     end
     local vel_change = nil
     local paired_portal = magikacia.effect_portal_pairs[id][paired_type]
+    local out_dir = defs.out_dir
     if paired_portal then
-        local out_dir = defs.out_dir
         local paired_portal_out_dir = paired_portal.out_dir
         vel_change = vector.new(
             out_dir.x / paired_portal_out_dir.x,
@@ -883,12 +914,37 @@ function magikacia.effect_portal_add(id, defs, type)
     end
     magikacia.effect_portal_pairs[id][paired_type].vel_change = vel_change
     defs.vel_change = vel_change,
+    local ent = magikacia.effect_portal_pairs[id][paired_type].effect_entity
+    if ent == nil or (ent and not (ent:is_valid() and ent:get_pos())) then
+        if ent then
+            ent:remove()
+        end
+        local rot = vector.new(
+            out_dir.x > 0 and 90 or 270,
+            out_dir.x > 0 and 90 or 270,
+            out_dir.x > 0 and 90 or 270,
+        )
+        local new_ent = magikacia.spawn_effect_entity_3d({
+            texture = magikacia.textures.effect_portal_primary,
+            size = 1,
+            object_properties = {},
+            rotation = vector.new(0, 0, 0),
+        })
+        magikacia.effect_portal_pairs[id][paired_type].effect_entity = new_ent
+    else
+        if ent:get_pos() then
+            ent:set_pos(defs.pos)
+        end
+    end
     magikacia.effect_portal_pairs[id][type] = defs
 end
 function magikacia.effect_portal_remove(id, type)
     if magikacia.effect_portal_pairs[id] then
         magikacia.effect_portal_pairs[id][type] = nil
         local pair = magikacia.effect_portal_pairs[id]
+        if pair.entity then
+            pair.entity:remove()
+        end
         if pair.primary == nil and pair.secondary == nil then
             magikacia.effect_portal_pairs[id] = nil
         end
