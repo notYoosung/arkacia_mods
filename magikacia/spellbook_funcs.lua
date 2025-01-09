@@ -144,7 +144,7 @@ function magikacia.radius_effect_func(pos, radius, placer, func, include_placer)
             local obj_is_player = obj:is_player()
             local obj_le = obj:get_luaentity()
             if (obj_le ~= nil and not magikacia.is_obj_static(obj))
-                or (obj_is_player and (include_placer or obj:get_player_name() ~= placer:get_player_name()))
+                or (obj_is_player and (include_placer or (placer == nil and true or obj:get_player_name() ~= placer:get_player_name())))
             then
                 if func then
                     func(obj, obj_is_player, obj_le)
@@ -863,20 +863,26 @@ end
 
 magikacia.effect_portal_pairs = {}
 local effect_portal_last_teleport_out = {}
+local effect_portal_last_teleport_out_reset_time = 3
 
 local effect_portal_teleport_time = 0
+local effect_portal_teleport_interval = 0.1
+local effect_portal_anim_duration = effect_portal_teleport_time * 2
+
+
 magikacia.register_globalstep("effect_portal_teleport", function(dtime)
+    effect_portal_last_teleport_out_reset_time = effect_portal_last_teleport_out_reset_time + dtime
+    
+    if effect_portal_last_teleport_out_reset_time > effect_portal_last_teleport_out_reset_time then
+        effect_portal_last_teleport_out_reset_time = 0
+        effect_portal_last_teleport_out = {}
+    end
+
     effect_portal_teleport_time = effect_portal_teleport_time + dtime
-    if effect_portal_teleport_time <= 0.25 then
+    if effect_portal_teleport_time < effect_portal_teleport_interval then
         return
     end
-    effect_portal_teleport_time = 0--[[effect_portal_teleport_time - 0.25]]
-    
-    for k, v in pairs(effect_portal_last_teleport_out) do
-        if not (k and k:is_valid() --[[and k:get_pos()]]) then
-            effect_portal_last_teleport_out[k] = nil
-        end
-    end
+
 
     local teleported_objects_log = {}
     for k, portal_pair in pairs(magikacia.effect_portal_pairs) do
@@ -884,9 +890,10 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
         local portal_secondary = portal_pair.secondary
 
         if portal_primary and portal_secondary then
-            magikacia.radius_effect_func(portal_primary.pos, 2, nil, function(obj)
+            magikacia.radius_effect_func(portal_primary.pos, 1, nil, function(obj)
                 local last_teleport_out = effect_portal_last_teleport_out[obj]
-                if last_teleport_out ~= "primary" and not teleported_objects_log[obj] then
+                minetest.log("last_teleport_out primary: " .. tostring(last_teleport_out))
+                if last_teleport_out ~= "secondary" and not teleported_objects_log[obj] then
                     teleported_objects_log[obj] = true
                     local vc = portal_secondary.vel_change
                     if vc then
@@ -894,16 +901,17 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
                         obj:set_velocity(vector.new(
                             v.x * vc.x,
                             v.y * vc.y,
-                            v.z * vc.z,
+                            v.z * vc.z
                         ))
                     end
                     obj:set_pos(portal_secondary.pos)
                     effect_portal_last_teleport_out[obj] = "primary"
                 end
             end)
-            magikacia.radius_effect_func(portal_secondary.pos, 2, nil, function(obj)
+            magikacia.radius_effect_func(portal_secondary.pos, 1, nil, function(obj)
                 local last_teleport_out = effect_portal_last_teleport_out[obj]
-                if last_teleport_out ~= "secondary" and not teleported_objects_log[obj] then
+                minetest.log("last_teleport_out secondary: " .. tostring(last_teleport_out))
+                if last_teleport_out ~= "primary" and not teleported_objects_log[obj] then
                     teleported_objects_log[obj] = true
                     local vc = portal_primary.vel_change
                     if vc then
@@ -911,7 +919,7 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
                         obj:set_velocity(vector.new(
                             v.x * vc.x,
                             v.y * vc.y,
-                            v.z * vc.z,
+                            v.z * vc.z
                         ))
                     end
                     obj:set_pos(portal_primary.pos)
@@ -922,21 +930,24 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
         if portal_primary then
             magikacia.spawn_effect_anim({
                 pos = portal_primary.pos,
-                texture = "effect_portal_primary",
-                duration_total = dtime,
-                duration_anim = dtime,
+                texture = magikacia.textures.effect_portal_primary .. "^[transformR90",
+                duration_total = effect_portal_anim_duration,
+                duration_anim = effect_portal_anim_duration,
             })
         end
         if portal_secondary then
             magikacia.spawn_effect_anim({
-                pos = portal_primary.pos,
-                texture = "effect_portal_secondary",
-                duration_total = dtime,
-                duration_anim = dtime,
+                pos = portal_secondary.pos,
+                texture = magikacia.textures.effect_portal_secondary .. "^[transformR90",
+                duration_total = effect_portal_anim_duration,
+                duration_anim = effect_portal_anim_duration,
             })
         end
     end
-    
+
+
+
+    effect_portal_teleport_time = effect_portal_teleport_time - effect_portal_teleport_interval
 end)
 
 
@@ -944,8 +955,7 @@ magikacia.register_on_leaveplayer("effect_portal_clear", function(player)
     local pname = player:get_player_name()
     if pname then
         effect_portal_last_teleport_out[pname] = nil
-        effect_portal_primary_entities[pname] = nil
-        effect_portal_secondary_entities[pname] = nil
+        magikacia.effect_portal_pairs[pname] = nil
     end
 end)
 

@@ -7,19 +7,19 @@ local function niners_newpos(pos)
     local side3 = { x = pos.x, y = pos.y, z = pos.z + 1 }
     local side4 = { x = pos.x, y = pos.y, z = pos.z - 1 }
     local r = math.random(1, 5)
-    if core.get_node(down).name == "air" then
+    if minetest.get_node(down).name == "air" then
         return down
-    elseif r == 1 and core.get_node(side1).name == "air" then
+    elseif r == 1 and minetest.get_node(side1).name == "air" then
         return
             side1
-    elseif r == 2 and core.get_node(side2).name == "air" then
+    elseif r == 2 and minetest.get_node(side2).name == "air" then
         return side2
-    elseif r == 3 and core.get_node(side3).name == "air" then
+    elseif r == 3 and minetest.get_node(side3).name == "air" then
         return
             side3
-    elseif r == 4 and core.get_node(side4).name == "air" then
+    elseif r == 4 and minetest.get_node(side4).name == "air" then
         return side4
-    elseif r == 5 and core.get_node(up).name == "air" then
+    elseif r == 5 and minetest.get_node(up).name == "air" then
         return
             up
     else
@@ -28,21 +28,21 @@ local function niners_newpos(pos)
 end
 local function niners_rotate(pos, param2)
     local r = math.random(0, 3)
-    local node = core.get_node(pos)
+    local node = minetest.get_node(pos)
     param2 = param2 or r
     node.param2 = param2
-    core.swap_node(pos, node)
+    minetest.swap_node(pos, node)
     return true
 end
 local function niners_walk(pos)
-    local oldnode = core.get_node(pos)
-    local oldnodemeta = core.get_meta(pos):to_table()
+    local oldnode = minetest.get_node(pos)
+    local oldnodemeta = minetest.get_meta(pos):to_table()
     local newpos = niners_newpos(pos)
     if newpos then
-        core.set_node(newpos, oldnode)
-        core.get_meta(newpos):from_table(oldnodemeta)
-        core.get_node_timer(newpos):start(niners_timer())
-        core.set_node(pos, { name = "air" })
+        minetest.set_node(newpos, oldnode)
+        minetest.get_meta(newpos):from_table(oldnodemeta)
+        minetest.get_node_timer(newpos):start(niners_timer())
+        minetest.set_node(pos, { name = "air" })
     end
 end
 minetest.register_node(":scp:niners",
@@ -61,13 +61,13 @@ minetest.register_node(":scp:niners",
         _mcl_blast_resistance = 0,
         _mcl_hardness = 0,
         after_place_node = function(pos, placer, itemstack, pointed_thing)
-            core.get_node_timer(pos):start(niners_timer())
+            minetest.get_node_timer(pos):start(niners_timer())
         end,
         on_timer = function(
             pos, elapsed)
             niners_rotate(pos)
             niners_walk(pos)
-            core.get_node_timer(pos):start(niners_timer())
+            minetest.get_node_timer(pos):start(niners_timer())
         end,
         on_punch = function(pos, node, puncher, pointed_thing)
             niners_rotate(pos)
@@ -91,12 +91,12 @@ minetest.register_node(":scp:mvy",
         _mcl_hardness = 0,
         after_place_node = function(
             pos, placer, itemstack, pointed_thing)
-            core.get_node_timer(pos):start(0.25)
+            minetest.get_node_timer(pos):start(0.25)
         end,
         on_timer = function(pos, elapsed)
             niners_rotate(pos)
             niners_walk(pos)
-            core.get_node_timer(pos):start(0.25)
+            minetest.get_node_timer(pos):start(0.25)
         end,
         on_punch = function(pos, node, puncher, pointed_thing)
             niners_rotate(pos)
@@ -117,7 +117,7 @@ if not mcl_util._scp_niners_activated then
         action = function(pos)
             niners_rotate(pos)
             niners_walk(pos)
-            core.get_node_timer(pos):start(0.25)
+            minetest.get_node_timer(pos):start(0.25)
         end,
     })
 end

@@ -743,9 +743,9 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         for i = 5, 5 * cores_multipliers.physical_effect, 5 do
             for ii = 0, math.pi * 2 - 0.01, math.pi / 3 do
                 local above_posi = {
-                    x = math.round(use_pos_above.x + math.cos(ii) * i),
+                    x = math.floor(use_pos_above.x + math.cos(ii) * i + 0.5),
                     y = use_pos_above.y,
-                    z = math.round(use_pos_above.z + math.sin(ii) * i),
+                    z = math.floor(use_pos_above.z + math.sin(ii) * i + 0.5),
                 }
                 local under_posi = { x = above_posi.x, y = above_posi.y - 1, z = above_posi.z }
                 magikacia.bone_meal(itemstack, placer, { type = "node", under = under_posi, above = above_posi })
@@ -878,9 +878,24 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     end
 
     if use_pos_under and use_pos_above and inv_runes_contains["magikacia:rune_portal"] then
-        magikacia.effect_portal_pairs[pname].primary = {
+        local vel_change = nil
+        local out_dir = vector.subtract(use_pos_above, use_pos_under)
+        if magikacia.effect_portal_pairs[placer_name] == nil then
+            magikacia.effect_portal_pairs[placer_name] = {}
+        end
+        local secondary_portal = magikacia.effect_portal_pairs[placer_name].secondary
+        if secondary_portal then
+            local secondary_portal_out_dir = secondary_portal.out_dir
+            vel_change = vector.new(
+                out_dir.x / secondary_portal_out_dir.x,
+                out_dir.y / secondary_portal_out_dir.y,
+                out_dir.z / secondary_portal_out_dir.z
+            )
+        end
+        magikacia.effect_portal_pairs[placer_name].primary = {
             pos = use_pos_above,
-            dir = vector.subtract(use_pos_under, use_pos_above),
+            out_dir = out_dir,
+            vel_change = vel_change,
         }
     end
 
@@ -1239,16 +1254,19 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     if use_pos_under and use_pos_above and inv_runes_contains["magikacia:rune_portal"] then
         local vel_change = nil
         local out_dir = vector.subtract(use_pos_above, use_pos_under)
-        local primary_portal = magikacia.effect_portal_pairs[pname].primary
+        if magikacia.effect_portal_pairs[placer_name] == nil then
+            magikacia.effect_portal_pairs[placer_name] = {}
+        end
+        local primary_portal = magikacia.effect_portal_pairs[placer_name].primary
         if primary_portal then
-            local primary_portal_out_dir = primay_portal.out_dir
+            local primary_portal_out_dir = primary_portal.out_dir
             vel_change = vector.new(
                 out_dir.x / primary_portal_out_dir.x,
                 out_dir.y / primary_portal_out_dir.y,
-                out_dir.z / primary_portal_out_dir.z,
+                out_dir.z / primary_portal_out_dir.z
             )
         end
-        magikacia.effect_portal_pairs[pname].secondary = {
+        magikacia.effect_portal_pairs[placer_name].secondary = {
             pos = use_pos_above,
             out_dir = out_dir,
             vel_change = vel_change,
