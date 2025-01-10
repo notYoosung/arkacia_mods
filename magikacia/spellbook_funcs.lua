@@ -910,6 +910,9 @@ function magikacia.effect_portal_add(id, defs, type)
                 (out_dir.y * paired_portal_out_dir.y) or 1,
                 (out_dir.z * paired_portal_out_dir.z) or 1
             )
+            minetest.log("out_dir: " .. tostring(out_dir))
+            minetest.log("paired_portal_out_dir: " .. tostring(paired_portal_out_dir))
+            minetest.log("vel_change: " .. tostring(vel_change))
         end
     end
     if vel_change == nil then
