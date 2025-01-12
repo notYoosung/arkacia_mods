@@ -964,37 +964,55 @@ function magikacia.effect_portal_remove(id, type)
 end
 
 local effect_portal_last_teleport_out = {}
-local effect_portal_last_teleport_out_reset_timer = 0
-local effect_portal_last_teleport_out_reset_interval = 2
 
 local effect_portal_teleport_time = 0
 local effect_portal_teleport_interval = 0.05
 local effect_portal_anim_duration = effect_portal_teleport_interval * 2
 
+local function distsq(a, b, d)
+    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z) < d * d
+end
 
 magikacia.register_globalstep("effect_portal_teleport", function(dtime)
-    effect_portal_last_teleport_out_reset_timer = effect_portal_last_teleport_out_reset_timer + dtime
 
-    if effect_portal_last_teleport_out_reset_timer > effect_portal_last_teleport_out_reset_interval then
-        effect_portal_last_teleport_out_reset_timer = 0
-        effect_portal_last_teleport_out = {}
-    end
+
 
     effect_portal_teleport_time = effect_portal_teleport_time + dtime
     if effect_portal_teleport_time < effect_portal_teleport_interval then
         return
     end
 
+    for obj, last_teleport_data in pairs(effect_portal_last_teleport_out) do
+        local obj_pos = obj:get_pos()
+        if obj_pos then
+            local is_in_portal = false
+            local portal_pair = magikacia.effect_portal_pairs[last_teleport_data.id]
+            if portal_pair then
+                local portal_data = portal_pair[last_teleport_data.type]
+                if portal_data then
+                    if distsq(obj_pos, portal_data.pos, 1) then
+                        is_in_portal = true
+                    end
+                end
+            end
+            if not is_in_portal then
+                effect_portal_last_teleport_out[obj] = nil
+            end
+        else
+            effect_portal_last_teleport_out[obj] = nil
+        end
+    end
+
 
     local teleported_objects_log = {}
-    for k, portal_pair in pairs(magikacia.effect_portal_pairs) do
+    for portal_pair_id, portal_pair in pairs(magikacia.effect_portal_pairs) do
         local portal_primary = portal_pair.primary
         local portal_secondary = portal_pair.secondary
 
         if portal_primary and portal_secondary then
             magikacia.radius_effect_func(portal_primary.pos, 1, nil, function(obj)
                 local last_teleport_out = effect_portal_last_teleport_out[obj]
-                if last_teleport_out ~= "secondary" and not teleported_objects_log[obj] then
+                if last_teleport_out.type ~= "secondary" and not teleported_objects_log[obj] then
                     teleported_objects_log[obj] = true
                     local vc = portal_secondary.vel_change
                     if vc then
@@ -1008,22 +1026,25 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
                         -- minetest.log(tostring(newvel))
                     end
                     obj:set_pos(portal_secondary.pos)
-                    effect_portal_last_teleport_out[obj] = "primary"
+                    effect_portal_last_teleport_out[obj] = {
+                        id = portal_pair_id,
+                        type = "primary"
+                    }
                 end
             end)
             magikacia.radius_effect_func(portal_secondary.pos, 1, nil, function(obj)
                 local last_teleport_out = effect_portal_last_teleport_out[obj]
-                if last_teleport_out ~= "primary" and not teleported_objects_log[obj] then
+                if last_teleport_out.type ~= "primary" and not teleported_objects_log[obj] then
                     teleported_objects_log[obj] = true
                     local vc = portal_primary.vel_change
                     if vc then
                         local v = obj:get_velocity()
-                        local newvel = vector.add(vector.multiply(portal_primary.out_dir, 100), vector.new(
+                        local newvel = vector.add(vector.multiply(portal_primary.out_dir, 5), vector.new(
                             v.x * (vc.x or 1),
                             v.y * (vc.y or 1),
                             v.z * (vc.z or 1)
                         ))
-                        minetest.log("sec: " .. tostring(newvel))
+                        minetest.log("newvel: " .. tostring(newvel))
                         obj:set_velocity(newvel)
                     end
                     obj:set_pos(portal_primary.pos)
