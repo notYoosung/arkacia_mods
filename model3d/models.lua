@@ -1,6 +1,12 @@
 --mcl_util._arkacia_model3d_init
 
+local model3d_on_receive_fields = {}
 
+local model_entity_editor_formspec = table.concat({
+    "",
+})
+
+local registered_model3d_ents = {}
 
 minetest.register_entity(":model3d:model_entity", {
     initial_properties = {
@@ -15,13 +21,34 @@ minetest.register_entity(":model3d:model_entity", {
             for k, v in data do
                 self[k] = v
             end
+            if self.ent_id then
+                if registered_model3d_ents[self.ent_id] ~= nil then
+                    self.ent_id = #registered_model3d_ents + 1
+                end
+                registered_model3d_ents[self.ent_id] == self.object
+            end
         end
     end,
     on_step = function(self, dtime)
     end,
     on_rightclick = function(self, clicker)
+        if clicker and clicker:is_player() then
+            local pname = clicker:get_player_name()
+            minetest.show_formspec(pname, "model3d:model_entity_editor", model_entity_editor_formspec)
+        end
     end,
 })
+
+function model3d_on_receive_fields["model3d:model_entity_editor"](player, formname, fields)
+    local ent
+    if fields.ent_id then
+        local id = tonumber(fields.ent_id)
+        if id ~= nil then
+            ent = registered_model3d_ents[id]
+        end
+    end
+end
+
 
 local tool_model_spawner_secondary_formspec = table.concat({
     
@@ -66,7 +93,6 @@ minetest.register_tool(":model3d:tool_model_spawner", {
     on_secondary_use = tool_model_spawner_secondary,
     on_place = tool_model_spawner_secondary,
 })
-
 
 
 
@@ -370,3 +396,13 @@ minetest.register_tool(":model3d:tool_model_formspec", {
     description = "Tool Model Formspec",
     on_use = tool_model_formspec_primary,
 })
+
+
+if not mcl_util._arkacia_model3d_init then
+    minetest.register_on_player_receive_fields(function(player, formname, fields)
+        if model3d_on_receive_fields[formname] then
+            model3d_on_receive_fields[formname](player, formname, fields)
+    end)
+end
+
+mcl_util._arkacia_model3d_init = true
