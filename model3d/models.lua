@@ -1,11 +1,35 @@
 --mcl_util._arkacia_model3d_init
+local F = minetest.formspec_escape
 
 local model3d_on_receive_fields = {}
 
-local model_entity_editor_formspec = table.concat({
-    "",
-})
-
+local function get_model_entity_editor_formspec(defs)
+    local le = defs.self
+    local props = {
+        size_x = 1,
+        size_y = 1,
+        size_z = 1,
+        pos_x = 1,
+        pos_y = 1,
+        pos_z = 1,
+        rot_x = 1,
+        rot_y = 1,
+        rot_z = 1,
+        color_r = 200,
+        color_g = 200,
+        color_b = 200,
+        color_alpha = 255,
+        gravity = 0,
+    }
+    if le then
+        local obj = le.object
+        local player = defs.player
+    end
+    local fs = table.concat({
+        "",
+    })
+    return fs
+end
 local registered_model3d_ents = {}
 
 minetest.register_entity(":model3d:model_entity", {
@@ -14,6 +38,7 @@ minetest.register_entity(":model3d:model_entity", {
         mesh = "model3d_cube.obj",
         textures = { "blank.png^[colorize:#a4a4a4:255" },
         static_save = true,
+        armor = { immortal = 1, },
     },
     on_activate = function(self, staticdata)
         if staticdata ~= "" then
@@ -34,7 +59,10 @@ minetest.register_entity(":model3d:model_entity", {
     on_rightclick = function(self, clicker)
         if clicker and clicker:is_player() then
             local pname = clicker:get_player_name()
-            minetest.show_formspec(pname, "model3d:model_entity_editor", model_entity_editor_formspec)
+            minetest.show_formspec(pname, "model3d:model_entity_editor", get_model_entity_editor_formspec({
+                self = self,
+                player = clicker,
+            }))
         end
     end,
 })
@@ -45,6 +73,31 @@ function model3d_on_receive_fields["model3d:model_entity_editor"](player, formna
         local id = tonumber(fields.ent_id)
         if id ~= nil then
             ent = registered_model3d_ents[id]
+        end
+    end
+    if ent and ent:is_valid() then
+        local le = ent:get_luaentity()
+        if le then
+            local default_props = {
+                size_x = 1,
+                size_y = 1,
+                size_z = 1,
+                pos_x = 1,
+                pos_y = 1,
+                pos_z = 1,
+                rot_x = 1,
+                rot_y = 1,
+                rot_z = 1,
+                color_r = 200,
+                color_g = 200,
+                color_b = 200,
+                color_alpha = 255,
+                gravity = 0,
+            }
+            for prop_key, prop_val in pairs(default_props) do
+                le[prop_key] = fields[prop_key] ~= nil and fields[prop_key] or default_props[prop_key]
+            end
+            le.textures = { "blank.png^[colorize:#" .. string.format("#%02X%02X%02X", le.color_r, le.color_g, le.color_b) .. ":" .. le[color_alpha] }
         end
     end
 end

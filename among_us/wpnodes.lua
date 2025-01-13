@@ -134,6 +134,7 @@ local function update_waypoint_node(pos, player, pname)
     end
 end
 
+local F = minetest.formspec_escape
 
 local function update_waypoint_node_fs(pos, player)
     local meta = minetest.get_meta(pos)
@@ -147,18 +148,18 @@ local function update_waypoint_node_fs(pos, player)
         "label[       4.00,0.375;Waypoint Node]",
 
         "label[        0.375,1.0;Name]",
-        "field[      0.375,1.175; 8.25,0.5;name;;" .. (data.name or "") .. "]",
+        "field[      0.375,1.175; 8.25,0.5;name;;" .. F(data.name or "") .. "]",
 
         "label[      0.375,2;Pos Offset]",
-        "field[       0.37,2.275; 2.75,0.5;offsetx;X;" .. (data.offsetx or 0) .. "]",
-        "field[       3.12,2.275; 2.75,0.5;offsety;Y;" .. (data.offsety or 0) .. "]",
-        "field[       5.87,2.275; 2.75,0.5;offsetz;Z;" .. (data.offsetz or 0) .. "]",
+        "field[       0.37,2.275; 2.75,0.5;offsetx;X;" .. F(data.offsetx or 0) .. "]",
+        "field[       3.12,2.275; 2.75,0.5;offsety;Y;" .. F(data.offsety or 0) .. "]",
+        "field[       5.87,2.275; 2.75,0.5;offsetz;Z;" .. F(data.offsetz or 0) .. "]",
 
         "label[        0.375,3.0;Color (HEX) (#ffffff or ffffff)]",
-        "field[      0.375,3.175; 8.25,0.5;color;;#" .. (data.color or "ffffff") .. "]",
+        "field[      0.375,3.175; 8.25,0.5;color;;#" .. F(data.color or "ffffff") .. "]",
 
         "label[        0.375,4.0;Distance Decimal Precision (0 to disable)]",
-        "field[      0.375,4.175; 8.25,0.5;precision;;" .. (pnum or "0") .. "]",
+        "field[      0.375,4.175; 8.25,0.5;precision;;" .. F(pnum or "0") .. "]",
 
         "button_exit[0.375,8.675; 4,1;save;Save]",
         "button_exit[4.375,8.675; 4,1;cancel;Cancel]",
