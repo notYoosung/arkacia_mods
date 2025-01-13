@@ -12,9 +12,9 @@ local function get_model_entity_editor_formspec(defs)
         pos_x = 1,
         pos_y = 1,
         pos_z = 1,
-        rot_x = 1,
-        rot_y = 1,
-        rot_z = 1,
+        rot_x = 0,
+        rot_y = 0,
+        rot_z = 0,
         color_r = 200,
         color_g = 200,
         color_b = 200,
@@ -24,6 +24,10 @@ local function get_model_entity_editor_formspec(defs)
     if le then
         local obj = le.object
         local player = defs.player
+        local pos = obj:get_pos()
+        if pos then
+            props.pos_x, props.pos_y, props.pos_z = table.unpack({pos.x, pos.y, pos.z})
+        end
     end
     local fs = table.concat({
         "",
