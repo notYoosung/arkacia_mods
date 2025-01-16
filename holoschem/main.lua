@@ -13,40 +13,20 @@ holoschem = holoschem or {
     registered_on_leaveplayer = {},
     registered_on_joinplayer = {},
     registered_on_player_receive_fields = {},
+    registered_on_receiving_chat_message = {},
+    registered_on_sending_chat_message = {},
     players = {}
 }
 
-
-function magikacia.register_globalstep(id, func)
-    magikacia.registered_globalsteps[id] = func
-end
-
-function magikacia.register_globalstep_slow(id, func)
-    magikacia.registered_globalsteps_slow[id] = func
-end
-
-function magikacia.register_player_globalstep(id, func)
-    magikacia.registered_player_globalsteps[id] = func
-end
-
-function magikacia.register_player_globalstep_slow(id, func)
-    magikacia.registered_player_globalsteps_slow[id] = func
-end
-
-function magikacia.register_damage_modifier(id, func)
-    magikacia.registered_damage_modifiers[id] = func
-end
-
-function magikacia.register_on_player_receive_fields(id, func)
-    magikacia.registered_on_player_receive_fields[id] = func
-end
-
-function magikacia.register_on_joinplayer(id, func)
-    magikacia.registered_on_joinplayer[id] = func
-end
-
-function magikacia.register_on_leaveplayer(id, func)
-    magikacia.registered_on_leaveplayer[id] = func
+for k, v in pairs(holoschem) do
+    if string.find(v, "^reigstered_") then
+        local fname = string.gsub("^reigstered_", "reigster_")
+        if core[fname] then
+            function holoschem[fname](id, func)
+                holoschem[k][id] = func
+            end
+        end
+    end
 end
 
 if not mcl_util.holoschem_main_init then
@@ -65,16 +45,24 @@ if not mcl_util.holoschem_main_init then
             func(dtime)
         end
     end)
-    mcl_player.register_globalstep(function(player, dtime)
-        for func_id, func in pairs(magikacia.registered_player_globalsteps) do
-            func(player, dtime)
+    minetest.register_on_receiving_chat_message(function(message))
+        for func_id, func in pairs(magikacia.registered_on_receiving_chat_message) do
+            func(message)
         end
     end)
-    mcl_player.register_globalstep_slow(function(player, dtime)
-        for func_id, func in pairs(magikacia.registered_player_globalsteps_slow) do
-            func(player, dtime)
+    minetest.register_on_sending_chat_message(function(message))
+        for func_id, func in pairs(magikacia.registered_on_sending_chat_message) do
+            func(message)
         end
     end)
+    minetest.register_on_hp_modification(function(hp)
+        for func_id, func in pairs(magikacia.registered_on_hp_modification) do
+            func(hp)
+        end
+    end)
+
+
+
     minetest.register_on_joinplayer(function(player)
         local playername = player:get_player_name()
         magikacia.players[playername] = magikacia.players[playername] or {}
@@ -98,9 +86,6 @@ if not mcl_util.holoschem_main_init then
         for func_id, func in pairs(magikacia.registered_on_player_receive_fields) do
             func(player, formname, fields)
         end
-    end)
-    minetest.register_on_receiving_chat_message(function(message))
-
     end)
 end
 
