@@ -1,13 +1,10 @@
 local modname = minetest.get_current_modname()
 local modpath = minetest.get_modpath(modname)
 
-holoschem = holoschem or {}
-
-holoschem.modname = modname
-holoschem.modpath = modpath
 
 
 local files = {
+    "main"
     "render",
     "checkplace",
     "chatcommands",
