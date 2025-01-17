@@ -117,7 +117,6 @@ local function render_schem()
 	}
 
 	local player_pos = player:get_pos()
-	local base_objref = minetest.add_entity(player_pos, "edit:paste_preview_base")
 	local schematic = edit.player_data[player].schematic
 	local vector_1 = vector.new(1, 1, 1)
 	local size = schematic.size

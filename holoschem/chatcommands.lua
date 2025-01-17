@@ -99,6 +99,11 @@ minetest.register_chatcommand(".hs", {
     description = "toggle holoschem or run subcommands",
     func = function(param)
         local params = local params = string.split(param, " +", false, -2, true)
+        local p1 = params[1]
+        if p1 and subcmds[p1] then
+            local subcmd = subcmds[p1]
+            cub
+        end
     end
 })
 
