@@ -1,3 +1,41 @@
+local rotations = {}
+local d = 180
+local r = d / 2
+
+rotations.facedir = {
+	[0] = vector.new(0, 0, 0),
+	vector.new( 0,  r,  0),
+	vector.new( 0,  d,  0),
+	vector.new( 0, -r,  0),
+
+	vector.new( r,  0,  0),
+	vector.new( r,  0,  r),
+	vector.new( r,  0,  d),
+	vector.new( r,  0, -r),
+
+	vector.new(-r,  0,  0),
+	vector.new(-r,  0, -r),
+	vector.new(-r,  0,  d),
+	vector.new(-r,  0,  r),
+
+	vector.new( 0,  0, -r),
+	vector.new( 0,  r, -r),
+	vector.new( 0,  d, -r),
+	vector.new( 0, -r, -r),
+
+	vector.new( 0,  0,  r),
+	vector.new( 0,  r,  r),
+	vector.new( 0,  d,  r),
+	vector.new( 0,  -r,  r),
+
+	vector.new( 0,  0,  d),
+	vector.new( 0,  r,  d),
+	vector.new( 0,  d,  d),
+	vector.new( 0, -r,  d),
+}
+
+
+
 local gs_interval = 0.5
 
 if not mcl_util.holoschem_render_init then
@@ -5,6 +43,15 @@ if not mcl_util.holoschem_render_init then
 end
 
 local function render_schem()
+	if holoschem.render_particlespwaner_ids == nil then
+		holoschem.render_particlespwaner_ids = {}
+	else
+		if type(holoschem.render_particlespwaner_ids) == "table" then
+			for _, render_particlespwaner_id in ipairs(holoschem.render_particlespwaner_ids) do
+				minetest.delete_particlespawner(render_particlespwaner_id, holoschem.localplayername)
+			end
+		end
+	end
 	local particlespawnerdef = {
 		-------------------
 		-- Common fields --
@@ -88,18 +135,18 @@ local function render_schem()
 	end
 	for i in voxel_area:iterp(vector_1, size) do
 		local pos = voxel_area:position(i)
-		local name = schematic.data[i].name
+		local node_name = schematic.data[i].name
 		if not node_black_list[i] and math.random() < probability then
 			local attach_pos = vector.multiply(pos, 10)
-			local attach_rot
-			local objref = minetest.add_entity(player_pos, "edit:preview_node")
-			objref:set_properties({wield_item = name})
-			local node_def = minetest.registered_nodes[name]
-			if node_def and node_def.paramtype2 == "facedir" then
-				local param2 = schematic.data[i].param2
-				attach_rot = param2_to_rotation[param2]
-			end
-			objref:set_attach(base_objref, "", attach_pos, attach_rot)
+			local node_def = core.get_node_def(node_name) or core.get_item_def(node_name)
+			--[[
+* `core.get_node_def(nodename)`
+    * Returns [node definition](#node-definition) table of `nodename`
+* `core.get_item_def(itemstring)`
+    * Returns item definition table of `itemstring`
+			]]
+			minetest.add_particlespawner(particlespawnerdef)
+			
 		end
 	end
 end
