@@ -25,6 +25,16 @@ holoschem = holoschem or {
     registered_on_inventory_open = {},
 }
 
+local function get_localplayer()
+    if not holoschem.localplayer and minetest.localplayer then
+        holoschem.localplayer = minetest.localplayer
+        holoschem.localplayername = minetest.localplayer:get_player_name()
+    else
+        minetest.after(0.5)
+        get_localplayer()
+    end
+end
+
 for k, registered_list in pairs(holoschem) do
     if string.find(k, "^registered_") then
         local fname = string.gsub("^registered_", "register_")

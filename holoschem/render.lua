@@ -5,6 +5,87 @@ if not mcl_util.holoschem_render_init then
 end
 
 local function render_schem()
+	local particlespawnerdef = {
+		-------------------
+		-- Common fields --
+		-------------------
+		-- (same name and meaning in both new and legacy syntax)
+
+		amount = 1,
+		-- Number of particles spawned over the time period `time`.
+
+		time = 0,
+		-- Lifespan of spawner in seconds.
+		-- If time is 0 spawner has infinite lifespan and spawns the `amount` on
+		-- a per-second basis.
+
+		collisiondetection = true,
+		-- If true collide with `walkable` nodes and, depending on the
+		-- `object_collision` field, objects too.
+
+		collision_removal = true,
+		-- If true particles are removed when they collide.
+		-- Requires collisiondetection = true to have any effect.
+
+		object_collision = false,
+		-- If true particles collide with objects that are defined as
+		-- `physical = true,` and `collide_with_objects = true,`.
+		-- Requires collisiondetection = true to have any effect.
+
+		attached = ObjectRef,
+		-- If defined, particle positions, velocities and accelerations are
+		-- relative to this object's position and yaw
+
+		vertical = false,
+		-- If true face player using y axis only
+
+		texture = "blank.png",
+		-- The texture of the particle
+		-- v5.6.0 and later: also supports the table format described in the
+		-- following section.
+
+		playername = holoschem.localplayername or "",
+		-- Optional, if specified spawns particles only on the player's client
+
+		animation = {Tile Animation definition},
+		-- Optional, specifies how to animate the particles' texture
+		-- v5.6.0 and later: set length to -1 to synchronize the length
+		-- of the animation with the expiration time of individual particles.
+		-- (-2 causes the animation to be played twice, and so on)
+
+		glow = 14,
+		-- Optional, specify particle self-luminescence in darkness.
+		-- Values 0-14.
+
+		-- node = {name = "ignore", param2 = 0},
+		-- Optional, if specified the particles will have the same appearance as
+		-- node dig particles for the given node.
+		-- `texture` and `animation` will be ignored if this is set.
+
+		-- node_tile = 0,
+		-- Optional, only valid in combination with `node`
+		-- If set to a valid number 1-6, specifies the tile from which the
+		-- particle texture is picked.
+		-- Otherwise, the default behavior is used. (currently: any random tile)
+	}
+
+	local player_pos = player:get_pos()
+	local base_objref = minetest.add_entity(player_pos, "edit:paste_preview_base")
+	local schematic = edit.player_data[player].schematic
+	local vector_1 = vector.new(1, 1, 1)
+	local size = schematic.size
+	local voxel_area = VoxelArea:new({MinEdge = vector_1, MaxEdge = size})
+	local schem_data = schematic.data
+	local count = size.x * size.y * size.z
+	local node_black_list = {}
+
+	-- Remove air from the schematic preview
+	for i, map_node in pairs(schem_data) do
+		if map_node.name == "air" then
+			count = count - 1
+			node_black_list[i] = true
+		end
+	end
 	for i in voxel_area:iterp(vector_1, size) do
 		local pos = voxel_area:position(i)
 		local name = schematic.data[i].name
@@ -28,129 +109,6 @@ mcl_util.holoschem_render_init = true
 
 
 
-if not mcl_util.imodel3d_render_init then
-    local gs_timer = 0
-    local gs_interval = 1
-
-    minetest.register_globalstep(function(dtime)
-        gs_timer = gs_timer + dtime
-        local particledef = {
-            pos = {x=0, y=0, z=0},
-            velocity = {x=0, y=0, z=0},
-            acceleration = {x=0, y=0, z=0},
-            -- Spawn particle at pos with velocity and acceleration
-
-            expirationtime = 1,
-            -- Disappears after expirationtime seconds
-
-            size = 1,
-            -- Scales the visual size of the particle texture.
-            -- If `node` is set, size can be set to 0 to spawn a randomly-sized
-            -- particle (just like actual node dig particles).
-
-            collisiondetection = false,
-            -- If true collides with `walkable` nodes and, depending on the
-            -- `object_collision` field, objects too.
-
-            collision_removal = true,
-            -- If true particle is removed when it collides.
-            -- Requires collisiondetection = true to have any effect.
-
-            -- object_collision = false,
-            -- If true particle collides with objects that are defined as
-            -- `physical = true,` and `collide_with_objects = true,`.
-            -- Requires collisiondetection = true to have any effect.
-
-            vertical = false,
-            -- If true faces player using y axis only
-
-            texture = "image.png",
-            -- The texture of the particle
-            -- v5.6.0 and later: also supports the table format described in the
-            -- following section, but due to a bug this did not take effect
-            -- (beyond the texture name).
-            -- v5.9.0 and later: fixes the bug.
-            -- Note: "texture.animation" is ignored here. Use "animation" below instead.
-
-            -- playername = "singleplayer",
-            -- Optional, if specified spawns particle only on the player's client
-
-            -- animation = {Tile Animation definition},
-            -- Optional, specifies how to animate the particle texture
-
-            glow = 14
-            -- Optional, specify particle self-luminescence in darkness.
-            -- Values 0-14.
-
-            -- node = {name = "ignore", param2 = 0},
-            -- Optional, if specified the particle will have the same appearance as
-            -- node dig particles for the given node.
-            -- `texture` and `animation` will be ignored if this is set.
-
-            -- node_tile = 0,
-            -- Optional, only valid in combination with `node`
-            -- If set to a valid number 1-6, specifies the tile from which the
-            -- particle texture is picked.
-            -- Otherwise, the default behavior is used. (currently: any random tile)
-
-            -- drag = {x=0, y=0, z=0},
-            -- v5.6.0 and later: Optional drag value, consult the following section
-            -- Note: Only a vector is supported here. Alternative forms like a single
-            -- number are not supported.
-
-            -- jitter = {min = ..., max = ..., bias = 0},
-            -- v5.6.0 and later: Optional jitter range, consult the following section
-
-            -- bounce = {min = ..., max = ..., bias = 0},
-            -- v5.6.0 and later: Optional bounce range, consult the following section
-        }
-        minetest.add_particle(particledef)
-
-
-
-	local player_pos = player:get_pos()
-	local base_objref = minetest.add_entity(player_pos, "edit:paste_preview_base")
-	local schematic = edit.player_data[player].schematic
-	local vector_1 = vector.new(1, 1, 1)
-	local size = schematic.size
-	local voxel_area = VoxelArea:new({MinEdge = vector_1, MaxEdge = size})
-	local schem_data = schematic.data
-	local count = size.x * size.y * size.z
-	local node_black_list = {}
-
-	-- Remove air from the schematic preview
-	for i, map_node in pairs(schem_data) do
-		if map_node.name == "air" then
-			count = count - 1
-			node_black_list[i] = true
-		end
-	end
-
-
-	local probability = edit.paste_preview_max_entities / count
-	for i in voxel_area:iterp(vector_1, size) do
-		local pos = voxel_area:position(i)
-		local name = schematic.data[i].name
-		if not node_black_list[i] and math.random() < probability then
-			local attach_pos = vector.multiply(pos, 10)
-			local attach_rot
-			local objref = minetest.add_entity(player_pos, "edit:preview_node")
-			objref:set_properties({wield_item = name})
-			local node_def = minetest.registered_nodes[name]
-			if node_def and node_def.paramtype2 == "facedir" then
-				local param2 = schematic.data[i].param2
-				attach_rot = param2_to_rotation[param2]
-			end
-			objref:set_attach(base_objref, "", attach_pos, attach_rot)
-		end
-	end
-	edit.player_data[player].paste_preview = base_objref:get_luaentity()
-	edit.player_data[player].schematic._rotation = 0
-	edit.rotate_paste_preview(player)
-    end)
-end
-
-mcl_util.imodel3d_render_init =  true
 
 
 
@@ -320,6 +278,91 @@ local particlespawnerdeftemplate = {
 }
 
 
+local newparticlespawnerdeftemplate = {
+  -- old syntax
+  maxpos = {x = 0, y = 0, z = 0},
+  minpos = {x = 0, y = 0, z = 0},
+
+  -- absolute value
+  pos = 0,
+  -- all components of every particle's position vector will be set to this
+  -- value
+
+  -- vec3
+  pos = vector.new(0,0,0),
+  -- all particles will appear at this exact position throughout the lifetime
+  -- of the particlespawner
+
+  -- vec3 range
+  pos = {
+        -- the particle will appear at a position that is picked at random from
+        -- within a cubic range
+
+        min = vector.new(0,0,0),
+        -- `min` is the minimum value this property will be set to in particles
+        -- spawned by the generator
+
+        max = vector.new(0,0,0),
+        -- `max` is the minimum value this property will be set to in particles
+        -- spawned by the generator
+
+        bias = 0,
+        -- when `bias` is 0, all random values are exactly as likely as any
+        -- other. when it is positive, the higher it is, the more likely values
+        -- will appear towards the minimum end of the allowed spectrum. when
+        -- it is negative, the lower it is, the more likely values will appear
+        -- towards the maximum end of the allowed spectrum. the curve is
+        -- exponential and there is no particular maximum or minimum value
+    },
+
+    -- tween table
+    pos_tween = {...},
+    -- a tween table should consist of a list of frames in the same form as the
+    -- untweened pos property above, which the engine will interpolate between,
+    -- and optionally a number of properties that control how the interpolation
+    -- takes place. currently **only two frames**, the first and the last, are
+    -- used, but extra frames are accepted for the sake of forward compatibility.
+    -- any of the above definition styles can be used here as well in any combination
+    -- supported by the property type
+
+    pos_tween = {
+        style = "fwd",
+        -- linear animation from first to last frame (default)
+        style = "rev",
+        -- linear animation from last to first frame
+        style = "pulse",
+        -- linear animation from first to last then back to first again
+        style = "flicker",
+        -- like "pulse", but slightly randomized to add a bit of stutter
+
+        reps = 1,
+        -- number of times the animation is played over the particle's lifespan
+
+        start = 0.0,
+        -- point in the spawner's lifespan at which the animation begins. 0 is
+        -- the very beginning, 1 is the very end
+
+        -- frames can be defined in a number of different ways, depending on the
+        -- underlying type of the property. for now, all but the first and last
+        -- frame are ignored
+
+        -- frames
+
+            -- floats
+            0, 0,
+
+            -- vec3s
+            vector.new(0,0,0),
+            vector.new(0,0,0),
+
+            -- vec3 ranges
+            { min = vector.new(0,0,0), max = vector.new(0,0,0), bias = 0 },
+            { min = vector.new(0,0,0), max = vector.new(0,0,0), bias = 0 },
+
+            -- mixed
+            0, { min = vector.new(0,0,0), max = vector.new(0,0,0), bias = 0 },
+    },
+}
 --[[
 
 #### List of particlespawner properties
