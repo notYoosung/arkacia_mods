@@ -655,7 +655,7 @@ minetest.register_entity(":magikacia:effect_entity_sprite", {
     end,
     on_step = function(self, dtime)
         local ent_def = self._magikacia_effect_entity_3d_defs or {}
-        if ent_def.can_despawn ~= false then
+        if ent_def.can_despawn ~= false and ent_def.expiration_time >= 0 then
             self.timer = (self.timer or 0) + dtime
             if self.timer > (ent_def.expiration_time or 5) then
                 self.object:remove()
@@ -675,14 +675,21 @@ minetest.register_entity(":magikacia:effect_entity_sprite", {
 
 
 
+local ee3dtex = "default_dirt.png"
 minetest.register_entity(":magikacia:effect_entity_3d", {
     initial_properties = {
-        visual = "mesh",
-        mesh = "mcl_skins_head.obj",
+        visual = "cube",
         visual_size = { x = 1, y = 1, z = 0.1, },
         physical = false,
         pointable = false,
-        textures = { "blank.png" },
+        textures = {
+            ee3dtex,
+            ee3dtex,
+            ee3dtex,
+            ee3dtex,
+            ee3dtex,
+            ee3dtex,
+        },
         static_save = false,
     },
     on_activate = function(self, staticdata, dtime_s)
@@ -700,10 +707,13 @@ minetest.register_entity(":magikacia:effect_entity_3d", {
     end,
     on_step = function(self, dtime)
         local ent_def = self._magikacia_effect_entity_3d_defs
-        self.timer = (self.timer or 0) + dtime
-        if self.timer > (ent_def.expiration_time or 5) then
-            self.object:remove()
-            return
+        local exp_time = (ent_def.expiration_time ~= nil and ent_def.expiration_time or 5)
+        if ent_def and exp_time >= 0 then
+            self.timer = (self.timer or 0) + dtime
+            if self.timer > exp_time then
+                self.object:remove()
+                return
+            end
         end
         local obj = self.object
         --[[local props = obj:get_properties()]]
@@ -720,11 +730,11 @@ minetest.register_entity(":magikacia:effect_entity_3d", {
     end,
 })
 local base_props = {
-    visual = "wielditem",
+    -- visual = "wielditem",
     visual_size = { x = 0.3, y = 0.3 },
     physical = false,
     pointable = false,
-    textures = { "blank.png" },
+    -- textures = { "blank.png" },
 }
 
 
@@ -746,6 +756,7 @@ function magikacia.tpl_entity:set_def(def)
 end
 
 function magikacia.spawn_effect_entity_sprite(def)
+    def.expiration_time = -1
     local ent = minetest.add_entity(def.pos, "magikacia:effect_entity_sprite", minetest.serialize({ _magikacia_effect_entity_3d_defs = def, }))
     ent:set_properties(table.merge(base_props, {
         textures = { def.texture },
@@ -784,10 +795,21 @@ function magikacia.spawn_effect_entity_3d(def)
         def.attach = {}
     end
     local ent = minetest.add_entity(def.pos, "magikacia:effect_entity_3d", minetest.serialize({ _magikacia_effect_entity_3d_defs = def, }))
+    local size = def.size ~= nil and def.size or 1
+    local tex = def.texture or "default_stone.png"
     ent:set_properties(table.merge(base_props, {
 
-        textures = { def.texture },
-        visual_size = { x = def.size, y = def.size, z = 0.1 },
+        textures = {
+            "blank.png",
+            "blank.png",
+            "blank.png",
+            "blank.png",
+            tex,
+            "blank.png",
+            "blank.png",
+        },
+        backface_culling = false,
+        visual_size = { x = size, y = size, z = 0.1 },
         attached_to_player_name = def.attach.player_name or ""
     }, def.object_properties or {}))
     ent:set_rotation(def.rotation)
@@ -878,12 +900,12 @@ function magikacia.get_or_create_void_primary_held_entity(attached_ent)
         if ent and ent.object then
             return ent
         else
-            local newent = minetest.add_entity("magikacia:effect_entity_sprite", {
+            local newent = minetest.add_entity("magikacia:effect_entity_sprite", minetest.serialize({
                 attached_to = attached_ent,
                 texture = magikacia.effect_void_primary .. "^[verticalframe:4:4",
                 size = 1,
                 expiration_time = 5,
-            })
+            }))
             effect_void_primary_held_entities[pname] = newent
         end
     end
@@ -938,6 +960,7 @@ function magikacia.effect_portal_add(id, defs, type)
             size = 1,
             object_properties = {},
             rotation = rot,
+            max_time
         })
         if paired_portal then
             magikacia.effect_portal_pairs[id][paired_type].effect_entity = new_ent
@@ -1012,7 +1035,7 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
         if portal_primary and portal_secondary then
             magikacia.radius_effect_func(portal_primary.pos, 1, nil, function(obj)
                 local last_teleport_out = effect_portal_last_teleport_out[obj]
-                if last_teleport_out.type ~= "secondary" and not teleported_objects_log[obj] then
+                if last_teleport_out and last_teleport_out.type ~= "secondary" and not teleported_objects_log[obj] then
                     teleported_objects_log[obj] = true
                     local vc = portal_secondary.vel_change
                     if vc then
@@ -1034,7 +1057,7 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
             end)
             magikacia.radius_effect_func(portal_secondary.pos, 1, nil, function(obj)
                 local last_teleport_out = effect_portal_last_teleport_out[obj]
-                if last_teleport_out.type ~= "primary" and not teleported_objects_log[obj] then
+                if last_teleport_out and last_teleport_out.type ~= "primary" and not teleported_objects_log[obj] then
                     teleported_objects_log[obj] = true
                     local vc = portal_primary.vel_change
                     if vc then
@@ -1054,20 +1077,20 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
         end
         if portal_primary then
             --[[magikacia.spawn_effect_entity_3d]]
-            magikacia.spawn_effect_anim({
+            --[[magikacia.spawn_effect_anim({
                 pos = portal_primary.pos,
                 texture = magikacia.textures.effect_portal_primary .. "^[transformR90",
                 duration_total = effect_portal_anim_duration,
                 duration_anim = effect_portal_anim_duration,
-            })
+            })]]
         end
         if portal_secondary then
-            magikacia.spawn_effect_anim({
+            --[[magikacia.spawn_effect_anim({
                 pos = portal_secondary.pos,
                 texture = magikacia.textures.effect_portal_secondary .. "^[transformR90",
                 duration_total = effect_portal_anim_duration,
                 duration_anim = effect_portal_anim_duration,
-            })
+            })]]
         end
     end
 

@@ -169,10 +169,10 @@ local particledeftemplate = {
     playername = "singleplayer",
     -- Optional, if specified spawns particle only on the player's client
 
-    animation = {Tile Animation definition},
+    animation = {"Tile Animation definition"},
     -- Optional, specifies how to animate the particle texture
 
-    glow = 0
+    glow = 0,
     -- Optional, specify particle self-luminescence in darkness.
     -- Values 0-14.
 
@@ -232,7 +232,7 @@ local particlespawnerdeftemplate = {
     -- `physical = true,` and `collide_with_objects = true,`.
     -- Requires collisiondetection = true to have any effect.
 
-    attached = ObjectRef,
+    attached = "ObjectRef",
     -- If defined, particle positions, velocities and accelerations are
     -- relative to this object's position and yaw
 
@@ -247,7 +247,7 @@ local particlespawnerdeftemplate = {
     playername = "singleplayer",
     -- Optional, if specified spawns particles only on the player's client
 
-    animation = {Tile Animation definition},
+    animation = {"Tile Animation definition"},
     -- Optional, specifies how to animate the particles' texture
     -- v5.6.0 and later: set length to -1 to synchronize the length
     -- of the animation with the expiration time of individual particles.

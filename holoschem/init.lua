@@ -4,20 +4,20 @@ local modpath = minetest.get_modpath(modname)
 
 
 local files = {
-    "main"
+    "main",
     "render",
     "checkplace",
     "chatcommands",
 }
 
 
-if not mcl_util.holoschem_init then
+--[[if not mcl_util.holoschem_init then
     minetest.register_on_mods_loaded(function()
         for _, filename in ipairs(files) do
             dofile(modpath .. "/" .. filename .. ".lua")
         end
     end)
-end
+end--]]
 
 
 

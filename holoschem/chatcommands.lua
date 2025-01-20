@@ -1,6 +1,6 @@
 if not mcl_util.holoschem_chatcommands_init then
     local gs_timer = 0
-    local gl_interval = 1
+    local gs_interval = 1
 
     minetest.register_globalstep(function(dtime)
         gs_timer = gs_timer + dtime
@@ -9,7 +9,7 @@ if not mcl_util.holoschem_chatcommands_init then
         end
         
         for k, v in ipairs(schem) do
-
+            
         end
         
         minetest.add_particle({

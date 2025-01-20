@@ -26,7 +26,7 @@ local function get_model_entity_editor_formspec(defs)
         local player = defs.player
         local pos = obj:get_pos()
         if pos then
-            props.pos_x, props.pos_y, props.pos_z = table.unpack({pos.x, pos.y, pos.z})
+            props.pos_x, props.pos_y, props.pos_z = table.unpack({ pos.x, pos.y, pos.z })
         end
     end
     local fs = table.concat({
@@ -54,7 +54,7 @@ minetest.register_entity(":model3d:model_entity", {
                 if registered_model3d_ents[self.ent_id] ~= nil then
                     self.ent_id = #registered_model3d_ents + 1
                 end
-                registered_model3d_ents[self.ent_id] == self.object
+                registered_model3d_ents[self.ent_id] = self.object
             end
         end
     end,
@@ -71,7 +71,7 @@ minetest.register_entity(":model3d:model_entity", {
     end,
 })
 
-function model3d_on_receive_fields["model3d:model_entity_editor"](player, formname, fields)
+model3d_on_receive_fields["model3d:model_entity_editor"] = function(player, formname, fields)
     local ent
     if fields.ent_id then
         local id = tonumber(fields.ent_id)
@@ -101,26 +101,30 @@ function model3d_on_receive_fields["model3d:model_entity_editor"](player, formna
             for prop_key, prop_val in pairs(default_props) do
                 le[prop_key] = fields[prop_key] ~= nil and fields[prop_key] or default_props[prop_key]
             end
-            le.textures = { "blank.png^[colorize:#" .. string.format("#%02X%02X%02X", le.color_r, le.color_g, le.color_b) .. ":" .. le[color_alpha] }
+            le.textures = { "blank.png^[colorize:#" .. string.format("#%02X%02X%02X", le.color_r, le.color_g, le.color_b) .. ":" .. (le.color_alpha or "255") }
         end
     end
 end
 
-
-local tool_model_spawner_secondary_formspec = table.concat({
-    
-}, "")
-local function tool_model_spawner_primary(itemstack, player, pointed_thing)
-    local meta = itemstack:get_meta()
-    minetest.show_formspec(player:get_player_name(), "model3d:tool_model_spawner", table.concat({
+local function get_tool_spawner_spawner_primary_formspec(def)
+    local fs = table.concat({
         "formspec_version[4]",
         "size[8,8.5]",
         "position[0.5,0.5]",
         "label[0,0;Model Spawner]",
-        "field[0,1;8,1;mesh;Mesh;]", mesh,
+        "field[0,1;8,1;mesh;Mesh;]", (def.mesh or "model3d_cube.obj"),
         "button[0,2;8,1;save;Save]",
         "list[current_player;main;0,4;8,4;]",
-    }, ""))
+    }, "")
+    return fs
+end
+
+local tool_model_spawner_secondary_formspec = table.concat({
+
+}, "")
+local function tool_model_spawner_primary(itemstack, player, pointed_thing)
+    local meta = itemstack:get_meta()
+    minetest.show_formspec(player:get_player_name(), "model3d:tool_model_spawner", get_tool_spawner_spawner_primary_formspec())
 end
 
 local function tool_model_spawner_secondary(itemstack, player, pointed_thing)
@@ -138,7 +142,6 @@ local function tool_model_spawner_secondary(itemstack, player, pointed_thing)
 
         }))
     end
-
 end
 
 
@@ -449,6 +452,7 @@ function tool_model_formspec_primary(itemstack, user, pointed_thing)
     if not user then return end
     model3d.show_formspec(user)
 end
+
 minetest.register_tool(":model3d:tool_model_formspec", {
     description = "Tool Model Formspec",
     on_use = tool_model_formspec_primary,
@@ -459,6 +463,7 @@ if not mcl_util._arkacia_model3d_init then
     minetest.register_on_player_receive_fields(function(player, formname, fields)
         if model3d_on_receive_fields[formname] then
             model3d_on_receive_fields[formname](player, formname, fields)
+        end
     end)
 end
 
