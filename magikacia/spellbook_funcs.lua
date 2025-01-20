@@ -932,9 +932,9 @@ function magikacia.effect_portal_add(id, defs, type)
                 (out_dir.y * paired_portal_out_dir.y) or 1,
                 (out_dir.z * paired_portal_out_dir.z) or 1
             )
-            minetest.log("out_dir: " .. tostring(out_dir))
+            --[[minetest.log("out_dir: " .. tostring(out_dir))
             minetest.log("paired_portal_out_dir: " .. tostring(paired_portal_out_dir))
-            minetest.log("vel_change: " .. tostring(vel_change))
+            minetest.log("vel_change: " .. tostring(vel_change))]]
         end
     end
     if vel_change == nil then
@@ -950,17 +950,17 @@ function magikacia.effect_portal_add(id, defs, type)
             new_effect_ent:remove()
         end
         local rot = vector.new(
-            out_dir.x > 0 and 90 or 3 * math.pi / 2,
-            out_dir.y > 0 and 90 or 270,
-            out_dir.z > 0 and 90 or 270
+            out_dir.x > 0 and (math.pi / 2) or 3 * math.pi / 2,
+            out_dir.y > 0 and (math.pi / 2) or 3 * math.pi / 2,
+            out_dir.z > 0 and (math.pi / 2) or 3 * math.pi / 2
         )
         local new_ent = magikacia.spawn_effect_entity_3d({
             pos = defs.pos,
-            texture = magikacia.textures.effect_portal_primary,
+            texture = magikacia.textures["effect_portal_" .. type],
             size = 1,
             object_properties = {},
             rotation = rot,
-            max_time
+            expiration_time = -1,
         })
         if paired_portal then
             magikacia.effect_portal_pairs[id][paired_type].effect_entity = new_ent
