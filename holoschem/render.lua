@@ -94,7 +94,7 @@ local function render_schem()
 		playername = holoschem.localplayername or "",
 		-- Optional, if specified spawns particles only on the player's client
 
-		animation = {Tile Animation definition},
+		-- animation = {Tile Animation definition},
 		-- Optional, specifies how to animate the particles' texture
 		-- v5.6.0 and later: set length to -1 to synchronize the length
 		-- of the animation with the expiration time of individual particles.
@@ -114,6 +114,9 @@ local function render_schem()
 		-- If set to a valid number 1-6, specifies the tile from which the
 		-- particle texture is picked.
 		-- Otherwise, the default behavior is used. (currently: any random tile)
+
+    minexptime = 1,
+    maxexptime = 1,
 	}
 
 	local player_pos = player:get_pos()
@@ -144,8 +147,10 @@ local function render_schem()
 * `core.get_item_def(itemstring)`
     * Returns item definition table of `itemstring`
 			]]
-			minetest.add_particlespawner(particlespawnerdef)
-			
+    if node_def and node_def.name ~= "air" then
+			local ps = minetest.add_particlespawner(particlespawnerdef)
+			holoschem.render_particlespwaner_ids[#holoschem.render_particlespwaner_ids + 1] = ps
+    end
 		end
 	end
 end
@@ -203,7 +208,7 @@ local particledeftemplate = {
     playername = "singleplayer",
     -- Optional, if specified spawns particle only on the player's client
 
-    animation = {Tile Animation definition},
+    animation = {"Tile Animation definition"},
     -- Optional, specifies how to animate the particle texture
 
     glow = 0
@@ -266,7 +271,7 @@ local particlespawnerdeftemplate = {
     -- `physical = true,` and `collide_with_objects = true,`.
     -- Requires collisiondetection = true to have any effect.
 
-    attached = ObjectRef,
+    attached = "ObjectRef",
     -- If defined, particle positions, velocities and accelerations are
     -- relative to this object's position and yaw
 
@@ -281,7 +286,7 @@ local particlespawnerdeftemplate = {
     playername = "singleplayer",
     -- Optional, if specified spawns particles only on the player's client
 
-    animation = {Tile Animation definition},
+    animation = {"Tile Animation definition"},
     -- Optional, specifies how to animate the particles' texture
     -- v5.6.0 and later: set length to -1 to synchronize the length
     -- of the animation with the expiration time of individual particles.
