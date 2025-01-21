@@ -944,15 +944,16 @@ function magikacia.effect_portal_add(id, defs, type)
     if paired_portal then
         magikacia.effect_portal_pairs[id][paired_type].vel_change = vel_change
     end
-    local new_effect_ent = magikacia.effect_portal_pairs[id][type].effect_entity
-    if new_effect_ent == nil or (new_effect_ent and not (new_effect_ent:is_valid() and new_effect_ent:get_pos())) then
-        if new_effect_ent then
-            new_effect_ent:remove()
+    local effect_ent = magikacia.effect_portal_pairs[id][type].effect_entity
+    if effect_ent == nil or (effect_ent and not (effect_ent:is_valid() and effect_ent:get_pos())) then
+        minetest.log("ent create")
+        if effect_ent then
+            effect_ent:remove()
         end
         local rot = vector.new(
-            out_dir.x > 0 and (math.pi / 2) or 3 * math.pi / 2,
-            out_dir.y > 0 and (math.pi / 2) or 3 * math.pi / 2,
-            out_dir.z > 0 and (math.pi / 2) or 3 * math.pi / 2
+            out_dir.x > 0 and (math.pi / 2) or 0 * math.pi / 2,
+            out_dir.y > 0 and (math.pi / 2) or 0 * math.pi / 2,
+            out_dir.z > 0 and (math.pi / 2) or 0 * math.pi / 2
         )
         local new_ent = magikacia.spawn_effect_entity_3d({
             pos = defs.pos,
@@ -962,13 +963,13 @@ function magikacia.effect_portal_add(id, defs, type)
             rotation = rot,
             expiration_time = -1,
         })
-        if paired_portal then
-            magikacia.effect_portal_pairs[id][paired_type].effect_entity = new_ent
-        end
+        defs.effect_entity = new_ent
     else
-        if new_effect_ent:get_pos() then
-            new_effect_ent:set_pos(defs.pos)
+        if effect_ent:get_pos() then
+            minetest.log("ent move")
+            effect_ent:set_pos(defs.pos)
         end
+        defs.effect_entity = effect_ent
     end
     magikacia.effect_portal_pairs[id][type] = defs
 end
