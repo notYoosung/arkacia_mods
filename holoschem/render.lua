@@ -49,6 +49,7 @@ local function render_schem()
 		if type(holoschem.render_particlespwaner_ids) == "table" then
 			for _, render_particlespwaner_id in ipairs(holoschem.render_particlespwaner_ids) do
 				minetest.delete_particlespawner(render_particlespwaner_id, holoschem.localplayername)
+        holoschem.render_particlespwaner_ids[_] = nil
 			end
 		end
 	end
