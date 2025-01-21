@@ -946,7 +946,6 @@ function magikacia.effect_portal_add(id, defs, type)
     end
     local effect_ent = magikacia.effect_portal_pairs[id][type].effect_entity
     if effect_ent == nil or (effect_ent and not (effect_ent:is_valid() and effect_ent:get_pos())) then
-        minetest.log("ent create")
         if effect_ent then
             effect_ent:remove()
         end
@@ -966,7 +965,6 @@ function magikacia.effect_portal_add(id, defs, type)
         defs.effect_entity = new_ent
     else
         if effect_ent:get_pos() then
-            minetest.log("ent move")
             effect_ent:set_pos(defs.pos)
         end
         defs.effect_entity = effect_ent
@@ -990,7 +988,7 @@ end
 local effect_portal_last_teleport_out = {}
 
 local effect_portal_teleport_time = 0
-local effect_portal_teleport_interval = 0.05
+local effect_portal_teleport_interval = 0.1
 local effect_portal_anim_duration = effect_portal_teleport_interval * 2
 
 local function distsq(a, b, d)
@@ -1005,6 +1003,7 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
     if effect_portal_teleport_time < effect_portal_teleport_interval then
         return
     end
+
 
     for obj, last_teleport_data in pairs(effect_portal_last_teleport_out) do
         local obj_pos = obj:get_pos()
