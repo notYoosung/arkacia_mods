@@ -23,6 +23,10 @@ holoschem = holoschem or {
     registered_on_modchannel_message = {},
     registered_on_modchannel_signal = {},
     registered_on_inventory_open = {},
+
+    schemname = "",
+    pos = vector.zero(),
+    visible = false,
 }
 
 local function get_localplayer()

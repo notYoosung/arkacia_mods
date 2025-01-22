@@ -87,7 +87,7 @@ local function render_schem()
 		vertical = false,
 		-- If true face player using y axis only
 
-		texture = "blank.png",
+		texture = "default_dirt.png",
 		-- The texture of the particle
 		-- v5.6.0 and later: also supports the table format described in the
 		-- following section.
@@ -118,6 +118,9 @@ local function render_schem()
 
     minexptime = 1,
     maxexptime = 1,
+
+
+    pos = vector.new(0,0,0),
 	}
 
 	local player_pos = player:get_pos()
