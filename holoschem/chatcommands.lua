@@ -87,11 +87,23 @@ if not mcl_util.holoschem_chatcommands_init then
 end
 local subcmds = {
     toggle = {
-        aliases = {"t"}
+        aliases = { "t" },
         func = function(params)
             if
+        end,
+    },
+    load = {
+        aliases = { "l", "open" },
+        func = function(params)
+            if params and params[1] then
+                local schematic = minetest.read_schematic(tostring(params[1]) .. ".lua", {})
+                if schematic then
+                    holoschem.schematic = schematic
+                    holoschem.schematicname = schematic
+                end
+            end
         end
-    }
+    },
 }
 
 minetest.register_chatcommand(".hs", {

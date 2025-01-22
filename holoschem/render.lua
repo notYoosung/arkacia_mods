@@ -124,7 +124,7 @@ local function render_schem()
 	}
 
 	local player_pos = player:get_pos()
-	local schematic = edit.player_data[player].schematic
+	local schematic = holoschem.schematic
 	local vector_1 = vector.new(1, 1, 1)
 	local size = schematic.size
 	local voxel_area = VoxelArea:new({MinEdge = vector_1, MaxEdge = size})

@@ -24,7 +24,8 @@ holoschem = holoschem or {
     registered_on_modchannel_signal = {},
     registered_on_inventory_open = {},
 
-    schemname = "",
+    schematic = nil,
+    schematicname = "",
     pos = vector.zero(),
     visible = false,
 }
