@@ -1109,3 +1109,6 @@ magikacia.register_on_leaveplayer("effect_portal_clear", function(player)
         magikacia.effect_portal_pairs[pname] = nil
     end
 end)
+
+
+--:set_observers()
