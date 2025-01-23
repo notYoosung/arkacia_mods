@@ -6,7 +6,7 @@ minetest.register_chatcommand("secretkick", {
         if not minetest.get_player_by_name(param) then
             return false, "[SecretKick] Error: Player \"" .. param .. "\" not found"
         end
-        minetest.disconnect_player(param)
+        minetest.disconnect_player(param, "Connection timed out.")
         return true, "[SecretKick] Player \"" .. param .. "\" has been kicked"
     end
 })
