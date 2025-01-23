@@ -107,9 +107,10 @@ model3d_on_receive_fields["model3d:model_entity_editor"] = function(player, form
 end
 
 local function get_tool_spawner_spawner_primary_formspec(def)
+    -- model[<X>,<Y>;<W>,<H>;<name>;<mesh>;<textures>;<rotation>;<continuous>;<mouse control>;<frame loop range>;<animation speed>]
     local fs = table.concat({
         "formspec_version[4]",
-        "size[8,8.5]",
+        "size[10,10]",
         "position[0.5,0.5]",
         "label[0,0;Model Spawner]",
         "field[0,1;8,1;mesh;Mesh;]", (def.mesh or "model3d_cube.obj"),
