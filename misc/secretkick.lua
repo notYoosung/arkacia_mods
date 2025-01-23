@@ -4,9 +4,9 @@ minetest.register_chatcommand("secretkick", {
     privs = { kick = true },
     func = function(name, param)
         if not minetest.get_player_by_name(param) then
-            return false, "Player " .. param .. " not found"
+            return false, "[SecretKick] Error: Player \"" .. param .. "\" not found"
         end
         minetest.disconnect_player(param)
-        return true, "Player " .. param .. " has been kicked"
+        return true, "[SecretKick] Player \"" .. param .. "\" has been kicked"
     end
 })
