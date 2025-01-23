@@ -124,7 +124,9 @@ local tool_model_spawner_secondary_formspec = table.concat({
 }, "")
 local function tool_model_spawner_primary(itemstack, player, pointed_thing)
     local meta = itemstack:get_meta()
-    minetest.show_formspec(player:get_player_name(), "model3d:tool_model_spawner", get_tool_spawner_spawner_primary_formspec())
+    minetest.show_formspec(player:get_player_name(), "model3d:tool_model_spawner", get_tool_spawner_spawner_primary_formspec({
+        
+    }))
 end
 
 local function tool_model_spawner_secondary(itemstack, player, pointed_thing)

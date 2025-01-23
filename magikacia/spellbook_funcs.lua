@@ -918,9 +918,7 @@ function magikacia.effect_portal_add(id, defs, type)
     if magikacia.effect_portal_pairs[id] == nil then
         magikacia.effect_portal_pairs[id] = {}
     end
-    if magikacia.effect_portal_pairs[id][type] == nil then
-        magikacia.effect_portal_pairs[id][type] = {}
-    end
+    local portal_defs = magikacia.effect_portal_pairs[id][type] or {}
     local vel_change = nil
     local paired_portal = magikacia.effect_portal_pairs[id][paired_type]
     local out_dir = defs.out_dir
@@ -944,7 +942,7 @@ function magikacia.effect_portal_add(id, defs, type)
     if paired_portal then
         magikacia.effect_portal_pairs[id][paired_type].vel_change = vel_change
     end
-    local effect_ent = magikacia.effect_portal_pairs[id][type].effect_entity
+    local effect_ent = portal_defs.effect_entity
     if effect_ent == nil or (effect_ent and not (effect_ent:is_valid() and effect_ent:get_pos())) then
         if effect_ent then
             effect_ent:remove()
@@ -995,6 +993,8 @@ local function distsq(a, b, d)
     return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z) < d * d
 end
 
+local portal_out_vel_mult = 25
+
 magikacia.register_globalstep("effect_portal_teleport", function(dtime)
 
 
@@ -1013,13 +1013,15 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
             if portal_pair then
                 local portal_data = portal_pair[last_teleport_data.type]
                 if portal_data then
-                    if distsq(obj_pos, portal_data.pos, 1) then
+                    if distsq(obj_pos, portal_data.pos, 2) then
+                        minetest.log("is in portal")
                         is_in_portal = true
                     end
                 end
             end
             if not is_in_portal then
                 effect_portal_last_teleport_out[obj] = nil
+                minetest.log("not in portal")
             end
         else
             effect_portal_last_teleport_out[obj] = nil
@@ -1035,12 +1037,12 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
         if portal_primary and portal_secondary then
             magikacia.radius_effect_func(portal_primary.pos, 1, nil, function(obj)
                 local last_teleport_out = effect_portal_last_teleport_out[obj]
-                if last_teleport_out and last_teleport_out.type ~= "secondary" and not teleported_objects_log[obj] then
+                if (last_teleport_out == nil or last_teleport_out and last_teleport_out.type ~= "secondary") and not teleported_objects_log[obj] then
                     teleported_objects_log[obj] = true
                     local vc = portal_secondary.vel_change
                     if vc then
                         local v = obj:get_velocity()
-                        local newvel = vector.add(vector.multiply(portal_secondary.out_dir, 10), vector.new(
+                        local newvel = vector.add(vector.multiply(portal_secondary.out_dir, portal_out_vel_mult), vector.new(
                             v.x * (vc.x or 1),
                             v.y * (vc.y or 1),
                             v.z * (vc.z or 1)
@@ -1049,6 +1051,7 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
                         -- minetest.log(tostring(newvel))
                     end
                     obj:set_pos(portal_secondary.pos)
+                    minetest.log("portal primary tp")
                     effect_portal_last_teleport_out[obj] = {
                         id = portal_pair_id,
                         type = "primary"
@@ -1057,17 +1060,16 @@ magikacia.register_globalstep("effect_portal_teleport", function(dtime)
             end)
             magikacia.radius_effect_func(portal_secondary.pos, 1, nil, function(obj)
                 local last_teleport_out = effect_portal_last_teleport_out[obj]
-                if last_teleport_out and last_teleport_out.type ~= "primary" and not teleported_objects_log[obj] then
+                if (last_teleport_out == nil or last_teleport_out and last_teleport_out.type ~= "primary") and not teleported_objects_log[obj] then
                     teleported_objects_log[obj] = true
                     local vc = portal_primary.vel_change
                     if vc then
                         local v = obj:get_velocity()
-                        local newvel = vector.add(vector.multiply(portal_primary.out_dir, 5), vector.new(
+                        local newvel = vector.add(vector.multiply(portal_primary.out_dir, portal_out_vel_mult), vector.new(
                             v.x * (vc.x or 1),
                             v.y * (vc.y or 1),
                             v.z * (vc.z or 1)
                         ))
-                        minetest.log("newvel: " .. tostring(newvel))
                         obj:set_velocity(newvel)
                     end
                     obj:set_pos(portal_primary.pos)
