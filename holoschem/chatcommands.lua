@@ -9,7 +9,7 @@ if not mcl_util.holoschem_chatcommands_init then
             gs_timer = gs_timer - gs_interval
         end
         
-        for k, v in ipairs(schem) do
+        for k, v in ipairs(holoschem.nodes) do
             
         end
         
@@ -54,7 +54,7 @@ if not mcl_util.holoschem_chatcommands_init then
             playername = "singleplayer",
             -- Optional, if specified spawns particle only on the player's client
 
-            animation = {Tile Animation definition},
+            animation = {"Tile Animation definition"},
             -- Optional, specifies how to animate the particle texture
 
             glow = 0
@@ -111,7 +111,7 @@ minetest.register_chatcommand(".hs", {
     params = "",
     description = "toggle holoschem or run subcommands",
     func = function(param)
-        local params = local params = string.split(param, " +", false, -2, true)
+        local params = string.split(param, " +", false, -2, true)
         local p1 = params[1]
         if p1 and subcmds[p1] then
             local subcmd = subcmds[p1]
