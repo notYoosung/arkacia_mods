@@ -1,3 +1,4 @@
+--https://luk3yx.gitlab.io/minetest-formspec-editor/
 --mcl_util._arkacia_model3d_init
 local F = minetest.formspec_escape
 
