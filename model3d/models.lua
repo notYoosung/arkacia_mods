@@ -32,9 +32,52 @@ local function get_model_entity_editor_formspec(defs)
             props.pos_z = pos.z
         end
     end
-    local fs = table.concat({
-        "",
+    -- model[<X>,<Y>;<W>,<H>;<name>;<mesh>;<textures>;<rotation>;<continuous>;<mouse control>;<frame loop range>;<animation speed>]
+    local grindstone_formspec = table.concat({
+        "formspec_version[6]",
+        "size[11.75,10.425]",
+
+        "label[0.375,0.375;" .. F(C(mcl_formspec.label_color, S("Repair & Disenchant"))) .. "]",
+
+        mcl_formspec.get_itemslot_bg_v4(2.875, 1.25, 1, 1),
+        "list[context;input;2.875,1.25;1,1;]",
+
+        mcl_formspec.get_itemslot_bg_v4(2.875, 2.625, 1, 1),
+        "list[context;input;2.875,2.625;1,1;1]",
+
+        "image[2.375,1;2,2.875;grindstone_gui_9.png;2]",
+
+        "image[1.875,1.5;0.5,2.875;grindstone_gui_9.png;2]",
+        "image[4.375,1.5;0.5,2.875;grindstone_gui_9.png;2]",
+
+        "image[5.5,1.95;1.5,1;gui_crafting_arrow.png]",
+
+        mcl_formspec.get_itemslot_bg_v4(7.875, 1.9375, 1, 1),
+        "list[context;output;7.875,1.9375;1,1;]",
+
+        "label[0.375,4.7;" .. F(C(mcl_formspec.label_color, S("Inventory"))) .. "]",
+
+        mcl_formspec.get_itemslot_bg_v4(0.375, 5.1, 9, 3),
+        "list[current_player;main;0.375,5.1;9,3;9]",
+
+        mcl_formspec.get_itemslot_bg_v4(0.375, 9.05, 9, 1),
+        "list[current_player;main;0.375,9.05;9,1;]",
+
+        "listring[context;output]",
+        "listring[current_player;main]",
+        "listring[context;input]",
+        "listring[current_player;main]",
     })
+    local fs = table.concat({
+        "formspec_version[6]",
+        "size[10,10]",
+        "position[0.5,0.5]",
+        "label[0,0;Model Entity Editor]",
+        "model[0,1;1,1;model3d_display;", (def.mesh or "model3d_cube.obj"), ";default_dirt.png;1,1;true;true]",
+        "field[0,1;8,1;mesh;Mesh;]", ,
+        "button[0,2;8,1;save;Save]",
+        "list[current_player;main;0,4;8,4;]",
+    }, "")
     return fs
 end
 local registered_model3d_ents = {}
@@ -147,7 +190,6 @@ local function tool_model_spawner_secondary(itemstack, player, pointed_thing)
     if pos then
         local ent = minetest.add_entity(pos, "model3d:model_entity", minetest.serialize({
             mesh = mesh or "model3d_cube.obj",
-
         }))
     end
 end
