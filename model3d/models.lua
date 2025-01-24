@@ -26,7 +26,9 @@ local function get_model_entity_editor_formspec(defs)
         local player = defs.player
         local pos = obj:get_pos()
         if pos then
-            props.pos_x, props.pos_y, props.pos_z = table.unpack({ pos.x, pos.y, pos.z })
+            props.pos_x = pos.x
+            props.pos_y = pos.y
+            props.pos_z = pos.z
         end
     end
     local fs = table.concat({
@@ -47,8 +49,10 @@ minetest.register_entity(":model3d:model_entity", {
     on_activate = function(self, staticdata)
         if staticdata ~= "" then
             local data = minetest.deserialize(staticdata)
-            for k, v in data do
-                self[k] = v
+            if data then
+                for k, v in pairs(data) do
+                    self[k] = v
+                end
             end
             if self.ent_id then
                 if registered_model3d_ents[self.ent_id] ~= nil then
@@ -126,7 +130,7 @@ local tool_model_spawner_secondary_formspec = table.concat({
 local function tool_model_spawner_primary(itemstack, player, pointed_thing)
     local meta = itemstack:get_meta()
     minetest.show_formspec(player:get_player_name(), "model3d:tool_model_spawner", get_tool_spawner_spawner_primary_formspec({
-        
+
     }))
 end
 

@@ -1,3 +1,4 @@
+--https://github.com/Rotfuchs-von-Vulpes/what_is_this_uwu-minetest/blob/master/help.lua
 if not mcl_util.holoschem_chatcommands_init then
     local gs_timer = 0
     local gs_interval = 1
