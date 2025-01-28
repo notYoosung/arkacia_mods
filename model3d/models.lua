@@ -73,7 +73,7 @@ local function get_model_entity_editor_formspec(defs)
     })
     local fs = table.concat({
         "formspec_version[6]",
-        "size[10,10]",
+        "size[15,15]",
         "position[0.5,0.5]",
         "label[0,0;Model Entity Editor]",
         "model[0,1;1,1;model3d_display;", (defs.mesh or "model3d_cube.obj"), ";default_dirt.png;1,1;true;true]",
@@ -157,31 +157,21 @@ model3d_on_receive_fields["model3d:model_entity_editor"] = function(player, form
     end
 end
 
-local function get_tool_spawner_spawner_primary_formspec(def)
+local function get_tool_spawner_spawner_secondary_formspec(def)
     -- model[<X>,<Y>;<W>,<H>;<name>;<mesh>;<textures>;<rotation>;<continuous>;<mouse control>;<frame loop range>;<animation speed>]
     local fs = table.concat({
         "formspec_version[4]",
-        "size[10,10]",
+        "size[15,15]",
         "position[0.5,0.5]",
         "label[0,0;Model Spawner]",
-        "field[0,1;8,1;mesh;Mesh;]", (def.mesh or "model3d_cube.obj"),
+        "model[1,2;3,3;model3d_display;", (def.mesh ~= nil and def.mesh ~= "" and def.mesh or "model3d_cube.obj"), ";default_dirt.png;1,1;true;true]",
         "button[0,2;8,1;save;Save]",
-        "list[current_player;main;0,4;8,4;]",
+        "list[current_player;main;2.5,10;8,4;]",
     }, "")
     return fs
 end
 
-local tool_model_spawner_secondary_formspec = table.concat({
-
-}, "")
 local function tool_model_spawner_primary(itemstack, player, pointed_thing)
-    local meta = itemstack:get_meta()
-    minetest.show_formspec(player:get_player_name(), "model3d:tool_model_spawner", get_tool_spawner_spawner_primary_formspec({
-
-    }))
-end
-
-local function tool_model_spawner_secondary(itemstack, player, pointed_thing)
     local meta = itemstack:get_meta()
     local mesh = meta:get_string("model3d:mesh")
     local pos
@@ -191,10 +181,22 @@ local function tool_model_spawner_secondary(itemstack, player, pointed_thing)
         pos = pointed_thing.ref:get_pos()
     end
     if pos then
-        local ent = minetest.add_entity(pos, "model3d:model_entity", minetest.serialize({
-            mesh = mesh or "model3d_cube.obj",
-        }))
+        local defs = {
+            pos = pos,
+        }
+        if mesh ~= "" then
+            defs.mesh = mesh
+        end
+        local ent = minetest.add_entity(pos, "model3d:model_entity", minetest.serialize(defs))
     end
+end
+
+local function tool_model_spawner_secondary(itemstack, player, pointed_thing)
+    local meta = itemstack:get_meta()
+    local mesh = meta:get_string("model3d:mesh")
+    minetest.show_formspec(player:get_player_name(), "model3d:tool_model_spawner", get_tool_spawner_spawner_secondary_formspec({
+        mesh = mesh == "" and nil or mesh,
+    }))
 end
 
 
@@ -498,7 +500,7 @@ function model3d.show_formspec(player)
     end
 
     local player_name = player:get_player_name()
-    minetest.show_formspec(player_name, "model3d:modeł_formspec", formspec)
+    minetest.show_formspec(player_name, "model3d:model_formspec", formspec)
 end
 
 function tool_model_formspec_primary(itemstack, user, pointed_thing)
@@ -506,10 +508,10 @@ function tool_model_formspec_primary(itemstack, user, pointed_thing)
     model3d.show_formspec(user)
 end
 
-minetest.register_tool(":model3d:tool_model_formspec", {
+--[[minetest.register_tool(":model3d:tool_model_formspec", {
     description = "Tool Model Formspec",
     on_use = tool_model_formspec_primary,
-})
+})]]
 
 
 if not mcl_util._arkacia_model3d_init then
