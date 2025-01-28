@@ -1,6 +1,9 @@
 --https://luk3yx.gitlab.io/minetest-formspec-editor/
 --mcl_util._arkacia_model3d_init
+local modname = minetest.get_current_modname()
+local S = minetest.get_translator(modname)
 local F = minetest.formspec_escape
+local C = minetest.colorize
 
 local model3d_on_receive_fields = {}
 
@@ -73,8 +76,8 @@ local function get_model_entity_editor_formspec(defs)
         "size[10,10]",
         "position[0.5,0.5]",
         "label[0,0;Model Entity Editor]",
-        "model[0,1;1,1;model3d_display;", (def.mesh or "model3d_cube.obj"), ";default_dirt.png;1,1;true;true]",
-        "field[0,1;8,1;mesh;Mesh;]", ,
+        "model[0,1;1,1;model3d_display;", (defs.mesh or "model3d_cube.obj"), ";default_dirt.png;1,1;true;true]",
+        "field[0,1;8,1;mesh;Mesh;]",
         "button[0,2;8,1;save;Save]",
         "list[current_player;main;0,4;8,4;]",
     }, "")
