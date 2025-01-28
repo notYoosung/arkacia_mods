@@ -202,3 +202,28 @@ Call these functions only at load time!
     * Newest functions are called first
     * If any function returns true, inventory doesn't open
 ]]
+
+local function hex2num(hex)
+    return tonumber(hex, 16)
+end
+local function hex2char(hex)
+    return string.char(tonumber(hex, 16))
+end
+
+require 'io'
+
+local function get_schem_to_table(schemname)
+    local schemtable = {}
+    local file = io.open(modpath .. "/schematics/" .. name .. ".lua", "r")
+    local filedata
+    if file then
+        filedata = io.read("*all")
+        file:close()
+        if filedata then
+            for i = 1, string.len(filedata), 2 do
+                local strseg = string.sub( s, i[, j] )
+                minetest.log()
+            end
+        end
+    end
+end
