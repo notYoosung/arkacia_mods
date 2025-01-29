@@ -157,15 +157,38 @@ model3d_on_receive_fields["model3d:model_entity_editor"] = function(player, form
     end
 end
 
+
+local model_list = table.concat({
+    "model3d_circle_surface.obj",
+    "model3d_circle.obj",
+    "model3d_cone.obj",
+    "model3d_cube.obj",
+    "model3d_cylinder_surface.obj",
+    "model3d_cylinder.obj",
+    "model3d_iso_sphere.obj",
+    "model3d_monkey.obj",
+    "model3d_plane.obj",
+    "model3d_sphere_surface.obj",
+    "model3d_sphere.obj",
+    "model3d_text_arkacia.obj",
+    "model3d_torus_surface.obj",
+    "model3d_torus.obj",
+}, ",")
+
+
+
 local function get_tool_spawner_spawner_secondary_formspec(def)
     -- model[<X>,<Y>;<W>,<H>;<name>;<mesh>;<textures>;<rotation>;<continuous>;<mouse control>;<frame loop range>;<animation speed>]
+    -- textlist[<X>,<Y>;<W>,<H>;<name>;<listelem 1>,<listelem 2>,...,<listelem n>]
+    -- dropdown[<X>,<Y>;<W>;<name>;<item 1>,<item 2>, ...,<item n>;<selected idx>;<index event>]
     local fs = table.concat({
         "formspec_version[4]",
         "size[15,15]",
         "position[0.5,0.5]",
         "label[0,0;Model Spawner]",
         "model[1,2;3,3;model3d_display;", (def.mesh ~= nil and def.mesh ~= "" and def.mesh or "model3d_cube.obj"), ";default_dirt.png;1,1;true;true]",
-        "button[0,2;8,1;save;Save]",
+        -- "button[0,2;8,1;save;Save]",
+        "dropdown[2.5,6;10;1;", model_list, ";4;false]",
         "list[current_player;main;2.5,10;8,4;]",
     }, "")
     return fs
