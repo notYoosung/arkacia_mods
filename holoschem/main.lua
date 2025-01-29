@@ -210,7 +210,20 @@ local function hex2char(hex)
     return string.char(tonumber(hex, 16))
 end
 
+
+-- https://gitlab.com/bztsrc/mtsedit/-/blob/master/docs/mts_format.md
 require 'io'
+
+local function get_mts_str_index(str, offset, length)
+    if str then
+        return string.sub(str, intial_index + 1, initial_index + length)
+    end
+    return ""
+end
+
+local coord_to_indx(str, x, y, z, X, Y, Z)
+    return str[(Z-z)*Z*Y + y*X + x]
+end
 
 local function get_schem_to_table(schemname)
     local schemtable = {}
@@ -220,10 +233,30 @@ local function get_schem_to_table(schemname)
         filedata = io.read("*all")
         file:close()
         if filedata then
-            for i = 1, string.len(filedata), 2 do
-                local strseg = string.sub( s, i[, j] )
-                minetest.log()
+            local mtsm = get_mts_str_index(filedata, 0, 4) -- noop
+            local ver = get_mts_str_index(filedata, 4, 2)
+            local X = hex2num(get_mts_str_index(filedata, 6, 2))
+            local Y = hex2num(get_mts_str_index(filedata, 8, 2))
+            local Z = hex2num(get_mts_str_index(filedata, 10, 2))
+            local layer_prob_vals = get_mts_str_index(filedata, 12, Y)
+            local n_strings = get_mts_str_index(filedata, 12 + Y, 2)
+            local indx = 12 + Y + 2
+            if n_strings > 0 then
+                for i = 1, n_strings, 2 do
+                    local block_str_len = hex2num(get_mts_str_index(filedata, indx, 2))
+                    local block_str = hex2char(get_mts_str_index(filedata, indx + 2, block_str_len))
+                    indx = indx + 2 + block_str_len
+                    minetest.log(strseg)
+                    
+                end
             end
+            local schem_volume = X * Y * Z
+            -- param0
+            local block_ids = get_mts_str_index(filedata, indx, 2 * schem_volume)
+            -- param1
+            local prob_vals = get_mts_str_index(filedata, indx + 2 * schem_volume, schem_volume)
+            -- param2
+            local rot_info = get_mts_str_index(filedata, indx + 3 * schem_volume, schem_volume)
         end
     end
 end
