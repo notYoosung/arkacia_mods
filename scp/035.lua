@@ -78,7 +78,7 @@ local function drop_mask(player)
     mcl_armor.update(player)
 end
 minetest.register_tool(":scp:scp_035", {
-    description = core.colorize("#f00", "SCP-035"),
+    description = minetest.colorize("#f00", "SCP-035"),
     _doc_items_longdesc = mcl_armor.longdesc,
     _doc_items_usagehelp = mcl_armor.usage,
     inventory_image =

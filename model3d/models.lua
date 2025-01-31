@@ -88,9 +88,10 @@ local registered_model3d_ents = {}
 minetest.register_entity(":model3d:model_entity", {
     initial_properties = {
         visual = "mesh",
-        mesh = "model3d_cube.obj",
+        mesh = "model3d_monkey.obj",
         textures = { "blank.png^[colorize:#a4a4a4:255" },
         static_save = true,
+        visual_size = { x = 1, y = 1, z = 1 },
         armor = { immortal = 1, },
     },
     on_activate = function(self, staticdata)
@@ -108,6 +109,7 @@ minetest.register_entity(":model3d:model_entity", {
                 registered_model3d_ents[self.ent_id] = self.object
             end
         end
+        minetest.log("model entity on_activate: " .. dump(self.textures))
     end,
     on_step = function(self, dtime)
     end,
@@ -207,8 +209,11 @@ local function tool_model_spawner_primary(itemstack, player, pointed_thing)
         local defs = {
             pos = pos,
         }
-        if mesh ~= "" then
+        if mesh ~= "" and mesh ~=  nil then
             defs.mesh = mesh
+        else
+            defs.mesh = "model3d_cube.obj"
+            defs.textures = { "default_dirt.png" }
         end
         local ent = minetest.add_entity(pos, "model3d:model_entity", minetest.serialize(defs))
     end
