@@ -24,6 +24,53 @@ local around_plus_pos_list = {
 
 mcl_util._magikacia_spellbook_init = mcl_util._magikacia_spellbook_init or false
 
+if magikacia.registered_on_spellbook_use_primary == nil then
+    magikacia.registered_on_spellbook_use_primary = {}
+end
+--[[
+    local placer_name = placer:get_player_name()
+    local use_pos_self = placer:get_pos()
+    --[[local meta = placer:get_meta()]
+    local use_pos_above
+    local use_pos_under
+    local pointed_obj
+    if pointed_thing.type == "node" then
+        use_pos_above = pointed_thing.above
+        use_pos_under = pointed_thing.under
+    elseif pointed_thing.type == "object" then
+        pointed_obj = pointed_thing.ref
+        use_pos_above = pointed_obj:get_pos()
+        use_pos_under = vector.offset(use_pos_above, 0, -1, 0)
+    end
+    local use_success = false
+    local use_at_place_above = false
+    local use_at_place_under = false
+    local use_at_self = false
+    local itemname = itemstack:get_name()
+    local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
+    local placer_props = placer:get_properties()
+    local placer_eye_height = placer_props.eye_height or 1.625
+
+    local inv_cores = magikacia.inv.get_in(itemstack, placer, "cores") or {}
+    local cores_multipliers = magikacia.get_core_multipliers(inv_cores)
+    
+
+    local inv_runes_contains = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
+
+
+
+    local is_placer_sneaking = false
+    if placer:is_player() then
+        if controls.players[placer_name].sneak[1] then
+            is_placer_sneaking = true
+        end
+    end
+
+]]
+function magikaica.register_on_spellbook_use_primary(id, func)
+    magikacia.registered_on_spellbook_use_primary[id] = func
+end
+
 
 
 
