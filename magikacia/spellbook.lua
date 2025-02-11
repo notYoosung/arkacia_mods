@@ -1,3 +1,7 @@
+--[[
+    TODO: refactor ifs to tables
+]]
+
 local modname = "magikacia"
 --[[local vector = vector
 local minetest = minetest
