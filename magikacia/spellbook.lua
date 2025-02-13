@@ -72,6 +72,20 @@ function magikaica.register_on_spellbook_use_primary(id, func)
 end
 
 
+--[[
+magikaica.register_on_spellbook_use_secondary
+    store functions to access & overwrite. called when spellbooks are right-clicked
+
+id (string) : key to store callback
+func: (function) : callback function to access
+    args: defs (table) {
+
+    }
+]]
+function magikaica.register_on_spellbook_use_secondary(id, func)
+    magikacia.registered_on_spellbook_use_secondary[id] = func
+end
+
 
 
 magikacia.inv = {
@@ -472,9 +486,10 @@ end
 
 local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if not placer then return nil end
+    local defs = {}
     local placer_name = placer:get_player_name()
     local use_pos_self = placer:get_pos()
-    --[[local meta = placer:get_meta()]]
+    local meta = placer:get_meta()
     local use_pos_above
     local use_pos_under
     local pointed_obj
@@ -509,7 +524,13 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
             is_placer_sneaking = true
         end
     end
-
+    
+    for id, func in pairs(magikacia.registered_on_spellbook_use_primary) do
+        if func and type(func) == "function" then
+            func(
+            )
+        end
+    end
 
     if inv_runes_contains["magikacia:rune_earth"] then
         local offset = placer:get_look_dir()
