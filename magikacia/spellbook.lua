@@ -487,59 +487,56 @@ end
 local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if not placer then return nil end
     local defs = {}
-    local placer_name = placer:get_player_name()
-    local use_pos_self = placer:get_pos()
-    local meta = placer:get_meta()
-    local use_pos_above
-    local use_pos_under
-    local pointed_obj
+    defs.placer_name = placer:get_player_name()
+    defs.placer_look_dir = placer:get_look_dir()
+    defs.use_pos_self = placer:get_pos()
+    defs.meta = placer:get_meta()
+    defs.use_pos_above = nil
+    defs.use_pos_under = nil
+    defs.pointed_obj = nil
     if pointed_thing.type == "node" then
-        use_pos_above = pointed_thing.above
-        use_pos_under = pointed_thing.under
+        defs.use_pos_above = pointed_thing.above
+        defs.use_pos_under = pointed_thing.under
     elseif pointed_thing.type == "object" then
-        pointed_obj = pointed_thing.ref
-        use_pos_above = pointed_obj:get_pos()
-        use_pos_under = vector.offset(use_pos_above, 0, -1, 0)
+        defs.pointed_obj = pointed_thing.ref
+        defs.use_pos_above = defs.pointed_obj:get_pos()
+        defs.use_pos_under = vector.offset(defs.use_pos_above, 0, -1, 0)
     end
-    local use_success = false
-    local use_at_place_above = false
-    local use_at_place_under = false
-    local use_at_self = false
-    local itemname = itemstack:get_name()
-    local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
-    local placer_props = placer:get_properties()
-    local placer_eye_height = placer_props.eye_height or 1.625
+    defs.use_success = false
+    defs.use_at_place_above = false
+    defs.use_at_place_under = false
+    defs.use_at_self = false
+    defs.itemname = itemstack:get_name()
+    defs.is_gauntlet_admin = defs.itemname == "magikacia:gauntlet_admin"
+    defs.placer_props = placer:get_properties()
+    defs.placer_eye_height = defs.placer_props.eye_height or 1.625
 
-    local inv_cores = magikacia.inv.get_in(itemstack, placer, "cores") or {}
-    local cores_multipliers = magikacia.get_core_multipliers(inv_cores)
-    
+    defs.inv_cores = magikacia.inv.get_in(itemstack, placer, "cores") or {}
+    defs.cores_multipliers = magikacia.get_core_multipliers(defs.inv_cores)
 
-    local inv_runes_contains = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
+    defs.inv_runes_contains = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
 
-
-
-    local is_placer_sneaking = false
+    defs.is_placer_sneaking = false
+    defs.player_controls = controls.players[defs.placer_name]
     if placer:is_player() then
-        if controls.players[placer_name].sneak[1] then
-            is_placer_sneaking = true
+        if defs.player_controls.sneak[1] then
+            defs.is_placer_sneaking = true
         end
     end
-    
+
     for id, func in pairs(magikacia.registered_on_spellbook_use_primary) do
         if func and type(func) == "function" then
-            func(
-            )
+            func(defs)
         end
     end
 
-    if inv_runes_contains["magikacia:rune_earth"] then
-        local offset = placer:get_look_dir()
+    if defs.inv_runes_contains["magikacia:rune_earth"] then
         for i = 1, 5 do
-            local pos = vector.add(vector.offset(use_pos_self, 0, placer_eye_height * 0.7, 0),
-                vector.multiply(offset, i))
+            local pos = vector.add(vector.offset(defs.use_pos_self, 0, defs.placer_eye_height * 0.7, 0),
+                vector.multiply(defs.placer_look_dir, i))
             if pos then
                 magikacia.radius_effect_func(pos, 2, placer, function(obj)
-                    magikacia.deal_spell_damage(obj, 3 * cores_multipliers.damage, "earth_primary", placer)
+                    magikacia.deal_spell_damage(obj, 3 * defs.cores_multipliers.damage, "earth_primary", placer)
                 end)
             end
             magikacia.spawn_effect_anim({
@@ -549,25 +546,25 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                 duration_anim = 0.4,
             })
         end
-        use_success = true
-        use_at_self = true
+        defs.use_success = true
+        defs.use_at_self = true
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_electric"] then
+    if defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_electric"] then
         local electric_primary_success = false
-        magikacia.radius_effect_func(use_pos_above, 3.5, placer, function(obj)
+        magikacia.radius_effect_func(defs.use_pos_above, 3.5, placer, function(obj)
             if magikacia.tase(placer, obj) then
                 electric_primary_success = true
             end
         end)
         if electric_primary_success then
-            use_success = true
-            use_at_place_above = true
+            defs.use_success = true
+            defs.use_at_place_above = true
         end
         local spd = 3 / 0.25
         magikacia.spawn_effect_anim_spawner({
             time = 0.01,
-            pos = use_pos_above,
+            pos = defs.use_pos_above,
             amount = 50,
             minsize = 1,
             maxsize = 5,
@@ -581,110 +578,110 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         })
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_fire"] then
+    if defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_fire"] then
         for _, k in ipairs(around_plus_pos_list) do
-            magikacia.safe_replace({ x = use_pos_above.x + k[1], y = use_pos_above.y, z = use_pos_above.z + k[2] },
+            magikacia.safe_replace({ x = defs.use_pos_above.x + k[1], y = defs.use_pos_above.y, z = defs.use_pos_above.z + k[2] },
                 "magikacia:fire_temp",
                 placer)
         end
         magikacia.spawn_effect_anim({
-            pos = use_pos_above,
+            pos = defs.use_pos_above,
             texture = "effect_fire_primary",
         })
         mcl_potions.fire_resistance_func(placer, nil, 10)
-        use_success = true
-        use_at_place_above = true
+        defs.use_success = true
+        defs.use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_ice"] then
-        magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
-            mcl_potions.swiftness_func(obj, -1, 3 * cores_multipliers.physical_effect)
-            mcl_potions.leaping_func(obj, -1, 3 * cores_multipliers.physical_effect)
+    if defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_ice"] then
+        magikacia.radius_effect_func(defs.use_pos_above, 3, placer, function(obj)
+            mcl_potions.swiftness_func(obj, -1, 3 * defs.cores_multipliers.physical_effect)
+            mcl_potions.leaping_func(obj, -1, 3 * defs.cores_multipliers.physical_effect)
         end)
         magikacia.spawn_effect_anim({
-            pos = use_pos_above,
+            pos = defs.use_pos_above,
             texture = "effect_vortex_blue",
         })
-        use_success = true
-        use_at_place_above = true
+        defs.use_success = true
+        defs.use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_telepathic"] then
-        if is_placer_sneaking then
-            if pointed_obj then
+    if defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_telepathic"] then
+        if defs.is_placer_sneaking then
+            if defs.pointed_obj then
                 local pself = placer:get_pos()
                 if pself then
-                    pointed_obj:set_pos(pself)
+                    defs.pointed_obj:set_pos(pself)
                 end
-                placer:set_pos(use_pos_above)
+                placer:set_pos(defs.use_pos_above)
             elseif pointed_thing.type == "node" then
-                placer:set_pos({ x = use_pos_above.x, y = use_pos_above.y - 0.5, z = use_pos_above.z })
+                placer:set_pos({ x = defs.use_pos_above.x, y = defs.use_pos_above.y - 0.5, z = defs.use_pos_above.z })
             else
-                placer:set_pos(use_pos_above)
+                placer:set_pos(defs.use_pos_above)
             end
         else
             if pointed_thing.type == "node" then
-                placer:set_pos({ x = use_pos_above.x, y = use_pos_above.y - 0.5, z = use_pos_above.z })
+                placer:set_pos({ x = defs.use_pos_above.x, y = defs.use_pos_above.y - 0.5, z = defs.use_pos_above.z })
             else
-                placer:set_pos(use_pos_above)
+                placer:set_pos(defs.use_pos_above)
             end
         end
         magikacia.spawn_effect_anim({
-            pos = use_pos_above,
+            pos = defs.use_pos_above,
             texture = "effect_vortex_blue",
         })
-        use_success = true
-        use_at_place_above = true
+        defs.use_success = true
+        defs.use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_water"] then
-        magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
+    if defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_water"] then
+        magikacia.radius_effect_func(defs.use_pos_above, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
-                magikacia.deal_spell_damage(obj, 5 * cores_multipliers.damage, "water_primary", placer)
+                magikacia.deal_spell_damage(obj, 5 * defs.cores_multipliers.damage, "water_primary", placer)
             end
             mcl_burning.extinguish(obj)
         end, true)
 
-        local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_above, -3, -3, -3),
-            vector.offset(use_pos_above, 3, 3, 3), "group:fire", false)
+        local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(defs.use_pos_above, -3, -3, -3),
+            vector.offset(defs.use_pos_above, 3, 3, 3), "group:fire", false)
         if nodes then
             minetest.bulk_set_node(nodes, { name = "air" })
         end
 
         magikacia.spawn_effect_anim({
-            pos = use_pos_above,
+            pos = defs.use_pos_above,
             texture = "effect_water_primary",
             size = 30,
             duration_total = 0.4,
             duration_anim = 0.4,
         })
-        use_success = true
-        use_at_place_above = true
+        defs.use_success = true
+        defs.use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_void"] then
-        magikacia.radius_effect_func(use_pos_above, 2, placer, function(obj)
-            magikacia.deal_spell_damage(obj, 20 * cores_multipliers.damage, "void_primary", placer)
+    if defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_void"] then
+        magikacia.radius_effect_func(defs.use_pos_above, 2, placer, function(obj)
+            magikacia.deal_spell_damage(obj, 20 * defs.cores_multipliers.damage, "void_primary", placer)
         end)
         magikacia.spawn_effect_anim({
-            pos = use_pos_above,
+            pos = defs.use_pos_above,
             texture = "effect_void_primary",
             duration_total = 0.5,
             duration_anim = 0.5,
         })
-        use_success = true
-        use_at_place_above = true
+        defs.use_success = true
+        defs.use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_wind"] then
-        if not is_placer_sneaking then
-            magikacia.radius_effect_func(use_pos_above, 8, placer, function(obj)
+    if defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_wind"] then
+        if not defs.is_placer_sneaking then
+            magikacia.radius_effect_func(defs.use_pos_above, 8, placer, function(obj)
                 local newvel = vector.offset(
-                    vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_above)), 10 * cores_multipliers.physical_effect), 0, 15, 0)
+                    vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), defs.use_pos_above)), 10 * defs.cores_multipliers.physical_effect), 0, 15, 0)
                 obj:add_velocity(newvel)
             end, true)
             magikacia.spawn_effect_anim({
-                pos = use_pos_above,
+                pos = defs.use_pos_above,
                 texture = "effect_wind_primary",
             })
         else
@@ -709,7 +706,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                     end, n, victim)
                 end
             end
-            magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
+            magikacia.radius_effect_func(defs.use_pos_above, 3, placer, function(obj)
                 local p = obj:get_pos()
                 if p then
                     suck(0, obj, p)
@@ -718,124 +715,124 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
             for ipos, pos in ipairs(wind_primary_sneak_pos_list) do
                 minetest.after(ipos * 0.05, function()
                     magikacia.spawn_effect_anim({
-                        pos = vector.add(use_pos_above, pos),
+                        pos = vector.add(defs.use_pos_above, pos),
                         texture = "effect_wind_primary_sneak",
                         size = 40,
                     })
                 end)
             end
             magikacia.spawn_effect_anim({
-                pos = use_pos_above,
+                pos = defs.use_pos_above,
                 texture = "effect_wind_primary_sneak",
                 size = 40,
             })
         end
-        use_success = true
-        use_at_place_above = true
+        defs.use_success = true
+        defs.use_at_place_above = true
     end
 
-    if entity_modifier and use_pos_above and inv_runes_contains["magikacia:rune_disguise"] then
+    if entity_modifier and defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_disguise"] then
         entity_modifier.disguise_tool_primary(itemstack, placer, pointed_thing)
         magikacia.spawn_effect_anim({
-            pos = use_pos_above,
+            pos = defs.use_pos_above,
             texture = "effect_vortex_blue",
         })
-        use_success = true
-        use_at_place_above = true
+        defs.use_success = true
+        defs.use_at_place_above = true
     end
 
-    if entity_modifier and use_pos_above and inv_runes_contains["magikacia:rune_resize"] then
-        if pointed_obj then
-            local vs = get_visual_size(pointed_obj) * 1 + 0.1 * cores_multipliers.physical_effect
-            if vs and (is_gauntlet_admin or vs <= resize_max_size) then
+    if entity_modifier and defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_resize"] then
+        if defs.pointed_obj then
+            local vs = get_visual_size(defs.pointed_obj) * 1 + 0.1 * defs.cores_multipliers.physical_effect
+            if vs and (defs.is_gauntlet_admin or vs <= resize_max_size) then
                 entity_modifier.resize(
-                    pointed_obj,
+                    defs.pointed_obj,
                     vs,
                     0.1,
-                    is_gauntlet_admin and true or resize_max_size
+                    defs.is_gauntlet_admin and true or resize_max_size
                 )
-                if use_pos_above then
+                if defs.use_pos_above then
                     magikacia.spawn_effect_anim({
-                        pos = use_pos_above,
+                        pos = defs.use_pos_above,
                         texture = "effect_resize_primary",
                         size = 15,
                     })
-                    use_at_place_above = true
+                    defs.use_at_place_above = true
                 end
             end
-            use_success = true
+            defs.use_success = true
         else
-            local vs = get_visual_size(placer) * 1 + 0.1 * cores_multipliers.physical_effect
-            if vs and (is_gauntlet_admin or vs <= resize_max_size) then
+            local vs = get_visual_size(placer) * 1 + 0.1 * defs.cores_multipliers.physical_effect
+            if vs and (defs.is_gauntlet_admin or vs <= resize_max_size) then
                 entity_modifier.resize_player(
                     placer,
                     vs,
                     0.1,
-                    is_gauntlet_admin and true or resize_max_size
+                    defs.is_gauntlet_admin and true or resize_max_size
                 )
                 magikacia.spawn_effect_anim({
-                    pos = use_pos_self,
+                    pos = defs.use_pos_self,
                     texture = "effect_resize_primary",
                     size = 15,
                 })
             end
-            use_success = true
-            use_at_self = true
+            defs.use_success = true
+            defs.use_at_self = true
         end
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_poison"] then
-        magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj, obj_is_player)
+    if defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_poison"] then
+        magikacia.radius_effect_func(defs.use_pos_above, 3, placer, function(obj, obj_is_player)
             if obj_is_player then
-                mcl_potions.poison_func(obj, 1 * cores_multipliers.damage, 3 * cores_multipliers.physical_effect)
+                mcl_potions.poison_func(obj, 1 * defs.cores_multipliers.damage, 3 * defs.cores_multipliers.physical_effect)
             end
         end)
-        magikacia.spawn_linger_particles(use_pos_above, 3, magikacia.textures.effect_poison_particles)
-        use_success = true
-        use_at_place_above = true
+        magikacia.spawn_linger_particles(defs.use_pos_above, 3, magikacia.textures.effect_poison_particles)
+        defs.use_success = true
+        defs.use_at_place_above = true
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_healing"] then
-        magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
-            mcl_potions.regeneration_func(obj, 1, 3 * cores_multipliers.physical_effect)
-            mcl_potions.healing_func(obj, 6 * cores_multipliers.physical_effect)
+    if defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_healing"] then
+        magikacia.radius_effect_func(defs.use_pos_above, 3, placer, function(obj)
+            mcl_potions.regeneration_func(obj, 1, 3 * defs.cores_multipliers.physical_effect)
+            mcl_potions.healing_func(obj, 6 * defs.cores_multipliers.physical_effect)
         end, true)
         magikacia.spawn_effect_anim({
-            pos = use_pos_above,
+            pos = defs.use_pos_above,
             texture = "effect_vortex_blue",
         })
-        use_success = true
-        use_at_place_above = true
+        defs.use_success = true
+        defs.use_at_place_above = true
     end
 
 
 
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_nature"] then
-        for i = 5, 5 * cores_multipliers.physical_effect, 5 do
+    if defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_nature"] then
+        for i = 5, 5 * defs.cores_multipliers.physical_effect, 5 do
             for ii = 0, math.pi * 2 - 0.01, math.pi / 3 do
                 local above_posi = {
-                    x = math.floor(use_pos_above.x + math.cos(ii) * i + 0.5),
-                    y = use_pos_above.y,
-                    z = math.floor(use_pos_above.z + math.sin(ii) * i + 0.5),
+                    x = math.floor(defs.use_pos_above.x + math.cos(ii) * i + 0.5),
+                    y = defs.use_pos_above.y,
+                    z = math.floor(defs.use_pos_above.z + math.sin(ii) * i + 0.5),
                 }
                 local under_posi = { x = above_posi.x, y = above_posi.y - 1, z = above_posi.z }
                 magikacia.bone_meal(itemstack, placer, { type = "node", under = under_posi, above = above_posi })
             end
         end
-        use_success = true
-        use_at_place_above = true
+        defs.use_success = true
+        defs.use_at_place_above = true
     end
 
-    if use_pos_under and inv_runes_contains["magikacia:rune_protection"] then
+    if defs.use_pos_under and defs.inv_runes_contains["magikacia:rune_protection"] then
         minetest.registered_chatcommands["area_pos1"].func(placer:get_player_name(),
-            use_pos_under.x .. " " .. use_pos_under.y .. " " .. use_pos_under.z)
-        use_success = true
-        use_at_place_under = true
+            defs.use_pos_under.x .. " " .. defs.use_pos_under.y .. " " .. defs.use_pos_under.z)
+        defs.use_success = true
+        defs.use_at_place_under = true
     end
 
-    if inv_runes_contains["magikacia:rune_bubble"] then
-        local add_vel = vector.multiply(placer:get_look_dir(), 20 * cores_multipliers.physical_effect)
+    if defs.inv_runes_contains["magikacia:rune_bubble"] then
+        local add_vel = vector.multiply(placer:get_look_dir(), 20 * defs.cores_multipliers.physical_effect)
         local _bubble_itemstack
         local bubble_use_pos
         if magikacia_bubbles then
@@ -844,42 +841,42 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         if bubble_use_pos then
             magikacia.radius_effect_func(bubble_use_pos, 3, placer, function(obj, obj_is_player)
                 if obj_is_player then
-                    mcl_potions.poison_func(obj, 1 * cores_multipliers.damage, 2 * cores_multipliers.physical_effect)
+                    mcl_potions.poison_func(obj, 1 * defs.cores_multipliers.damage, 2 * defs.cores_multipliers.physical_effect)
                 end
                 obj:add_velocity(add_vel)
             end)
-            use_success = true
-            use_at_place_above = true
+            defs.use_success = true
+            defs.use_at_place_above = true
         end
     end
     
-    if inv_runes_contains["magikacia:rune_absolute_solver"] then
-        local pdata = magikacia.players[placer_name]
+    if defs.inv_runes_contains["magikacia:rune_absolute_solver"] then
+        local pdata = magikacia.players[defs.placer_name]
         pdata.effect_absolute_solver_primary_captured_list = pdata.effect_absolute_solver_primary_captured_list or {}
-        if is_placer_sneaking or #pdata.effect_absolute_solver_primary_captured_list > 0 then
+        if defs.is_placer_sneaking or #pdata.effect_absolute_solver_primary_captured_list > 0 then
             pdata.effect_absolute_solver_primary_captured_list = {}
-        elseif pointed_obj and use_pos_above then
-            if not magikacia.is_obj_static(pointed_obj) then
+        elseif defs.pointed_obj and defs.use_pos_above then
+            if not magikacia.is_obj_static(defs.pointed_obj) then
                 if pdata then
-                    table.insert(magikacia.players[placer_name].effect_absolute_solver_primary_captured_list, {
-                        obj = pointed_obj,
-                        dist = vector.distance(vector.offset(use_pos_self, 0, placer_eye_height, 0), use_pos_above),
+                    table.insert(magikacia.players[defs.placer_name].effect_absolute_solver_primary_captured_list, {
+                        obj = defs.pointed_obj,
+                        dist = vector.distance(vector.offset(defs.use_pos_self, 0, defs.placer_eye_height, 0), defs.use_pos_above),
                     })
                 end
             end
         end
-        use_success = true
-        use_at_place_above = true
+        defs.use_success = true
+        defs.use_at_place_above = true
     end
 
-    if inv_runes_contains["magikacia:rune_shadow"] then
-        local pdata = magikacia.players[placer_name]
+    if defs.inv_runes_contains["magikacia:rune_shadow"] then
+        local pdata = magikacia.players[defs.placer_name]
         if not pdata.effect_shadow_primary_captured_list or #pdata.effect_shadow_primary_captured_list == 0 then
             local look_dir = placer:get_look_dir()
             local look_horiz = placer:get_look_horizontal()
             local look_vert = -placer:get_look_vertical()
             local ent_spd = 10
-            local spawn_pos = vector.offset(placer:get_pos(), 0, placer_eye_height, 0)
+            local spawn_pos = vector.offset(placer:get_pos(), 0, defs.placer_eye_height, 0)
             local frame_duration = 0.2
             local ent = magikacia.spawn_effect_entity_3d({
                 pos = spawn_pos,
@@ -900,24 +897,24 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                 magikacia.radius_effect_func(end_pos, 1.5, placer, function(obj, obj_is_player)
                     if pdata then
                         pdata.effect_shadow_primary_captured_list = pdata.effect_shadow_primary_captured_list or {}
-                        table.insert(magikacia.players[placer_name].effect_shadow_primary_captured_list, {
+                        table.insert(magikacia.players[defs.placer_name].effect_shadow_primary_captured_list, {
                             obj = obj,
                         })
-                        magikacia.players[placer_name].effect_shadow_primary_capture_pos = end_pos
+                        magikacia.players[defs.placer_name].effect_shadow_primary_capture_pos = end_pos
                     end
                 end)
             end)
-            use_success = true
-            use_at_self = true
+            defs.use_success = true
+            defs.use_at_self = true
         else
-            if use_pos_above then
-                magikacia.players[placer_name].effect_shadow_primary_capture_pos = vector.offset(use_pos_above, 0, pointed_thing.type == "node" and -0.5 or 0, 0)
+            if defs.use_pos_above then
+                magikacia.players[defs.placer_name].effect_shadow_primary_capture_pos = vector.offset(defs.use_pos_above, 0, pointed_thing.type == "node" and -0.5 or 0, 0)
                 local effect_shadow_primary_captured_list = pdata.effect_shadow_primary_captured_list
                 if effect_shadow_primary_captured_list then
                     for _, captured_def in pairs(effect_shadow_primary_captured_list) do
                         local obj = captured_def.obj
                         if obj and obj:is_valid() and obj:get_pos() then
-                            obj:move_to(vector.offset(use_pos_above, 0, -0.5, 0))
+                            obj:move_to(vector.offset(defs.use_pos_above, 0, -0.5, 0))
                         end
                     end
                 end
@@ -926,47 +923,47 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         end
     end
 
-    if inv_runes_contains["magikacia:rune_summoning"] then
-        local safe_use_pos = use_pos_above or use_pos_self
+    if defs.inv_runes_contains["magikacia:rune_summoning"] then
+        local safe_use_pos = defs.use_pos_above or defs.use_pos_self
         if safe_use_pos then
             local ent = minetest.add_entity(safe_use_pos, ":magikacia:adminite", minetest.serialize({
-                owner = placer_name,
+                owner = defs.placer_name,
                 specific_attack = specific_attack_all,
             }))
             magikacia.spawn_effect_anim({
                 pos = safe_use_pos,
                 texture = "effect_vortex_blue",
             })
-            use_success = true
+            defs.use_success = true
             use_at_pos_above = true
         end
     end
 
 
-    if inv_runes_contains["magikacia:rune_rope"] then
+    if defs.inv_runes_contains["magikacia:rune_rope"] then
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_rope_primary_entity")(ItemStack("magikacia:throwable_attack_rope_primary", 64), placer, pointed_thing)
-        use_success = true
+        defs.use_success = true
         use_at_pos_above = true
     end
 
-    if use_pos_under and use_pos_above and inv_runes_contains["magikacia:rune_portal"] then
-        local out_dir = vector.subtract(use_pos_above, use_pos_under)
+    if defs.use_pos_under and defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_portal"] then
+        local out_dir = vector.subtract(defs.use_pos_above, defs.use_pos_under)
         local portal_def = {
-            pos = use_pos_above,
+            pos = defs.use_pos_above,
             out_dir = out_dir,
         }
-        magikacia.effect_portal_add(placer_name, portal_def, "primary")
+        magikacia.effect_portal_add(defs.placer_name, portal_def, "primary")
     end
 
-    if use_success then
-        if use_at_self then
-            minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_self, max_hear_distance = 32, gain = 0.5 }, true)
+    if defs.use_success then
+        if defs.use_at_self then
+            minetest.sound_play("mcl_enchanting_enchant", { pos = defs.use_pos_self, max_hear_distance = 32, gain = 0.5 }, true)
         end
-        if use_at_place_above then
-            minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 32, gain = 0.5 }, true)
+        if defs.use_at_place_above then
+            minetest.sound_play("mcl_enchanting_enchant", { pos = defs.use_pos_above, max_hear_distance = 32, gain = 0.5 }, true)
         end
-        if use_at_place_under then
-            minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_under, max_hear_distance = 32, gain = 0.5 }, true)
+        if defs.use_at_place_under then
+            minetest.sound_play("mcl_enchanting_enchant", { pos = defs.use_pos_under, max_hear_distance = 32, gain = 0.5 }, true)
         end
     end
 
