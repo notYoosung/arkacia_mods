@@ -29,18 +29,18 @@ if magikacia.registered_on_spellbook_use_primary == nil then
 end
 --[[
     local placer_name = placer:get_player_name()
-    local use_pos_self = placer:get_pos()
+    local defs.use_pos_self = placer:get_pos()
     --[[local meta = placer:get_meta()]
-    local use_pos_above
-    local use_pos_under
+    local defs.use_pos_above
+    local defs.use_pos_under
     local pointed_obj
     if pointed_thing.type == "node" then
-        use_pos_above = pointed_thing.above
-        use_pos_under = pointed_thing.under
+        defs.use_pos_above = pointed_thing.above
+        defs.use_pos_under = pointed_thing.under
     elseif pointed_thing.type == "object" then
         pointed_obj = pointed_thing.ref
-        use_pos_above = pointed_obj:get_pos()
-        use_pos_under = vector.offset(use_pos_above, 0, -1, 0)
+        defs.use_pos_above = pointed_obj:get_pos()
+        defs.use_pos_under = vector.offset(defs.use_pos_above, 0, -1, 0)
     end
     local use_success = false
     local use_at_place_above = false
@@ -488,6 +488,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     local defs = {}
     defs.placer_name = placer:get_player_name()
     defs.placer_look_dir = placer:get_look_dir()
+    defs.placer_is_player = placer:is_player()
     defs.use_pos_self = placer:get_pos()
     defs.meta = placer:get_meta()
     defs.use_pos_above = nil
@@ -516,8 +517,8 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     defs.inv_runes_contains = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
 
     defs.is_placer_sneaking = false
-    defs.player_controls = controls.players[defs.placer_name]
-    if placer:is_player() then
+    if defs.placer_is_player then
+        defs.player_controls = controls.players[defs.placer_name]
         if defs.player_controls.sneak[1] then
             defs.is_placer_sneaking = true
         end
@@ -530,7 +531,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
         end
     end
 
-    
+
     if defs.use_success then
         if defs.use_at_self then
             minetest.sound_play("mcl_enchanting_enchant", { pos = defs.use_pos_self, max_hear_distance = 32, gain = 0.5 }, true)
@@ -601,56 +602,70 @@ magikacia.registered_player_globalsteps["spellbook:effect_shadow_primary"] = fun
     end
 end
 local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagtable)
+    -- TODO: refactor variables
     if not placer then return nil end
-    local placer_name = placer:get_player_name()
-    local use_pos_self = placer:get_pos()
-    local meta = placer:get_meta()
-    local use_pos_above
-    local use_pos_under
-    local pointed_obj
+    local defs = {}
+    defs.placer_name = placer:get_player_name()
+    defs.placer_look_dir = placer:get_look_dir()
+    defs.placer_is_player = placer:is_player()
+    defs.use_pos_self = placer:get_pos()
+    defs.meta = placer:get_meta()
+    defs.use_pos_above = nil
+    defs.use_pos_under = nil
+    defs.pointed_obj = nil
     if pointed_thing.type == "node" then
-        use_pos_above = pointed_thing.above
-        use_pos_under = pointed_thing.under
+        defs.use_pos_above = pointed_thing.above
+        defs.use_pos_under = pointed_thing.under
     elseif pointed_thing.type == "object" then
-        pointed_obj = pointed_thing.ref
-        use_pos_above = pointed_obj:get_pos()
-        use_pos_under = vector.offset(use_pos_above, 0, -1, 0)
+        defs.pointed_obj = pointed_thing.ref
+        defs.use_pos_above = defs.pointed_obj:get_pos()
+        defs.use_pos_under = vector.offset(defs.use_pos_above, 0, -1, 0)
     end
-    local use_success = false
-    local use_at_place_above = false
-    local use_at_place_under = false
-    local use_at_self = false
-    local itemname = itemstack:get_name()
-    local is_gauntlet_admin = itemname == "magikacia:gauntlet_admin"
+    defs.use_success = false
+    defs.use_at_place_above = false
+    defs.use_at_place_under = false
+    defs.use_at_self = false
+    defs.itemname = itemstack:get_name()
+    defs.is_gauntlet_admin = defs.itemname == "magikacia:gauntlet_admin"
+    defs.placer_props = placer:get_properties()
+    defs.placer_eye_height = defs.placer_props.eye_height or 1.625
 
-    local inv_cores = magikacia.inv.get_in(itemstack, placer, "cores") or {}
-    local cores_multipliers = magikacia.get_core_multipliers(inv_cores)
+    defs.inv_cores = magikacia.inv.get_in(itemstack, placer, "cores") or {}
+    defs.cores_multipliers = magikacia.get_core_multipliers(defs.inv_cores)
 
-    local inv_runes_contains = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
+    defs.inv_runes_contains = magikacia.inv.get_in_reversed_key_value(itemstack, placer, "main") or {}
 
-    if placer:is_player() then
-        if controls.players[placer_name].sneak[1] then
-            return open_bag(itemstack, placer, bagtable.width_main, bagtable.height_main, bagtable.sound_open, bagtable.width_cores, bagtable.height_cores)
+    defs.is_placer_sneaking = false
+    if defs.placer_is_player then
+        defs.player_controls = controls.players[defs.placer_name]
+        if defs.player_controls.sneak[1] then
+            defs.is_placer_sneaking = true
         end
     end
 
+    
+    for id, func in pairs(magikacia.registered_on_spellbook_use_primary) do
+        if defs.inv_runes_contains["magikacia:rune_" .. id] and func and type(func) == "function" then
+            defs = func(defs) or defs
+        end
+    end
 
     local spell_earth_time_active = meta:get_float("magikacia:spell_earth_time_active")
     if inv_runes_contains["magikacia:rune_earth"] and spell_earth_time_active == 0 then
         meta:set_float("magikacia:spell_earth_time_active", spell_earth_time_active + 1)
         placer:add_velocity({ x = 0, y = 15, z = 0 })
         magikacia.spawn_effect_anim({
-            pos = use_pos_self,
+            pos = defs.use_pos_self,
             texture = "effect_earth_secondary",
         })
         use_success = true
         use_at_self = true
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_electric"] then
-        magikacia.lightning_strike(vector.offset(use_pos_above, 0, -1, 0), placer)
+    if defs.use_pos_above and inv_runes_contains["magikacia:rune_electric"] then
+        magikacia.lightning_strike(vector.offset(defs.use_pos_above, 0, -1, 0), placer)
         magikacia.spawn_effect_anim({
-            pos = use_pos_above,
+            pos = defs.use_pos_above,
             texture = "effect_vortex_blue",
         })
         use_success = true
@@ -674,14 +689,14 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         --[[minetest.show_formspec(placer:get_player_name(), "mcl_chests:ender_chest_" .. placer:get_player_name(), formspec_ender_chest)]]
         magikacia.random_teleport_obj(placer)
         magikacia.spawn_effect_anim({
-            pos = use_pos_self,
+            pos = defs.use_pos_self,
             texture = "effect_vortex_blue",
         })
         use_success = true
         use_at_self = true
     end
 
-    if use_pos_above and inv_runes_contains["magikacia:rune_void"] then
+    if defs.use_pos_above and inv_runes_contains["magikacia:rune_void"] then
         local function suck(time, victim)
             if victim then
                 minetest.after(0.1, function(t, obj)
@@ -699,11 +714,11 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                 end, time, victim)
             end
         end
-        magikacia.radius_effect_func(use_pos_above, 3, placer, function(obj)
+        magikacia.radius_effect_func(defs.use_pos_above, 3, placer, function(obj)
             suck(5, obj)
         end)
         magikacia.spawn_effect_anim({
-            pos = use_pos_above,
+            pos = defs.use_pos_above,
             texture = "effect_void_secondary",
             duration_total = 5,
             duration_anim = 0.5,
@@ -712,10 +727,10 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_success = true
         use_at_place_above = true
     end
-    if use_pos_self and inv_runes_contains["magikacia:rune_water"] then
-        local node = minetest.get_node(use_pos_self)
-        if node and minetest.get_item_group(node.name, "water") > 0 or (mcl_weather.rain.raining and mcl_weather.is_outdoor(use_pos_self) and mcl_weather.has_rain(use_pos_self)) then
-            magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
+    if defs.use_pos_self and inv_runes_contains["magikacia:rune_water"] then
+        local node = minetest.get_node(defs.use_pos_self)
+        if node and minetest.get_item_group(node.name, "water") > 0 or (mcl_weather.rain.raining and mcl_weather.is_outdoor(defs.use_pos_self) and mcl_weather.has_rain(defs.use_pos_self)) then
+            magikacia.radius_effect_func(defs.use_pos_self, 3, placer, function(obj)
                 if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
                     magikacia.deal_spell_damage(obj, 10 * cores_multipliers.damage, "water_secondary", placer)
                 end
@@ -725,14 +740,14 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 50 * cores_multipliers.physical_effect))
             mcl_potions.water_breathing_func(placer, nil, 10)
 
-            local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(use_pos_self, -3, -3, -3),
-                vector.offset(use_pos_self, 3, 3, 3), "group:fire", true)
+            local nodes, node_counts = minetest.find_nodes_in_area(vector.offset(defs.use_pos_self, -3, -3, -3),
+                vector.offset(defs.use_pos_self, 3, 3, 3), "group:fire", true)
             if nodes then
                 minetest.bulk_set_node(nodes, { name = "air" })
             end
 
             magikacia.spawn_effect_anim({
-                pos = use_pos_self,
+                pos = defs.use_pos_self,
                 texture = "effect_water_secondary",
                 attached = placer
             })
@@ -745,15 +760,15 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         end
     end
 
-    if use_pos_self and inv_runes_contains["magikacia:rune_wind"] then
-        magikacia.radius_effect_func(use_pos_self, 3, placer, function(obj)
+    if defs.use_pos_self and inv_runes_contains["magikacia:rune_wind"] then
+        magikacia.radius_effect_func(defs.use_pos_self, 3, placer, function(obj)
             magikacia.deal_spell_damage(obj, 10 * cores_multipliers.damage, "wind_secondary", placer)
         end)
 
         placer:add_player_velocity(vector.multiply(placer:get_look_dir(), 30 * cores_multipliers.physical_effect))
         
         magikacia.spawn_effect_anim({
-            pos = use_pos_self,
+            pos = defs.use_pos_self,
             texture = "effect_vortex_blue",
             duration_total = 0.4,
             duration_anim = 0.4,
@@ -764,7 +779,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     if entity_modifier and inv_runes_contains["magikacia:rune_disguise"] then
         entity_modifier.disguise_tool_secondary(itemstack, placer, pointed_thing)
         magikacia.spawn_effect_anim({
-            pos = use_pos_above or use_pos_self,
+            pos = defs.use_pos_above or defs.use_pos_self,
             texture = "effect_vortex_blue",
         })
         use_success = true
@@ -781,9 +796,9 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                     0.1,
                     resize_max_size
                 )
-                if use_pos_above then
+                if defs.use_pos_above then
                     magikacia.spawn_effect_anim({
-                        pos = use_pos_above,
+                        pos = defs.use_pos_above,
                         texture = "effect_resize_secondary",
                         size = 15,
                     })
@@ -801,7 +816,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                     resize_max_size
                 )
                 magikacia.spawn_effect_anim({
-                    pos = use_pos_self,
+                    pos = defs.use_pos_self,
                     texture = "effect_resize_secondary",
                     size = 15,
                 })
@@ -812,7 +827,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     end
 
     if inv_runes_contains["magikacia:rune_absolute_solver"] then
-        local base_pos = use_pos_above or use_pos_self
+        local base_pos = defs.use_pos_above or defs.use_pos_self
         if base_pos then
             for i = 0, -50, -5 do
                 local pos = vector.offset(base_pos, 0, i, 0)
@@ -843,7 +858,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     end
 
     if inv_runes_contains["magikacia:rune_protection"] then
-        local base_pos = use_pos_under or use_pos_self
+        local base_pos = defs.use_pos_under or defs.use_pos_self
         if base_pos then
             minetest.registered_chatcommands["area_pos2"].func(placer:get_player_name(), base_pos.x .. " " .. base_pos.y .. " " .. base_pos.z)
             magikacia.spawn_effect_anim({
@@ -851,7 +866,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                 texture = "effect_vortex_blue",
             })
             use_success = true
-            if base_pos == use_pos_under then
+            if base_pos == defs.use_pos_under then
                 use_at_place_under = true
             else
                 use_at_self = true
@@ -872,10 +887,10 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             --[[minetest.add_entity(pos, name, minetest.serialize({ owner=placer_name, }))]]
             meta:set_int("magikacia:rune_shield_active", 1)
         elseif meta:get_int("magikacia:rune_shield_active") == 1 then
-            magikacia.radius_effect_func(use_pos_self, 5, placer, function(obj)
+            magikacia.radius_effect_func(defs.use_pos_self, 5, placer, function(obj)
                 magikacia.deal_spell_damage(obj, 10 * cores_multipliers.damage, "shield_secondary", placer)
                 minetest.sound_play("mcl_block", { object = obj, max_hear_distance = 16, gain = 1, pitch = 0.5 }, true)
-                obj:add_velocity(vector.offset(vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), use_pos_self)), 10), 0, 20, 0))
+                obj:add_velocity(vector.offset(vector.multiply(vector.normalize(vector.subtract(obj:get_pos(), defs.use_pos_self)), 10), 0, 20, 0))
             end)
             meta:set_int("magikacia:rune_shield_active", 0)
         end
@@ -883,10 +898,10 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         use_at_self = true
     end
 
-    if use_pos_under and use_pos_above and inv_runes_contains["magikacia:rune_portal"] then
-        local out_dir = vector.subtract(use_pos_above, use_pos_under)
+    if defs.use_pos_under and defs.use_pos_above and inv_runes_contains["magikacia:rune_portal"] then
+        local out_dir = vector.subtract(defs.use_pos_above, defs.use_pos_under)
         local portal_def = {
-            pos = use_pos_above,
+            pos = defs.use_pos_above,
             out_dir = out_dir,
         }
         magikacia.effect_portal_add(placer_name, portal_def, "secondary")
@@ -894,13 +909,13 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
 
     if use_success then
         if use_at_self then
-            minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_self, max_hear_distance = 32, gain = 0.5 }, true)
+            minetest.sound_play("mcl_enchanting_enchant", { pos = defs.use_pos_self, max_hear_distance = 32, gain = 0.5 }, true)
         end
         if use_at_place_above then
-            minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_above, max_hear_distance = 32, gain = 0.5 }, true)
+            minetest.sound_play("mcl_enchanting_enchant", { pos = defs.use_pos_above, max_hear_distance = 32, gain = 0.5 }, true)
         end
         if use_at_place_under then
-            minetest.sound_play("mcl_enchanting_enchant", { pos = use_pos_under, max_hear_distance = 32, gain = 0.5 }, true)
+            minetest.sound_play("mcl_enchanting_enchant", { pos = defs.use_pos_under, max_hear_distance = 32, gain = 0.5 }, true)
         end
     end
 
