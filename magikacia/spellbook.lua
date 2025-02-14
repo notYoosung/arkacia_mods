@@ -67,25 +67,24 @@ end
     end
 
 ]]
-function magikaica.register_on_spellbook_use_primary(id, func)
+function magikacia.register_on_spellbook_use_primary(id, func)
     magikacia.registered_on_spellbook_use_primary[id] = func
 end
 
 
 --[[
-magikaica.register_on_spellbook_use_secondary
-    store functions to access & overwrite. called when spellbooks are right-clicked
+    magikaica.register_on_spellbook_use_secondary
+        store functions to access & overwrite. called when spellbooks are right-clicked
 
-id (string) : key to store callback
-func: (function) : callback function to access
-    args: defs (table) {
+    id (string) : key to store callback
+    func: (function) : callback function to access
+        args: defs (table) {
 
-    }
+        }
 ]]
-function magikaica.register_on_spellbook_use_secondary(id, func)
+function magikacia.register_on_spellbook_use_secondary(id, func)
     magikacia.registered_on_spellbook_use_secondary[id] = func
 end
-
 
 
 magikacia.inv = {
@@ -142,10 +141,10 @@ magikacia.inv = {
         if invmetastring ~= "" then
             magikacia.inv.table_to_inv(inv, minetest.deserialize(invmetastring))
 
-            itemstack, inv, user = magikacia.on_open_bag(itemstack, inv, user)
+            itemstack, inv, player = magikacia.on_open_bag(itemstack, inv, player)
             magikacia.inv.save_bag_inv_itemstack(inv, itemstack)
         end
-        return itemstack, inv, user
+        return itemstack, inv, player
     end,
     save_bag_inv_itemstack = function(inv, stack, listname)
         stack, inv = magikacia.on_change_bag_inv(stack, inv)
@@ -289,7 +288,7 @@ local function create_invname(itemstack)
     --[[local counter = mod_storage["counter"] or 0
     counter = counter + 1
     mod_storage["counter"] = counter]]
-    counter = magikacia.rand:next(0, 2147483647)
+    local counter = magikacia.rand:next(0, 2147483647)
     return itemstack:get_name() .. "_C_" .. counter
 end
 
@@ -935,7 +934,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
                 texture = "effect_vortex_blue",
             })
             defs.use_success = true
-            use_at_pos_above = true
+            defs.use_at_place_above = true
         end
     end
 
@@ -943,7 +942,7 @@ local function spellbook_use_primary(itemstack, placer, pointed_thing)
     if defs.inv_runes_contains["magikacia:rune_rope"] then
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_rope_primary_entity")(ItemStack("magikacia:throwable_attack_rope_primary", 64), placer, pointed_thing)
         defs.use_success = true
-        use_at_pos_above = true
+        defs.use_at_place_above = true
     end
 
     if defs.use_pos_under and defs.use_pos_above and defs.inv_runes_contains["magikacia:rune_portal"] then
@@ -1278,7 +1277,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             if base_pos == use_pos_under then
                 use_at_place_under = true
             else
-                use_at_place_self = true
+                use_at_self = true
             end
         end
     end
@@ -1304,7 +1303,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             meta:set_int("magikacia:rune_shield_active", 0)
         end
         use_success = true
-        use_at_place_self = true
+        use_at_self = true
     end
 
     if use_pos_under and use_pos_above and inv_runes_contains["magikacia:rune_portal"] then
@@ -1358,11 +1357,11 @@ function magikacia.register_bag(name, bagtable)
                 local nisformn = string.find(formname, name .. "_C_")
                 if nisformn == 1 then
                     if fields.quit then
-                        player, fields, name, formname, sound = magikacia.on_close_bag(player, fields, name, formname,
+                        player, fields, name, formname--[[, sound]] = magikacia.on_close_bag(player, fields, name, formname,
                             bagtable.sound_close)
-                        if bagtable.sound_close then
+                        --[[if bagtable.sound_close then
                             minetest.sound_play(sound, { gain = 0.8, object = player, max_hear_distance = 5 })
-                        end
+                        end]]
                     end
                 end
                 return
@@ -1484,9 +1483,10 @@ magikacia.register_on_player_receive_fields("magikacia_on_close_bag", function(p
     local nisformn = string.find(formname, "magikacia:bag_transporting_bag_C_")
     if nisformn == 1 then
         if fields.quit then
-            player, fields, name, formname, sound = magikacia.on_close_bag(player, fields, name, formname,
+            local name
+            player, fields, name, formname--[[, sound]] = magikacia.on_close_bag(player, fields, name, formname,
                 "magikacia_close_bag")
-            minetest.sound_play(sound, { gain = 0.8, object = player, max_hear_distance = 5 })
+            --[[minetest.sound_play(sound, { gain = 0.8, object = player, max_hear_distance = 5 })]]
         end
     end
 end)
