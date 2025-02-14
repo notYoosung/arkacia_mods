@@ -42,7 +42,7 @@ end
         defs.use_pos_above = pointed_obj:get_pos()
         defs.use_pos_under = vector.offset(defs.use_pos_above, 0, -1, 0)
     end
-    local use_success = false
+    local defs.use_success = false
     local use_at_place_above = false
     local use_at_place_under = false
     local use_at_self = false
@@ -658,7 +658,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             pos = defs.use_pos_self,
             texture = "effect_earth_secondary",
         })
-        use_success = true
+        defs.use_success = true
         use_at_self = true
     end
 
@@ -668,7 +668,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             pos = defs.use_pos_above,
             texture = "effect_vortex_blue",
         })
-        use_success = true
+        defs.use_success = true
         use_at_place_above = true
     end
 
@@ -676,13 +676,13 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         mcl_potions.fire_resistance_func(placer, nil, 10)
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_fire_secondary_entity")(
             ItemStack("magikacia:throwable_attack_fire_secondary", 64), placer, pointed_thing)
-        use_success = true
+        defs.use_success = true
     end
 
     if inv_runes_contains["magikacia:rune_ice"] then
         mcl_throwing.get_player_throw_function("magikacia:throwable_attack_ice_secondary_entity")(
             ItemStack("magikacia:throwable_attack_ice_secondary", 64), placer, pointed_thing)
-        use_success = true
+        defs.use_success = true
     end
 
     if inv_runes_contains["magikacia:rune_telepathic"] then
@@ -692,7 +692,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             pos = defs.use_pos_self,
             texture = "effect_vortex_blue",
         })
-        use_success = true
+        defs.use_success = true
         use_at_self = true
     end
 
@@ -724,7 +724,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             duration_anim = 0.5,
             size = 40,
         })
-        use_success = true
+        defs.use_success = true
         use_at_place_above = true
     end
     if defs.use_pos_self and inv_runes_contains["magikacia:rune_water"] then
@@ -751,12 +751,12 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                 texture = "effect_water_secondary",
                 attached = placer
             })
-            use_success = true
+            defs.use_success = true
             use_at_self = true
         else
             mcl_throwing.get_player_throw_function("magikacia:throwable_attack_water_secondary_entity")(
                 ItemStack("magikacia:throwable_attack_water_secondary", 64), placer, pointed_thing)
-            use_success = true
+            defs.use_success = true
         end
     end
 
@@ -773,7 +773,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             duration_total = 0.4,
             duration_anim = 0.4,
         })
-        use_success = true
+        defs.use_success = true
     end
 
     if entity_modifier and inv_runes_contains["magikacia:rune_disguise"] then
@@ -782,7 +782,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             pos = defs.use_pos_above or defs.use_pos_self,
             texture = "effect_vortex_blue",
         })
-        use_success = true
+        defs.use_success = true
         --[[use_at_place_above = true]]
     end
 
@@ -805,7 +805,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                     use_at_place_above = true
                 end
             end
-            use_success = true
+            defs.use_success = true
         else
             local vs = get_visual_size(placer) / 1.1
             if vs and vs >= 0.1 then
@@ -821,7 +821,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                     size = 15,
                 })
             end
-            use_success = true
+            defs.use_success = true
             use_at_self = true
         end
     end
@@ -849,7 +849,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                 texture = "effect_absolute_solver_secondary",
                 size = 30,
             })
-            use_success = true
+            defs.use_success = true
             use_at_place_above = true
         end
     end
@@ -865,7 +865,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                 pos = base_pos,
                 texture = "effect_vortex_blue",
             })
-            use_success = true
+            defs.use_success = true
             if base_pos == defs.use_pos_under then
                 use_at_place_under = true
             else
@@ -877,7 +877,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
     if inv_runes_contains["magikacia:rune_bubble"] then
         if magikacia_bubbles then
             magikacia_bubbles.bubble_blower_secondary(itemstack, placer, pointed_thing)
-            use_success = true
+            defs.use_success = true
             use_at_place_above = true
         end
     end
@@ -894,7 +894,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
             end)
             meta:set_int("magikacia:rune_shield_active", 0)
         end
-        use_success = true
+        defs.use_success = true
         use_at_self = true
     end
 
@@ -907,7 +907,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
         magikacia.effect_portal_add(placer_name, portal_def, "secondary")
     end
 
-    if use_success then
+    if defs.use_success then
         if use_at_self then
             minetest.sound_play("mcl_enchanting_enchant", { pos = defs.use_pos_self, max_hear_distance = 32, gain = 0.5 }, true)
         end
