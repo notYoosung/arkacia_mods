@@ -1231,7 +1231,7 @@ local spellbook_use_secondary = function(itemstack, placer, pointed_thing, bagta
                 })
             end
             use_success = true
-            use_at_place_self = true
+            use_at_self = true
         end
     end
 

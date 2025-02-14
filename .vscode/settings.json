@@ -17,5 +17,25 @@
         "magikacia_bubbles"
     ],
     "git.postCommitCommand": "sync",
-    "luahelper.format.column_limit": 1000000000
+    "luahelper.format.column_limit": 1000000000,
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#889fe7",
+        "activityBar.background": "#889fe7",
+        "activityBar.foreground": "#15202b",
+        "activityBar.inactiveForeground": "#15202b99",
+        "activityBarBadge.background": "#fae4ea",
+        "activityBarBadge.foreground": "#15202b",
+        "commandCenter.border": "#e7e7e799",
+        "sash.hoverBorder": "#889fe7",
+        "statusBar.background": "#5e7dde",
+        "statusBar.foreground": "#e7e7e7",
+        "statusBarItem.hoverBackground": "#889fe7",
+        "statusBarItem.remoteBackground": "#5e7dde",
+        "statusBarItem.remoteForeground": "#e7e7e7",
+        "titleBar.activeBackground": "#5e7dde",
+        "titleBar.activeForeground": "#e7e7e7",
+        "titleBar.inactiveBackground": "#5e7dde99",
+        "titleBar.inactiveForeground": "#e7e7e799"
+    },
+    "peacock.color": "#5e7dde"
 }
