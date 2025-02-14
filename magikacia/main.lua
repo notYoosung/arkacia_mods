@@ -1,3 +1,4 @@
+--#5e7dde
 magikacia = magikacia or {
     textures = {},
     registered_globalsteps = {},

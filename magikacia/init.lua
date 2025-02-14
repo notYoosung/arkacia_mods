@@ -43,6 +43,7 @@ minetest.register_on_mods_loaded(function()
 		"magikacia",
 		"magikacia_explosions",
 		"spellbook_funcs",
+		"spellbook_use_register",
 		"spellbook",
 		"nodes",
 		"statue_stone",
