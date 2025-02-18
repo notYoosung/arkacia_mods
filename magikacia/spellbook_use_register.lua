@@ -1,10 +1,30 @@
-local effect_name
+--[[
+effect_name = "(.+?)"\n(\n.+_name((.*\n*)*?)end\)){2}
+register_on_use_pair($1,\n$2\n)\n\n
+\n\nmagikacia.register_on_spellbook_use_secondary.+_name, ((.*\n*)*?)end\)\n?\n\n
+\nend,\n$1end)\n\n\n
+]]
+
+--[[
+    defs (table): definitions of user and environment
+
+    return defs
+]]
+local function register_on_use_pair("effect_name", primary_func, secondary_func)
+    if primary_func then
+        magikacia.register_on_spellbook_use_primary(effect_name, primary_func)
+    end
+    if secondary_func then
+        magikacia.register_on_spellbook_use_secondary(effect_name, secondary_func)
+    end
+end
 
 
 
-effect_name = "earth"
 
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+
+register_on_use_pair("earth",
+function(defs)
     for i = 1, 5 do
         local pos = vector.add(vector.offset(defs.use_pos_self, 0, defs.placer_eye_height * 0.7, 0),
             vector.multiply(defs.placer_look_dir, i))
@@ -23,54 +43,51 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
     defs.use_success = true
     defs.use_at_self = true
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
-
-effect_name = "electric"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
-    if defs.use_pos_above then
-        local electric_primary_success = false
-        magikacia.radius_effect_func(defs.use_pos_above, 3.5, placer, function(obj)
-            if magikacia.tase(placer, obj) then
-                electric_primary_success = true
+register_on_use_pair("electric",
+    function(defs)
+        if defs.use_pos_above then
+            local electric_primary_success = false
+            magikacia.radius_effect_func(defs.use_pos_above, 3.5, placer, function(obj)
+                if magikacia.tase(placer, obj) then
+                    electric_primary_success = true
+                end
+            end)
+            if electric_primary_success then
+                defs.use_success = true
+                defs.use_at_place_above = true
             end
-        end)
-        if electric_primary_success then
-            defs.use_success = true
-            defs.use_at_place_above = true
+            local spd = 3 / 0.25
+            magikacia.spawn_effect_anim_spawner({
+                time = 0.01,
+                pos = defs.use_pos_above,
+                amount = 50,
+                minsize = 1,
+                maxsize = 5,
+                minexptime = 0.0,
+                maxexptime = 0.25,
+                minvel = { x = -spd, y = -spd, z = -spd },
+                maxvel = { x = spd, y = spd, z = spd },
+                minacc = { x = 0, y = 0, z = 0 },
+                maxacc = { x = 0, y = 0, z = 0 },
+                texture = "effect_electric_primary",
+            })
         end
-        local spd = 3 / 0.25
-        magikacia.spawn_effect_anim_spawner({
-            time = 0.01,
-            pos = defs.use_pos_above,
-            amount = 50,
-            minsize = 1,
-            maxsize = 5,
-            minexptime = 0.0,
-            maxexptime = 0.25,
-            minvel = { x = -spd, y = -spd, z = -spd },
-            maxvel = { x = spd, y = spd, z = spd },
-            minacc = { x = 0, y = 0, z = 0 },
-            maxacc = { x = 0, y = 0, z = 0 },
-            texture = "effect_electric_primary",
-        })
+        return defs
+    end,
+    function(defs)
+        return defs
     end
-    return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
-    return defs
-end)
+)
 
 
-effect_name = "fire"
 
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("fire",
+function(defs)
     if defs.use_pos_above then
         for _, k in ipairs(around_plus_pos_list) do
             magikacia.safe_replace({ x = defs.use_pos_above.x + k[1], y = defs.use_pos_above.y, z = defs.use_pos_above.z + k[2] },
@@ -86,16 +103,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_above = true
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "ice"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("ice",
+function(defs)
     if defs.use_pos_above then
         magikacia.radius_effect_func(defs.use_pos_above, 3, placer, function(obj)
             mcl_potions.swiftness_func(obj, -1, 3 * defs.cores_multipliers.physical_effect)
@@ -109,16 +124,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_above = true
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "telepathic"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("telepathic",
+function(defs)
     if defs.use_pos_above then
         if defs.is_placer_sneaking then
             if defs.pointed_obj then
@@ -147,16 +160,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_above = true
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "void"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("void",
+function(defs)
     if defs.use_pos_above then
         magikacia.radius_effect_func(defs.use_pos_above, 2, placer, function(obj)
             magikacia.deal_spell_damage(obj, 20 * defs.cores_multipliers.damage, "void_primary", placer)
@@ -171,16 +182,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_above = true
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "water"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("water",
+function(defs)
     if defs.use_pos_above then
         magikacia.radius_effect_func(defs.use_pos_above, 3, placer, function(obj)
             if not (obj:is_player() and obj:get_player_name() == placer:get_player_name()) then
@@ -206,16 +215,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_above = true
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "wind"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("wind",
+function(defs)
     if defs.use_pos_above then
         if not defs.is_placer_sneaking then
             magikacia.radius_effect_func(defs.use_pos_above, 8, placer, function(obj)
@@ -274,16 +281,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_above = true
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "disguise"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("disguise",
+function(defs)
     if entity_modifier and defs.use_pos_above then
         entity_modifier.disguise_tool_primary(itemstack, placer, pointed_thing)
         magikacia.spawn_effect_anim({
@@ -294,16 +299,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_above = true
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "resize"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("resize",
+function(defs)
     if entity_modifier and defs.use_pos_above then
         if defs.pointed_obj then
             local vs = get_visual_size(defs.pointed_obj) * 1 + 0.1 * defs.cores_multipliers.physical_effect
@@ -343,16 +346,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
             defs.use_at_self = true
         end    end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "poison"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("poison",
+function(defs)
     if defs.use_pos_above then
         magikacia.radius_effect_func(defs.use_pos_above, 3, placer, function(obj, obj_is_player)
             if obj_is_player then
@@ -364,16 +365,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_above = true
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "healing"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("healing",
+function(defs)
     if defs.use_pos_above then
         magikacia.radius_effect_func(defs.use_pos_above, 3, placer, function(obj)
             mcl_potions.regeneration_func(obj, 1, 3 * defs.cores_multipliers.physical_effect)
@@ -387,16 +386,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_above = true
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "summoning"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("summoning",
+function(defs)
     local safe_use_pos = defs.use_pos_above or defs.use_pos_self
     if safe_use_pos then
         local ent = minetest.add_entity(safe_use_pos, ":magikacia:adminite", minetest.serialize({
@@ -411,29 +408,25 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_above = true
     end
 return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "shield"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("shield",
+function(defs)
     if defs.use_pos_above then
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "absolute_aolver"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("absolute_aolver",
+function(defs)
     local pdata = magikacia.players[defs.placer_name]
     pdata.effect_absolute_solver_primary_captured_list = pdata.effect_absolute_solver_primary_captured_list or {}
     if defs.is_placer_sneaking or #pdata.effect_absolute_solver_primary_captured_list > 0 then
@@ -451,16 +444,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
     defs.use_success = true
     defs.use_at_place_above = true
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "nature"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("nature",
+function(defs)
     if defs.use_pos_above then
         for i = 5, 5 * defs.cores_multipliers.physical_effect, 5 do
             for ii = 0, math.pi * 2 - 0.01, math.pi / 3 do
@@ -477,16 +468,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_above = true
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "bubble"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("bubble",
+function(defs)
     local add_vel = vector.multiply(placer:get_look_dir(), 20 * defs.cores_multipliers.physical_effect)
     local _bubble_itemstack
     local bubble_use_pos
@@ -504,30 +493,26 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_above = true
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "rope"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("rope",
+function(defs)
     mcl_throwing.get_player_throw_function("magikacia:throwable_attack_rope_primary_entity")(ItemStack("magikacia:throwable_attack_rope_primary", 64), placer, pointed_thing)
     defs.use_success = true
     defs.use_at_place_above = true
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "portal"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("portal",
+function(defs)
     if defs.use_pos_under and defs.use_pos_above then
         local out_dir = vector.subtract(defs.use_pos_above, defs.use_pos_under)
         local portal_def = {
@@ -537,16 +522,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         magikacia.effect_portal_add(defs.placer_name, portal_def, "primary")
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "shadow"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("shadow",
+function(defs)
     local pdata = magikacia.players[defs.placer_name]
     if not pdata.effect_shadow_primary_captured_list or #pdata.effect_shadow_primary_captured_list == 0 then
         local look_dir = placer:get_look_dir()
@@ -599,16 +582,14 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         end
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
 
-effect_name = "protection"
-
-magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
+register_on_use_pair("protection",
+function(defs)
     local safe_use_pos = defs.use_pos_under or defs.use_pos_self
     if safe_use_pos then
         minetest.registered_chatcommands["area_pos1"].func(placer:get_player_name(), safe_use_pos.x .. " " .. safe_use_pos.y .. " " .. safe_use_pos.z)
@@ -616,9 +597,8 @@ magikacia.register_on_spellbook_use_primary(effect_name, function(defs)
         defs.use_at_place_under = true
     end
     return defs
-end)
-
-magikacia.register_on_spellbook_use_secondary(effect_name, function(defs)
+end,
+function(defs)
     return defs
 end)
 
